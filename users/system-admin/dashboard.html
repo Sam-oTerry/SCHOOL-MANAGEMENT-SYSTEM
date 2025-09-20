@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Administrator Dashboard - School Management System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/main.css">
@@ -468,15 +469,98 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Check authentication and role
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in, check their role
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const userRole = userData.role;
+                        
+                        // Check if user has system_admin role
+                        if (userRole === 'system_admin') {
+                            console.log('✅ System Administrator authenticated:', user.email);
+                            // Update UI with user info
+                            updateUserInfo(user, userData);
+                        } else {
+                            console.log('❌ Access denied. Required role: system_admin, User role:', userRole);
+                            alert('Access denied. You do not have system administrator privileges.');
+                            auth.signOut().then(() => {
+                                window.location.href = '../../index.html';
+                            });
+                        }
+                    } else {
+                        console.log('❌ User document not found');
+                        auth.signOut().then(() => {
+                            window.location.href = '../../index.html';
+                        });
+                    }
+                });
+            } else {
+                // User is signed out, redirect to login
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+            }
+        });
+        
+        function updateUserInfo(user, userData) {
+            // Update the user info in the header
+            const userInfoElements = document.querySelectorAll('.user-info');
+            userInfoElements.forEach(element => {
+                element.textContent = userData.personalInfo?.fullName || user.displayName || user.email;
+            });
+            
+            // Update role display
+            const roleElements = document.querySelectorAll('.user-role');
+            roleElements.forEach(element => {
+                element.textContent = 'System Administrator';
+            });
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                // Force redirect even if logout fails
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make logout function globally available
+        window.logout = logout;
+    </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/system-admin.js"></script>
     <script>
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
-            }
-        }
+        // Additional dashboard functionality can be added here
+        console.log('System Administrator Dashboard loaded');
     </script>
 </body>
 </html>

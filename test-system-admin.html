@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test System Administrator Access</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a2a6c;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        button {
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2a5298;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 System Administrator Access Test</h1>
+        
+        <div class="test-section">
+            <h3>Test Credentials</h3>
+            <p><strong>Email:</strong> admin@adss.edu</p>
+            <p><strong>Password:</strong> admin123</p>
+            <p><strong>Role:</strong> system_admin</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test Steps</h3>
+            <ol>
+                <li>Click "Test System Admin Login" below</li>
+                <li>You should be redirected to the login page</li>
+                <li>Enter the credentials above</li>
+                <li>You should be redirected to the System Administrator Dashboard</li>
+                <li>The dashboard should show your role and user info</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h3>Expected Results</h3>
+            <ul>
+                <li>✅ Successful login with system_admin role</li>
+                <li>✅ Redirect to System Administrator Dashboard</li>
+                <li>✅ Dashboard shows user information</li>
+                <li>✅ Role-based access control working</li>
+                <li>✅ Logout functionality working</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="testSystemAdminLogin()">Test System Admin Login</button>
+            <button onclick="window.location.href='setup-users.html'">Setup Users First</button>
+            <button onclick="window.location.href='index.html'">Go to Login Page</button>
+        </div>
+        
+        <div id="test-results" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function testSystemAdminLogin() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="test-section"><h3>Test Results</h3><p>Redirecting to login page...</p></div>';
+            
+            // Redirect to login page
+            window.location.href = 'index.html';
+        }
+        
+        // Check if we're coming from a successful login
+        if (window.location.search.includes('success=system_admin')) {
+            document.getElementById('test-results').innerHTML = 
+                '<div class="test-section"><h3 class="success">✅ Test Successful!</h3><p>System Administrator access is working correctly.</p></div>';
+        }
+    </script>
+</body>
+</html>
