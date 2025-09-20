@@ -459,16 +459,16 @@
                     
                     // Redirect to appropriate dashboard
                     const dashboardMap = {
-                        'head_teacher': 'users/head-teacher/dashboard.html',
-                        'system_admin': 'users/system-admin/dashboard.html',
-                        'dos': 'users/dos/dashboard.html',
-                        'bursar': 'users/bursar/dashboard.html',
-                        'class_teacher': 'users/class-teacher/dashboard.html',
-                        'subject_teacher': 'users/subject-teacher/dashboard.html',
-                        'hod': 'users/hod/dashboard.html'
+                        'head_teacher': './users/head-teacher/dashboard.html',
+                        'system_admin': './users/system-admin/dashboard.html',
+                        'dos': './users/dos/dashboard.html',
+                        'bursar': './users/bursar/dashboard.html',
+                        'class_teacher': './users/class-teacher/dashboard.html',
+                        'subject_teacher': './users/subject-teacher/dashboard.html',
+                        'hod': './users/hod/dashboard.html'
                     };
                     
-                    const dashboard = dashboardMap[userRole] || 'users/head-teacher/dashboard.html';
+                    const dashboard = dashboardMap[userRole] || './users/head-teacher/dashboard.html';
                     console.log('🚀 Redirecting to:', dashboard);
                     window.location.href = dashboard;
                 } else {
@@ -491,12 +491,12 @@
             try {
                 await window.authService.signOut();
                 sessionStorage.clear();
-                window.location.href = '/index.html';
+                window.location.href = './index.html';
             } catch (error) {
                 console.error('Logout error:', error);
                 // Force logout even if Firebase logout fails
                 sessionStorage.clear();
-                window.location.href = '/index.html';
+                window.location.href = './index.html';
             }
         }
         
@@ -525,13 +525,13 @@
                         console.log('✅ User already authenticated, redirecting...');
                         // User is already logged in, redirect to dashboard
                         const dashboardMap = {
-                            'head_teacher': 'users/head-teacher/dashboard.html',
-                            'system_admin': 'users/system-admin/dashboard.html',
-                            'dos': 'users/dos/dashboard.html',
-                            'bursar': 'users/bursar/dashboard.html',
-                            'class_teacher': 'users/class-teacher/dashboard.html',
-                            'subject_teacher': 'users/subject-teacher/dashboard.html',
-                            'hod': 'users/hod/dashboard.html'
+                            'head_teacher': './users/head-teacher/dashboard.html',
+                            'system_admin': './users/system-admin/dashboard.html',
+                            'dos': './users/dos/dashboard.html',
+                            'bursar': './users/bursar/dashboard.html',
+                            'class_teacher': './users/class-teacher/dashboard.html',
+                            'subject_teacher': './users/subject-teacher/dashboard.html',
+                            'hod': './users/hod/dashboard.html'
                         };
                         
                         const dashboard = dashboardMap[userRole];

@@ -114,7 +114,7 @@ class AuthService {
     } else {
       console.log('User signed out');
       // Redirect to login page
-      window.location.href = '/index.html';
+      window.location.href = './index.html';
     }
   }
 
@@ -122,13 +122,13 @@ class AuthService {
   redirectToDashboard() {
     const role = this.getUserRole();
     const dashboardMap = {
-      'head_teacher': '/users/head-teacher/dashboard.html',
-      'system_admin': '/users/system-admin/dashboard.html',
-      'dos': '/users/dos/dashboard.html',
-      'bursar': '/users/bursar/dashboard.html',
-      'class_teacher': '/users/class-teacher/dashboard.html',
-      'subject_teacher': '/users/subject-teacher/dashboard.html',
-      'hod': '/users/hod/dashboard.html'
+      'head_teacher': './users/head-teacher/dashboard.html',
+      'system_admin': './users/system-admin/dashboard.html',
+      'dos': './users/dos/dashboard.html',
+      'bursar': './users/bursar/dashboard.html',
+      'class_teacher': './users/class-teacher/dashboard.html',
+      'subject_teacher': './users/subject-teacher/dashboard.html',
+      'hod': './users/hod/dashboard.html'
     };
     
     const dashboard = dashboardMap[role];
