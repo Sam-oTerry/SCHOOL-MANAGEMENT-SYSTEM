@@ -508,45 +508,8 @@
             login();
         });
         
-        // Check if user is already logged in
-        window.addEventListener('load', function() {
-            console.log('🔄 Checking authentication state...');
-            
-            // Wait for Firebase services to load
-            setTimeout(() => {
-                if (window.authService) {
-                    const currentUser = window.authService.getCurrentUser();
-                    const userRole = window.authService.getUserRole();
-                    
-                    console.log('👤 Current User:', currentUser);
-                    console.log('🎭 User Role:', userRole);
-                    
-                    if (currentUser && userRole) {
-                        console.log('✅ User already authenticated, redirecting...');
-                        // User is already logged in, redirect to dashboard
-                        const dashboardMap = {
-                            'head_teacher': './users/head-teacher/dashboard.html',
-                            'system_admin': './users/system-admin/dashboard.html',
-                            'dos': './users/dos/dashboard.html',
-                            'bursar': './users/bursar/dashboard.html',
-                            'class_teacher': './users/class-teacher/dashboard.html',
-                            'subject_teacher': './users/subject-teacher/dashboard.html',
-                            'hod': './users/hod/dashboard.html'
-                        };
-                        
-                        const dashboard = dashboardMap[userRole];
-                        if (dashboard) {
-                            console.log('🚀 Redirecting to:', dashboard);
-                            window.location.href = dashboard;
-                        }
-                    } else {
-                        console.log('❌ No authenticated user found');
-                    }
-                } else {
-                    console.log('⚠️ Firebase services not yet loaded');
-                }
-            }, 2000); // Wait 2 seconds for Firebase to initialize
-        });
+        // Authentication check disabled - users can access login page freely
+        console.log('🔓 Login page loaded - authentication check disabled');
     </script>
 </body>
 </html>
