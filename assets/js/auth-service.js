@@ -5,6 +5,7 @@ class AuthService {
   constructor() {
     this.currentUser = null;
     this.userRole = null;
+    this.isLoggingOut = false;
     this.setupAuthListener();
   }
 
@@ -78,7 +79,10 @@ class AuthService {
   // Sign out
   async signOut() {
     try {
+      this.isLoggingOut = true;
       await firebase.auth().signOut();
+      this.currentUser = null;
+      this.userRole = null;
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -109,12 +113,14 @@ class AuthService {
   onAuthStateChange(user) {
     if (user) {
       console.log('User signed in:', user.email);
-      // Redirect to appropriate dashboard based on role
-      this.redirectToDashboard();
+      this.isLoggingOut = false;
+      // Don't automatically redirect - let the login function handle it
     } else {
       console.log('User signed out');
-      // Redirect to login page
-      window.location.href = './index.html';
+      // Only redirect if we're not in the middle of a logout process
+      if (!this.isLoggingOut) {
+        // Don't automatically redirect - let the logout function handle it
+      }
     }
   }
 
