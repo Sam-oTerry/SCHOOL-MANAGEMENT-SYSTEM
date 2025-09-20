@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Portal - Adilang Secondary School</title>
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
@@ -351,7 +351,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     
     <script>
         // Firebase configuration
@@ -361,8 +360,7 @@
             projectId: "ass-sms",
             storageBucket: "ass-sms.firebasestorage.app",
             messagingSenderId: "515388722489",
-            appId: "1:515388722489:web:21169f130303f48aaa2ce8",
-            measurementId: "G-2FVKDJWK5E"
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
         };
 
         // Initialize Firebase
@@ -374,18 +372,18 @@
         const storage = firebase.storage();
         const functions = firebase.functions();
         
-        // Initialize Analytics
+        // Initialize Analytics (disabled for local development)
         let analytics = null;
-        if (firebase.analytics) {
-            analytics = firebase.analytics();
-        }
+        // Analytics disabled to avoid domain/cookie issues in local development
+        // if (firebase.analytics) {
+        //     analytics = firebase.analytics();
+        // }
         
         console.log('🔥 Firebase services initialized');
         console.log('✅ Auth:', auth);
         console.log('✅ Database:', db);
         console.log('✅ Storage:', storage);
         console.log('✅ Functions:', functions);
-        console.log('✅ Analytics:', analytics);
         
         // Function to load services
         function loadAuthService() {
