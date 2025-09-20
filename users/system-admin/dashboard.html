@@ -258,7 +258,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span>User Account Management</span>
-                                <button class="btn btn-sm btn-primary">Add User</button>
+                                <button class="btn btn-sm btn-primary" onclick="createUserAccount()">Add User</button>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -389,7 +389,7 @@
                             <div class="card-header">Quick Actions</div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
-                                    <button class="btn btn-primary mb-2">
+                                    <button class="btn btn-primary mb-2" onclick="createUserAccount()">
                                         <i class="fas fa-user-plus"></i> Create Account
                                     </button>
                                     <button class="btn btn-outline-primary mb-2">
@@ -429,7 +429,7 @@
                                     <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" checked>
                                     <label class="form-check-label" for="flexSwitchCheckDefault">Allow Grade Entry</label>
                                 </div>
-                                <button class="btn btn-primary">Save Settings</button>
+                                <button class="btn btn-primary" onclick="saveSystemSettings()">Save Settings</button>
                             </div>
                         </div>
                     </div>
@@ -490,6 +490,15 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         
+        // Global variables
+        let currentUser = null;
+        let systemStats = {
+            totalStudents: 0,
+            totalStaff: 0,
+            totalClasses: 0,
+            totalDepartments: 0
+        };
+        
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -502,8 +511,11 @@
                         // Check if user has system_admin role
                         if (userRole === 'system_admin') {
                             console.log('✅ System Administrator authenticated:', user.email);
+                            currentUser = user;
                             // Update UI with user info
                             updateUserInfo(user, userData);
+                            // Load dashboard data
+                            loadDashboardData();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin, User role:', userRole);
                             alert('Access denied. You do not have system administrator privileges.');
@@ -527,16 +539,244 @@
         
         function updateUserInfo(user, userData) {
             // Update the user info in the header
-            const userInfoElements = document.querySelectorAll('.user-info');
-            userInfoElements.forEach(element => {
-                element.textContent = userData.personalInfo?.fullName || user.displayName || user.email;
-            });
+            const userInfoElement = document.getElementById('current-user');
+            if (userInfoElement) {
+                userInfoElement.textContent = userData.personalInfo?.fullName || user.displayName || user.email;
+            }
+        }
+        
+        // Load dashboard data from Firebase
+        async function loadDashboardData() {
+            try {
+                // Load system statistics
+                await loadSystemStats();
+                
+                // Load user accounts
+                await loadUserAccounts();
+                
+                // Load system settings
+                await loadSystemSettings();
+                
+                console.log('✅ Dashboard data loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+            }
+        }
+        
+        // Load system statistics
+        async function loadSystemStats() {
+            try {
+                // Get student count
+                const studentsSnapshot = await db.collection('students').get();
+                systemStats.totalStudents = studentsSnapshot.size;
+                
+                // Get staff count
+                const staffSnapshot = await db.collection('users').where('role', 'in', ['head_teacher', 'class_teacher', 'subject_teacher', 'bursar', 'dos', 'hod']).get();
+                systemStats.totalStaff = staffSnapshot.size;
+                
+                // Get classes count (assuming classes are stored in a collection)
+                const classesSnapshot = await db.collection('classes').get();
+                systemStats.totalClasses = classesSnapshot.size;
+                
+                // Get departments count
+                const departmentsSnapshot = await db.collection('departments').get();
+                systemStats.totalDepartments = departmentsSnapshot.size;
+                
+                // Update UI
+                updateSystemStats();
+                
+            } catch (error) {
+                console.error('Error loading system stats:', error);
+                // Set default values if collections don't exist
+                systemStats = {
+                    totalStudents: 0,
+                    totalStaff: 0,
+                    totalClasses: 0,
+                    totalDepartments: 0
+                };
+                updateSystemStats();
+            }
+        }
+        
+        // Update system statistics in UI
+        function updateSystemStats() {
+            const statsElements = document.querySelectorAll('.stat-card .number');
+            if (statsElements.length >= 4) {
+                statsElements[0].textContent = systemStats.totalStudents.toLocaleString();
+                statsElements[1].textContent = systemStats.totalStaff.toLocaleString();
+                statsElements[2].textContent = systemStats.totalClasses.toLocaleString();
+                statsElements[3].textContent = systemStats.totalDepartments.toLocaleString();
+            }
+        }
+        
+        // Load user accounts
+        async function loadUserAccounts() {
+            try {
+                const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').limit(10).get();
+                const usersTableBody = document.querySelector('.table tbody');
+                
+                if (usersTableBody) {
+                    usersTableBody.innerHTML = '';
+                    
+                    usersSnapshot.forEach(doc => {
+                        const userData = doc.data();
+                        const userRow = createUserRow(doc.id, userData);
+                        usersTableBody.appendChild(userRow);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading user accounts:', error);
+            }
+        }
+        
+        // Create user row for table
+        function createUserRow(userId, userData) {
+            const row = document.createElement('tr');
+            const fullName = userData.personalInfo?.fullName || 'Unknown';
+            const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+            const lastLogin = userData.lastLogin ? new Date(userData.lastLogin.seconds * 1000).toLocaleString() : 'Never';
             
-            // Update role display
-            const roleElements = document.querySelectorAll('.user-role');
-            roleElements.forEach(element => {
-                element.textContent = 'System Administrator';
-            });
+            row.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar me-2">${initials}</div>
+                        <div>
+                            <strong>${userData.email}</strong><br>
+                            <small class="text-muted">${userData.role}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>${fullName}</td>
+                <td>${userData.role.replace('_', ' ').toUpperCase()}</td>
+                <td>${lastLogin}</td>
+                <td><span class="badge bg-success">Active</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editUser('${userId}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${userId}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        // Load system settings
+        async function loadSystemSettings() {
+            try {
+                const settingsDoc = await db.collection('system_settings').doc('current').get();
+                if (settingsDoc.exists) {
+                    const settings = settingsDoc.data();
+                    
+                    // Update academic year
+                    const academicYearInput = document.querySelector('input[value="2023"]');
+                    if (academicYearInput && settings.academicYear) {
+                        academicYearInput.value = settings.academicYear;
+                    }
+                    
+                    // Update term
+                    const termSelect = document.querySelector('select');
+                    if (termSelect && settings.currentTerm) {
+                        termSelect.value = settings.currentTerm;
+                    }
+                    
+                    // Update grade entry setting
+                    const gradeEntrySwitch = document.getElementById('flexSwitchCheckDefault');
+                    if (gradeEntrySwitch) {
+                        gradeEntrySwitch.checked = settings.allowGradeEntry || false;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading system settings:', error);
+            }
+        }
+        
+        // Save system settings
+        async function saveSystemSettings() {
+            try {
+                const academicYear = document.querySelector('input[value="2023"]').value;
+                const currentTerm = document.querySelector('select').value;
+                const allowGradeEntry = document.getElementById('flexSwitchCheckDefault').checked;
+                
+                await db.collection('system_settings').doc('current').set({
+                    academicYear: academicYear,
+                    currentTerm: currentTerm,
+                    allowGradeEntry: allowGradeEntry,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                });
+                
+                alert('System settings saved successfully!');
+            } catch (error) {
+                console.error('Error saving system settings:', error);
+                alert('Error saving settings. Please try again.');
+            }
+        }
+        
+        // Create new user account
+        async function createUserAccount() {
+            const email = prompt('Enter user email:');
+            const password = prompt('Enter temporary password:');
+            const fullName = prompt('Enter full name:');
+            const role = prompt('Enter role (system_admin, head_teacher, class_teacher, subject_teacher, bursar, dos, hod):');
+            
+            if (email && password && fullName && role) {
+                try {
+                    // Create user in Firebase Auth
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
+                    // Update user profile
+                    await user.updateProfile({
+                        displayName: fullName
+                    });
+                    
+                    // Create user document in Firestore
+                    await db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        email: email,
+                        role: role,
+                        personalInfo: {
+                            fullName: fullName,
+                            email: email,
+                            phone: '',
+                            address: ''
+                        },
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid
+                    });
+                    
+                    alert('User account created successfully!');
+                    loadUserAccounts(); // Refresh the user list
+                } catch (error) {
+                    console.error('Error creating user:', error);
+                    alert('Error creating user account: ' + error.message);
+                }
+            }
+        }
+        
+        // Edit user
+        function editUser(userId) {
+            alert('Edit user functionality will be implemented in the user management page.');
+        }
+        
+        // Delete user
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                try {
+                    // Delete user document from Firestore
+                    await db.collection('users').doc(userId).delete();
+                    
+                    alert('User deleted successfully!');
+                    loadUserAccounts(); // Refresh the user list
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Error deleting user: ' + error.message);
+                }
+            }
         }
         
         // Logout function
@@ -551,8 +791,12 @@
             });
         }
         
-        // Make logout function globally available
+        // Make functions globally available
         window.logout = logout;
+        window.createUserAccount = createUserAccount;
+        window.saveSystemSettings = saveSystemSettings;
+        window.editUser = editUser;
+        window.deleteUser = deleteUser;
     </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

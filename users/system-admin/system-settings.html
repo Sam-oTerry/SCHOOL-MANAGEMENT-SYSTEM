@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Settings - System Administrator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
@@ -521,6 +522,347 @@
             // Show general settings by default
             showSettings('general');
         });
+    </script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentUser = null;
+        let systemSettings = {};
+        
+        // Check authentication and role
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const userRole = userData.role;
+                        
+                        if (userRole === 'system_admin') {
+                            console.log('✅ System Administrator authenticated:', user.email);
+                            currentUser = user;
+                            loadSystemSettings();
+                        } else {
+                            console.log('❌ Access denied. Required role: system_admin');
+                            alert('Access denied. You do not have system administrator privileges.');
+                            auth.signOut().then(() => {
+                                window.location.href = '../../index.html';
+                            });
+                        }
+                    } else {
+                        console.log('❌ User document not found');
+                        auth.signOut().then(() => {
+                            window.location.href = '../../index.html';
+                        });
+                    }
+                });
+            } else {
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+            }
+        });
+        
+        // Load system settings from Firebase
+        async function loadSystemSettings() {
+            try {
+                const settingsDoc = await db.collection('system_settings').doc('current').get();
+                if (settingsDoc.exists) {
+                    systemSettings = settingsDoc.data();
+                    populateSettingsForm();
+                } else {
+                    // Create default settings if they don't exist
+                    await createDefaultSettings();
+                }
+                
+                console.log('✅ System settings loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading system settings:', error);
+                showError('Failed to load system settings. Please try again.');
+            }
+        }
+        
+        // Create default system settings
+        async function createDefaultSettings() {
+            const defaultSettings = {
+                academicYear: '2024',
+                currentTerm: 'First Term',
+                allowGradeEntry: true,
+                allowStudentRegistration: true,
+                allowFeePayment: true,
+                systemMaintenance: false,
+                emailNotifications: true,
+                smsNotifications: false,
+                backupFrequency: 'daily',
+                sessionTimeout: 30,
+                maxLoginAttempts: 5,
+                passwordPolicy: {
+                    minLength: 8,
+                    requireUppercase: true,
+                    requireLowercase: true,
+                    requireNumbers: true,
+                    requireSpecialChars: true
+                },
+                schoolInfo: {
+                    name: 'Adilang Secondary School',
+                    address: 'Agago District, Uganda',
+                    phone: '',
+                    email: '',
+                    website: '',
+                    established: '1990'
+                },
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: currentUser.uid
+            };
+            
+            await db.collection('system_settings').doc('current').set(defaultSettings);
+            systemSettings = defaultSettings;
+            populateSettingsForm();
+        }
+        
+        // Populate settings form with loaded data
+        function populateSettingsForm() {
+            // Academic settings
+            const academicYearInput = document.getElementById('academicYear');
+            if (academicYearInput) academicYearInput.value = systemSettings.academicYear || '2024';
+            
+            const currentTermSelect = document.getElementById('currentTerm');
+            if (currentTermSelect) currentTermSelect.value = systemSettings.currentTerm || 'First Term';
+            
+            // Feature toggles
+            const gradeEntryToggle = document.getElementById('allowGradeEntry');
+            if (gradeEntryToggle) gradeEntryToggle.checked = systemSettings.allowGradeEntry || false;
+            
+            const studentRegToggle = document.getElementById('allowStudentRegistration');
+            if (studentRegToggle) studentRegToggle.checked = systemSettings.allowStudentRegistration || false;
+            
+            const feePaymentToggle = document.getElementById('allowFeePayment');
+            if (feePaymentToggle) feePaymentToggle.checked = systemSettings.allowFeePayment || false;
+            
+            const maintenanceToggle = document.getElementById('systemMaintenance');
+            if (maintenanceToggle) maintenanceToggle.checked = systemSettings.systemMaintenance || false;
+            
+            // Notification settings
+            const emailToggle = document.getElementById('emailNotifications');
+            if (emailToggle) emailToggle.checked = systemSettings.emailNotifications || false;
+            
+            const smsToggle = document.getElementById('smsNotifications');
+            if (smsToggle) smsToggle.checked = systemSettings.smsNotifications || false;
+            
+            // System settings
+            const backupSelect = document.getElementById('backupFrequency');
+            if (backupSelect) backupSelect.value = systemSettings.backupFrequency || 'daily';
+            
+            const sessionTimeoutInput = document.getElementById('sessionTimeout');
+            if (sessionTimeoutInput) sessionTimeoutInput.value = systemSettings.sessionTimeout || 30;
+            
+            const maxLoginInput = document.getElementById('maxLoginAttempts');
+            if (maxLoginInput) maxLoginInput.value = systemSettings.maxLoginAttempts || 5;
+            
+            // Password policy
+            const minLengthInput = document.getElementById('passwordMinLength');
+            if (minLengthInput) minLengthInput.value = systemSettings.passwordPolicy?.minLength || 8;
+            
+            const requireUppercaseToggle = document.getElementById('requireUppercase');
+            if (requireUppercaseToggle) requireUppercaseToggle.checked = systemSettings.passwordPolicy?.requireUppercase || false;
+            
+            const requireLowercaseToggle = document.getElementById('requireLowercase');
+            if (requireLowercaseToggle) requireLowercaseToggle.checked = systemSettings.passwordPolicy?.requireLowercase || false;
+            
+            const requireNumbersToggle = document.getElementById('requireNumbers');
+            if (requireNumbersToggle) requireNumbersToggle.checked = systemSettings.passwordPolicy?.requireNumbers || false;
+            
+            const requireSpecialCharsToggle = document.getElementById('requireSpecialChars');
+            if (requireSpecialCharsToggle) requireSpecialCharsToggle.checked = systemSettings.passwordPolicy?.requireSpecialChars || false;
+            
+            // School information
+            const schoolNameInput = document.getElementById('schoolName');
+            if (schoolNameInput) schoolNameInput.value = systemSettings.schoolInfo?.name || '';
+            
+            const schoolAddressInput = document.getElementById('schoolAddress');
+            if (schoolAddressInput) schoolAddressInput.value = systemSettings.schoolInfo?.address || '';
+            
+            const schoolPhoneInput = document.getElementById('schoolPhone');
+            if (schoolPhoneInput) schoolPhoneInput.value = systemSettings.schoolInfo?.phone || '';
+            
+            const schoolEmailInput = document.getElementById('schoolEmail');
+            if (schoolEmailInput) schoolEmailInput.value = systemSettings.schoolInfo?.email || '';
+            
+            const schoolWebsiteInput = document.getElementById('schoolWebsite');
+            if (schoolWebsiteInput) schoolWebsiteInput.value = systemSettings.schoolInfo?.website || '';
+            
+            const schoolEstablishedInput = document.getElementById('schoolEstablished');
+            if (schoolEstablishedInput) schoolEstablishedInput.value = systemSettings.schoolInfo?.established || '';
+        }
+        
+        // Save system settings
+        async function saveSystemSettings() {
+            try {
+                const updatedSettings = {
+                    academicYear: document.getElementById('academicYear').value,
+                    currentTerm: document.getElementById('currentTerm').value,
+                    allowGradeEntry: document.getElementById('allowGradeEntry').checked,
+                    allowStudentRegistration: document.getElementById('allowStudentRegistration').checked,
+                    allowFeePayment: document.getElementById('allowFeePayment').checked,
+                    systemMaintenance: document.getElementById('systemMaintenance').checked,
+                    emailNotifications: document.getElementById('emailNotifications').checked,
+                    smsNotifications: document.getElementById('smsNotifications').checked,
+                    backupFrequency: document.getElementById('backupFrequency').value,
+                    sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+                    maxLoginAttempts: parseInt(document.getElementById('maxLoginAttempts').value),
+                    passwordPolicy: {
+                        minLength: parseInt(document.getElementById('passwordMinLength').value),
+                        requireUppercase: document.getElementById('requireUppercase').checked,
+                        requireLowercase: document.getElementById('requireLowercase').checked,
+                        requireNumbers: document.getElementById('requireNumbers').checked,
+                        requireSpecialChars: document.getElementById('requireSpecialChars').checked
+                    },
+                    schoolInfo: {
+                        name: document.getElementById('schoolName').value,
+                        address: document.getElementById('schoolAddress').value,
+                        phone: document.getElementById('schoolPhone').value,
+                        email: document.getElementById('schoolEmail').value,
+                        website: document.getElementById('schoolWebsite').value,
+                        established: document.getElementById('schoolEstablished').value
+                    },
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('system_settings').doc('current').update(updatedSettings);
+                systemSettings = { ...systemSettings, ...updatedSettings };
+                
+                showSuccess('System settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving system settings:', error);
+                showError('Error saving settings. Please try again.');
+            }
+        }
+        
+        // Reset settings to default
+        async function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all settings to default values? This action cannot be undone.')) {
+                try {
+                    await createDefaultSettings();
+                    showSuccess('Settings reset to default values successfully!');
+                } catch (error) {
+                    console.error('Error resetting settings:', error);
+                    showError('Error resetting settings. Please try again.');
+                }
+            }
+        }
+        
+        // Export settings
+        function exportSettings() {
+            const settingsData = {
+                ...systemSettings,
+                exportedAt: new Date().toISOString(),
+                exportedBy: currentUser.email
+            };
+            
+            const dataStr = JSON.stringify(settingsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Settings exported successfully!');
+        }
+        
+        // Import settings
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const text = await file.text();
+                        const importedSettings = JSON.parse(text);
+                        
+                        // Remove export metadata
+                        delete importedSettings.exportedAt;
+                        delete importedSettings.exportedBy;
+                        
+                        await db.collection('system_settings').doc('current').set(importedSettings);
+                        systemSettings = importedSettings;
+                        populateSettingsForm();
+                        
+                        showSuccess('Settings imported successfully!');
+                    } catch (error) {
+                        console.error('Error importing settings:', error);
+                        showError('Error importing settings. Please check the file format.');
+                    }
+                }
+            };
+            input.click();
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make functions globally available
+        window.saveSystemSettings = saveSystemSettings;
+        window.resetToDefaults = resetToDefaults;
+        window.exportSettings = exportSettings;
+        window.importSettings = importSettings;
+        window.logout = logout;
     </script>
 </body>
 </html>

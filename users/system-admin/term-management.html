@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Term Management - System Administrator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
@@ -550,6 +551,411 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeTermManagement();
         });
+    </script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentUser = null;
+        let academicTerms = [];
+        let currentAcademicYear = '2024';
+        
+        // Check authentication and role
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const userRole = userData.role;
+                        
+                        if (userRole === 'system_admin') {
+                            console.log('✅ System Administrator authenticated:', user.email);
+                            currentUser = user;
+                            loadAcademicTerms();
+                        } else {
+                            console.log('❌ Access denied. Required role: system_admin');
+                            alert('Access denied. You do not have system administrator privileges.');
+                            auth.signOut().then(() => {
+                                window.location.href = '../../index.html';
+                            });
+                        }
+                    } else {
+                        console.log('❌ User document not found');
+                        auth.signOut().then(() => {
+                            window.location.href = '../../index.html';
+                        });
+                    }
+                });
+            } else {
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+            }
+        });
+        
+        // Load academic terms from Firebase
+        async function loadAcademicTerms() {
+            try {
+                const termsSnapshot = await db.collection('academic_terms')
+                    .where('academicYear', '==', currentAcademicYear)
+                    .orderBy('termNumber', 'asc')
+                    .get();
+                
+                academicTerms = [];
+                termsSnapshot.forEach(doc => {
+                    const termData = doc.data();
+                    academicTerms.push({
+                        id: doc.id,
+                        ...termData
+                    });
+                });
+                
+                displayAcademicTerms();
+                updateTermStats();
+                
+                console.log('✅ Academic terms loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading academic terms:', error);
+                showError('Failed to load academic terms. Please try again.');
+            }
+        }
+        
+        // Display academic terms in the table
+        function displayAcademicTerms() {
+            const tbody = document.querySelector('#termsTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            academicTerms.forEach(term => {
+                const row = createTermRow(term);
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Create term row
+        function createTermRow(term) {
+            const row = document.createElement('tr');
+            const startDate = term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'Not set';
+            const endDate = term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'Not set';
+            const isActive = term.isActive ? 'Active' : 'Inactive';
+            const statusClass = term.isActive ? 'bg-success' : 'bg-secondary';
+            
+            row.innerHTML = `
+                <td>${term.termName}</td>
+                <td>${term.academicYear}</td>
+                <td>${startDate}</td>
+                <td>${endDate}</td>
+                <td><span class="badge ${statusClass}">${isActive}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editTerm('${term.id}')" title="Edit Term">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="viewTermDetails('${term.id}')" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="toggleTermStatus('${term.id}')" title="Toggle Status">
+                        <i class="fas fa-toggle-${term.isActive ? 'on' : 'off'}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTerm('${term.id}')" title="Delete Term">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        // Update term statistics
+        function updateTermStats() {
+            const totalTerms = academicTerms.length;
+            const activeTerms = academicTerms.filter(term => term.isActive).length;
+            const completedTerms = academicTerms.filter(term => term.status === 'completed').length;
+            const upcomingTerms = academicTerms.filter(term => term.status === 'upcoming').length;
+            
+            // Update stats cards
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalTerms;
+                statsCards[1].textContent = activeTerms;
+                statsCards[2].textContent = completedTerms;
+                statsCards[3].textContent = upcomingTerms;
+            }
+        }
+        
+        // Create new academic term
+        async function createAcademicTerm() {
+            const termName = document.getElementById('termName').value;
+            const academicYear = document.getElementById('academicYear').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const description = document.getElementById('termDescription').value;
+            
+            if (!termName || !academicYear || !startDate || !endDate) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Validate dates
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (start >= end) {
+                showError('End date must be after start date.');
+                return;
+            }
+            
+            try {
+                const termData = {
+                    termName: termName,
+                    academicYear: academicYear,
+                    startDate: firebase.firestore.Timestamp.fromDate(start),
+                    endDate: firebase.firestore.Timestamp.fromDate(end),
+                    description: description || '',
+                    isActive: false,
+                    status: 'upcoming',
+                    termNumber: academicTerms.length + 1,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentUser.uid
+                };
+                
+                await db.collection('academic_terms').add(termData);
+                
+                showSuccess('Academic term created successfully!');
+                document.getElementById('createTermForm').reset();
+                loadAcademicTerms();
+                
+            } catch (error) {
+                console.error('Error creating academic term:', error);
+                showError('Error creating academic term: ' + error.message);
+            }
+        }
+        
+        // Edit academic term
+        async function editTerm(termId) {
+            const term = academicTerms.find(t => t.id === termId);
+            if (!term) return;
+            
+            const newTermName = prompt('Enter new term name:', term.termName);
+            const newStartDate = prompt('Enter new start date (YYYY-MM-DD):', 
+                term.startDate ? new Date(term.startDate.seconds * 1000).toISOString().split('T')[0] : '');
+            const newEndDate = prompt('Enter new end date (YYYY-MM-DD):', 
+                term.endDate ? new Date(term.endDate.seconds * 1000).toISOString().split('T')[0] : '');
+            const newDescription = prompt('Enter new description:', term.description || '');
+            
+            if (newTermName && newStartDate && newEndDate) {
+                try {
+                    const start = new Date(newStartDate);
+                    const end = new Date(newEndDate);
+                    
+                    if (start >= end) {
+                        showError('End date must be after start date.');
+                        return;
+                    }
+                    
+                    await db.collection('academic_terms').doc(termId).update({
+                        termName: newTermName,
+                        startDate: firebase.firestore.Timestamp.fromDate(start),
+                        endDate: firebase.firestore.Timestamp.fromDate(end),
+                        description: newDescription,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                    
+                    showSuccess('Academic term updated successfully!');
+                    loadAcademicTerms();
+                } catch (error) {
+                    console.error('Error updating academic term:', error);
+                    showError('Error updating academic term: ' + error.message);
+                }
+            }
+        }
+        
+        // View term details
+        function viewTermDetails(termId) {
+            const term = academicTerms.find(t => t.id === termId);
+            if (!term) return;
+            
+            const startDate = term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'Not set';
+            const endDate = term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'Not set';
+            const createdDate = term.createdAt ? new Date(term.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+            
+            const details = `
+                <strong>Term Details:</strong><br>
+                <strong>Name:</strong> ${term.termName}<br>
+                <strong>Academic Year:</strong> ${term.academicYear}<br>
+                <strong>Start Date:</strong> ${startDate}<br>
+                <strong>End Date:</strong> ${endDate}<br>
+                <strong>Status:</strong> ${term.isActive ? 'Active' : 'Inactive'}<br>
+                <strong>Description:</strong> ${term.description || 'No description'}<br>
+                <strong>Created:</strong> ${createdDate}
+            `;
+            
+            alert(details);
+        }
+        
+        // Toggle term status
+        async function toggleTermStatus(termId) {
+            const term = academicTerms.find(t => t.id === termId);
+            if (!term) return;
+            
+            const newStatus = !term.isActive;
+            const action = newStatus ? 'activate' : 'deactivate';
+            
+            if (confirm(`Are you sure you want to ${action} this term?`)) {
+                try {
+                    // If activating this term, deactivate all other terms first
+                    if (newStatus) {
+                        const batch = db.batch();
+                        academicTerms.forEach(t => {
+                            if (t.isActive) {
+                                batch.update(db.collection('academic_terms').doc(t.id), {
+                                    isActive: false,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                    updatedBy: currentUser.uid
+                                });
+                            }
+                        });
+                        await batch.commit();
+                    }
+                    
+                    await db.collection('academic_terms').doc(termId).update({
+                        isActive: newStatus,
+                        status: newStatus ? 'active' : 'inactive',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                    
+                    showSuccess(`Term ${action}d successfully!`);
+                    loadAcademicTerms();
+                } catch (error) {
+                    console.error('Error toggling term status:', error);
+                    showError('Error toggling term status. Please try again.');
+                }
+            }
+        }
+        
+        // Delete academic term
+        async function deleteTerm(termId) {
+            if (confirm('Are you sure you want to delete this academic term? This action cannot be undone.')) {
+                try {
+                    await db.collection('academic_terms').doc(termId).delete();
+                    showSuccess('Academic term deleted successfully!');
+                    loadAcademicTerms();
+                } catch (error) {
+                    console.error('Error deleting academic term:', error);
+                    showError('Error deleting academic term: ' + error.message);
+                }
+            }
+        }
+        
+        // Search terms
+        function searchTerms() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredTerms = academicTerms.filter(term => 
+                term.termName.toLowerCase().includes(searchTerm) ||
+                term.academicYear.toLowerCase().includes(searchTerm) ||
+                (term.description || '').toLowerCase().includes(searchTerm)
+            );
+            
+            // Update display with filtered results
+            const tbody = document.querySelector('#termsTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            filteredTerms.forEach(term => {
+                const row = createTermRow(term);
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Filter terms by status
+        function filterByStatus(status) {
+            let filteredTerms = academicTerms;
+            
+            if (status === 'active') {
+                filteredTerms = academicTerms.filter(term => term.isActive);
+            } else if (status === 'inactive') {
+                filteredTerms = academicTerms.filter(term => !term.isActive);
+            } else if (status === 'completed') {
+                filteredTerms = academicTerms.filter(term => term.status === 'completed');
+            } else if (status === 'upcoming') {
+                filteredTerms = academicTerms.filter(term => term.status === 'upcoming');
+            }
+            
+            // Update display with filtered results
+            const tbody = document.querySelector('#termsTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            filteredTerms.forEach(term => {
+                const row = createTermRow(term);
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make functions globally available
+        window.createAcademicTerm = createAcademicTerm;
+        window.editTerm = editTerm;
+        window.viewTermDetails = viewTermDetails;
+        window.toggleTermStatus = toggleTermStatus;
+        window.deleteTerm = deleteTerm;
+        window.searchTerms = searchTerms;
+        window.filterByStatus = filterByStatus;
+        window.logout = logout;
     </script>
 </body>
 </html>
