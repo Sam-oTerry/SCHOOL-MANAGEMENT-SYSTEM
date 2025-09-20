@@ -385,12 +385,7 @@
         console.log('✅ Storage:', storage);
         console.log('✅ Functions:', functions);
         console.log('✅ Analytics:', analytics);
-    </script>
-    
-    <script src="./assets/js/auth-service.js"></script>
-    <script src="./assets/js/database-service.js"></script>
-    <script src="./assets/js/schoolpay-service.js"></script>
-    <script>
+        
         // Function to load services
         function loadAuthService() {
             // Make services globally available
@@ -401,7 +396,12 @@
             console.log('✅ Database Service loaded:', dbService);
             console.log('✅ School Pay Service loaded:', schoolPayService);
         }
-        
+    </script>
+    
+    <script src="./assets/js/auth-service.js"></script>
+    <script src="./assets/js/database-service.js"></script>
+    <script src="./assets/js/schoolpay-service.js"></script>
+    <script>
         // Load services after all scripts are loaded
         loadAuthService();
     </script>
