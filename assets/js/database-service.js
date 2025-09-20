@@ -236,4 +236,4 @@ class DatabaseService {
   }
 }
 
-export const dbService = new DatabaseService();
+const dbService = new DatabaseService();

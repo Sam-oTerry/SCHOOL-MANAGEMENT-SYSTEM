@@ -292,4 +292,4 @@ class SchoolPayService {
   }
 }
 
-export const schoolPayService = new SchoolPayService();
+const schoolPayService = new SchoolPayService();
