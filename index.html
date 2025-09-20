@@ -345,22 +345,65 @@
     </div>
 
     <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase services
-        import { authService } from './assets/js/auth-service.js';
-        import { dbService } from './assets/js/database-service.js';
-        import { schoolPayService } from './assets/js/schoolpay-service.js';
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8",
+            measurementId: "G-2FVKDJWK5E"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
         
-        // Make services globally available
-        window.authService = authService;
-        window.dbService = dbService;
-        window.schoolPayService = schoolPayService;
+        // Initialize Firebase services
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const functions = firebase.functions();
         
-        // Initialize Firebase connection
+        // Initialize Analytics
+        let analytics = null;
+        if (firebase.analytics) {
+            analytics = firebase.analytics();
+        }
+        
         console.log('🔥 Firebase services initialized');
-        console.log('✅ Auth Service:', authService);
-        console.log('✅ Database Service:', dbService);
-        console.log('✅ School Pay Service:', schoolPayService);
+        console.log('✅ Auth:', auth);
+        console.log('✅ Database:', db);
+        console.log('✅ Storage:', storage);
+        console.log('✅ Functions:', functions);
+        console.log('✅ Analytics:', analytics);
+        
+        // Load auth service after Firebase is initialized
+        loadAuthService();
+    </script>
+    
+    <script src="./assets/js/auth-service.js"></script>
+    <script src="./assets/js/database-service.js"></script>
+    <script src="./assets/js/schoolpay-service.js"></script>
+    <script>
+        // Function to load services
+        function loadAuthService() {
+            // Make services globally available
+            window.authService = authService;
+            window.dbService = dbService;
+            window.schoolPayService = schoolPayService;
+            console.log('✅ Auth Service loaded:', authService);
+            console.log('✅ Database Service loaded:', dbService);
+            console.log('✅ School Pay Service loaded:', schoolPayService);
+        }
     </script>
     
     <script>
@@ -386,7 +429,12 @@
                 
                 // Wait for Firebase services to be available
                 if (!window.authService) {
-                    throw new Error('Firebase Auth Service not loaded. Please refresh the page.');
+                    console.log('⏳ Waiting for auth service to load...');
+                    // Wait a bit more for the service to load
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    if (!window.authService) {
+                        throw new Error('Firebase Auth Service not loaded. Please refresh the page.');
+                    }
                 }
                 
                 // Attempt Firebase authentication

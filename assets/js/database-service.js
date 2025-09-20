@@ -1,42 +1,26 @@
 // Firestore Database Service
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc, 
-  addDoc,
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  onSnapshot,
-  writeBatch
-} from 'firebase/firestore';
-import { db } from './firebase-config.js';
+// Using Firebase CDN - no imports needed
 
 class DatabaseService {
   constructor() {
-    this.db = db;
+    this.db = firebase.firestore();
   }
 
   // Generic CRUD operations
   async create(collectionName, data, docId = null) {
     try {
       if (docId) {
-        await setDoc(doc(this.db, collectionName, docId), {
+        await this.db.collection(collectionName).doc(docId).set({
           ...data,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         return { success: true, id: docId };
       } else {
-        const docRef = await addDoc(collection(this.db, collectionName), {
+        const docRef = await this.db.collection(collectionName).add({
           ...data,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         return { success: true, id: docRef.id };
       }
@@ -47,10 +31,9 @@ class DatabaseService {
 
   async read(collectionName, docId) {
     try {
-      const docRef = doc(this.db, collectionName, docId);
-      const docSnap = await getDoc(docRef);
+      const docSnap = await this.db.collection(collectionName).doc(docId).get();
       
-      if (docSnap.exists()) {
+      if (docSnap.exists) {
         return { success: true, data: docSnap.data() };
       } else {
         return { success: false, error: 'Document not found' };
@@ -62,10 +45,9 @@ class DatabaseService {
 
   async update(collectionName, docId, data) {
     try {
-      const docRef = doc(this.db, collectionName, docId);
-      await updateDoc(docRef, {
+      await this.db.collection(collectionName).doc(docId).update({
         ...data,
-        updatedAt: new Date()
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       return { success: true };
     } catch (error) {
@@ -75,7 +57,7 @@ class DatabaseService {
 
   async delete(collectionName, docId) {
     try {
-      await deleteDoc(doc(this.db, collectionName, docId));
+      await this.db.collection(collectionName).doc(docId).delete();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -85,8 +67,20 @@ class DatabaseService {
   // Query operations
   async query(collectionName, constraints = []) {
     try {
-      const q = query(collection(this.db, collectionName), ...constraints);
-      const querySnapshot = await getDocs(q);
+      let query = this.db.collection(collectionName);
+      
+      // Apply constraints
+      constraints.forEach(constraint => {
+        if (constraint.type === 'where') {
+          query = query.where(constraint.field, constraint.operator, constraint.value);
+        } else if (constraint.type === 'orderBy') {
+          query = query.orderBy(constraint.field, constraint.direction || 'asc');
+        } else if (constraint.type === 'limit') {
+          query = query.limit(constraint.limit);
+        }
+      });
+      
+      const querySnapshot = await query.get();
       const results = [];
       
       querySnapshot.forEach((doc) => {
@@ -101,8 +95,20 @@ class DatabaseService {
 
   // Real-time listeners
   subscribeToCollection(collectionName, callback, constraints = []) {
-    const q = query(collection(this.db, collectionName), ...constraints);
-    return onSnapshot(q, (querySnapshot) => {
+    let query = this.db.collection(collectionName);
+    
+    // Apply constraints
+    constraints.forEach(constraint => {
+      if (constraint.type === 'where') {
+        query = query.where(constraint.field, constraint.operator, constraint.value);
+      } else if (constraint.type === 'orderBy') {
+        query = query.orderBy(constraint.field, constraint.direction || 'asc');
+      } else if (constraint.type === 'limit') {
+        query = query.limit(constraint.limit);
+      }
+    });
+    
+    return query.onSnapshot((querySnapshot) => {
       const results = [];
       querySnapshot.forEach((doc) => {
         results.push({ id: doc.id, ...doc.data() });
@@ -114,11 +120,11 @@ class DatabaseService {
   // Batch operations
   async batchWrite(operations) {
     try {
-      const batch = writeBatch(this.db);
+      const batch = this.db.batch();
       
       operations.forEach(operation => {
         const { type, collection, docId, data } = operation;
-        const docRef = doc(this.db, collection, docId);
+        const docRef = this.db.collection(collection).doc(docId);
         
         switch (type) {
           case 'set':
@@ -143,60 +149,60 @@ class DatabaseService {
   // Student-specific operations
   async getStudentsByClass(className) {
     return await this.query('students', [
-      where('academicInfo.currentClass', '==', className),
-      where('academicInfo.status', '==', 'active')
+      { type: 'where', field: 'academicInfo.currentClass', operator: '==', value: className },
+      { type: 'where', field: 'academicInfo.status', operator: '==', value: 'active' }
     ]);
   }
 
   async getStudentGrades(studentId, academicYear, term) {
     return await this.query('grades', [
-      where('studentId', '==', studentId),
-      where('academicYear', '==', academicYear),
-      where('term', '==', term)
+      { type: 'where', field: 'studentId', operator: '==', value: studentId },
+      { type: 'where', field: 'academicYear', operator: '==', value: academicYear },
+      { type: 'where', field: 'term', operator: '==', value: term }
     ]);
   }
 
   async getStudentTransactions(studentId) {
     return await this.query('financial_transactions', [
-      where('studentId', '==', studentId),
-      orderBy('paidDate', 'desc')
+      { type: 'where', field: 'studentId', operator: '==', value: studentId },
+      { type: 'orderBy', field: 'paidDate', direction: 'desc' }
     ]);
   }
 
   async getOutstandingPayments() {
     return await this.query('students', [
-      where('financialInfo.paymentStatus', '==', 'outstanding'),
-      where('academicInfo.status', '==', 'active')
+      { type: 'where', field: 'financialInfo.paymentStatus', operator: '==', value: 'outstanding' },
+      { type: 'where', field: 'academicInfo.status', operator: '==', value: 'active' }
     ]);
   }
 
   // Teacher-specific operations
   async getTeacherStudents(teacherId) {
     return await this.query('students', [
-      where('classTeacher', '==', teacherId),
-      where('academicInfo.status', '==', 'active')
+      { type: 'where', field: 'classTeacher', operator: '==', value: teacherId },
+      { type: 'where', field: 'academicInfo.status', operator: '==', value: 'active' }
     ]);
   }
 
   async getTeacherSubjects(teacherId) {
     return await this.query('subjects', [
-      where('teachers', 'array-contains', teacherId)
+      { type: 'where', field: 'teachers', operator: 'array-contains', value: teacherId }
     ]);
   }
 
   // Bursar-specific operations
   async getFinancialTransactions(startDate, endDate) {
     return await this.query('financial_transactions', [
-      where('paidDate', '>=', startDate),
-      where('paidDate', '<=', endDate),
-      orderBy('paidDate', 'desc')
+      { type: 'where', field: 'paidDate', operator: '>=', value: startDate },
+      { type: 'where', field: 'paidDate', operator: '<=', value: endDate },
+      { type: 'orderBy', field: 'paidDate', direction: 'desc' }
     ]);
   }
 
   async getPaymentAnalytics() {
     const transactions = await this.query('financial_transactions', [
-      where('type', '==', 'income'),
-      where('status', '==', 'completed')
+      { type: 'where', field: 'type', operator: '==', value: 'income' },
+      { type: 'where', field: 'status', operator: '==', value: 'completed' }
     ]);
 
     if (!transactions.success) {

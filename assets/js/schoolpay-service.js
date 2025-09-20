@@ -1,10 +1,9 @@
 // School Pay Uganda Integration Service
-import { dbService } from './database-service.js';
-import { authService } from './auth-service.js';
+// Using Firebase CDN - no imports needed
 
 class SchoolPayService {
   constructor() {
-    this.db = dbService;
+    this.db = window.dbService;
   }
 
   // Sync payment codes from School Pay Uganda
@@ -54,7 +53,7 @@ class SchoolPayService {
   // Find student by School Pay ID
   async findStudentBySchoolPayId(schoolPayId) {
     const result = await this.db.query('students', [
-      where('schoolPayId', '==', schoolPayId)
+      { type: 'where', field: 'schoolPayId', operator: '==', value: schoolPayId }
     ]);
     
     return result.success && result.data.length > 0 ? result.data[0] : null;
@@ -63,7 +62,7 @@ class SchoolPayService {
   // Find student by name
   async findStudentByName(studentName) {
     const result = await this.db.query('students', [
-      where('personalInfo.fullName', '==', studentName)
+      { type: 'where', field: 'personalInfo.fullName', operator: '==', value: studentName }
     ]);
     
     return result.success && result.data.length > 0 ? result.data[0] : null;
@@ -101,7 +100,7 @@ class SchoolPayService {
         successfulImports: 0,
         failedImports: 0,
         status: 'processing',
-        importedBy: authService.getCurrentUser().uid,
+        importedBy: window.authService.getCurrentUser().uid,
         errors: []
       };
 
@@ -164,7 +163,7 @@ class SchoolPayService {
       reference: row.reference,
       schoolPayReference: row.schoolPayReference,
       status: this.mapPaymentStatus(row.status),
-      processedBy: authService.getCurrentUser().uid,
+      processedBy: window.authService.getCurrentUser().uid,
       processedAt: new Date(),
       paidDate: new Date(row.paymentDate),
       schoolPayData: {
@@ -188,7 +187,7 @@ class SchoolPayService {
   // Find student by payment code
   async findStudentByPaymentCode(paymentCode) {
     const result = await this.db.query('students', [
-      where('paymentCode', '==', paymentCode)
+      { type: 'where', field: 'paymentCode', operator: '==', value: paymentCode }
     ]);
     
     return result.success && result.data.length > 0 ? result.data[0] : null;
@@ -252,8 +251,8 @@ class SchoolPayService {
   // Get payment analytics
   async getPaymentAnalytics() {
     const transactions = await this.db.query('financial_transactions', [
-      where('type', '==', 'income'),
-      where('status', '==', 'completed')
+      { type: 'where', field: 'type', operator: '==', value: 'income' },
+      { type: 'where', field: 'status', operator: '==', value: 'completed' }
     ]);
 
     if (!transactions.success) {

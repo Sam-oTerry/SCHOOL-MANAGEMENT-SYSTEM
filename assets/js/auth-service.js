@@ -1,13 +1,5 @@
 // Firebase Authentication Service
-import { 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  updateProfile
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase-config.js';
+// Using Firebase CDN - no imports needed
 
 class AuthService {
   constructor() {
@@ -18,7 +10,7 @@ class AuthService {
 
   // Setup authentication state listener
   setupAuthListener() {
-    onAuthStateChanged(auth, async (user) => {
+    firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         this.currentUser = user;
         await this.loadUserRole(user.uid);
@@ -34,8 +26,8 @@ class AuthService {
   // Load user role from Firestore
   async loadUserRole(uid) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists()) {
+      const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+      if (userDoc.exists) {
         this.userRole = userDoc.data().role;
       }
     } catch (error) {
@@ -46,7 +38,7 @@ class AuthService {
   // Sign in with email and password
   async signIn(email, password) {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error: error.message };
@@ -59,22 +51,22 @@ class AuthService {
       const { email, password, role, personalInfo } = userData;
       
       // Create user account
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
       
       // Update user profile
-      await updateProfile(user, {
+      await user.updateProfile({
         displayName: personalInfo.fullName
       });
       
       // Create user document in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+      await firebase.firestore().collection('users').doc(user.uid).set({
         uid: user.uid,
         email: email,
         role: role,
         personalInfo: personalInfo,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       
       return { success: true, user: user };
@@ -86,7 +78,7 @@ class AuthService {
   // Sign out
   async signOut() {
     try {
-      await signOut(auth);
+      await firebase.auth().signOut();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
