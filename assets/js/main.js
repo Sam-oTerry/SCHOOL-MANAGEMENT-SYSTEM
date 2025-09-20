@@ -6,15 +6,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     
     // Login form submission
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleLogin();
-    });
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLogin();
+        });
+    }
     
     // Logout functionality
-    document.getElementById('logout-btn').addEventListener('click', function() {
-        handleLogout();
-    });
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            handleLogout();
+        });
+    }
     
     // Initialize navigation
     initializeNavigation();
@@ -60,18 +66,39 @@ function handleLogout() {
 }
 
 function showLoginInterface() {
-    document.getElementById('login-interface').style.display = 'flex';
-    document.getElementById('system-interface').style.display = 'none';
+    const loginInterface = document.getElementById('login-interface');
+    const systemInterface = document.getElementById('system-interface');
+    
+    if (loginInterface) {
+        loginInterface.style.display = 'flex';
+    }
+    if (systemInterface) {
+        systemInterface.style.display = 'none';
+    }
 }
 
 function showSystemInterface(username, role) {
     // Hide login, show system interface
-    document.getElementById('login-interface').style.display = 'none';
-    document.getElementById('system-interface').style.display = 'block';
+    const loginInterface = document.getElementById('login-interface');
+    const systemInterface = document.getElementById('system-interface');
+    
+    if (loginInterface) {
+        loginInterface.style.display = 'none';
+    }
+    if (systemInterface) {
+        systemInterface.style.display = 'block';
+    }
     
     // Set current user and role
-    document.getElementById('current-user').textContent = username;
-    document.getElementById('current-role').textContent = getRoleDisplayName(role);
+    const currentUserElement = document.getElementById('current-user');
+    const currentRoleElement = document.getElementById('current-role');
+    
+    if (currentUserElement) {
+        currentUserElement.textContent = username;
+    }
+    if (currentRoleElement) {
+        currentRoleElement.textContent = getRoleDisplayName(role);
+    }
     
     // Show the appropriate interface based on role
     showRoleInterface(role);
