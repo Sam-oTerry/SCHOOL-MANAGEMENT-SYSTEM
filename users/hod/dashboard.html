@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head of Department Dashboard - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
+    <link rel="stylesheet" href="../../assets/css/users/hod.css">
+    <style>
+        :root {
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .role-badge {
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .feature-icon i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <div class="logo-container">
+                            <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
+                        </div>
+                        <h5 class="text-white">Head of Department</h5>
+                        <p class="small text-white-50">Staff ID: HOD1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-teachers.html">
+                                <i class="fas fa-users"></i> My Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-assignment.html">
+                                <i class="fas fa-user-plus"></i> Teacher Assignment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-approval.html">
+                                <i class="fas fa-check-circle"></i> Grade Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-performance.html">
+                                <i class="fas fa-chart-bar"></i> Department Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-tracking.html">
+                                <i class="fas fa-eye"></i> Teacher Tracking
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Head of Department Dashboard</h4>
+                        <span class="role-badge">Mathematics Department</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Statistics Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="number">8</div>
+                            <div class="label">Department Teachers</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <div class="number">15</div>
+                            <div class="label">Total Classes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-user-graduate"></i>
+                            <div class="number">450</div>
+                            <div class="label">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="number">89%</div>
+                            <div class="label">Department Performance</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Row -->
+                <div class="row">
+                    <!-- Department Teachers -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Department Teachers</span>
+                                <button class="btn btn-sm btn-primary">Assign Teacher</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Teacher</th>
+                                                <th>Subject</th>
+                                                <th>Classes</th>
+                                                <th>Performance</th>
+                                                <th>Workload</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="teacher-avatar me-2">JO</div>
+                                                        <div>
+                                                            <strong>Mr. Okello</strong><br>
+                                                            <small class="text-muted">T001</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Mathematics</td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
+                                                    <span class="badge bg-primary">S.4 Science B</span>
+                                                </td>
+                                                <td>
+                                                    <div class="progress" style="width: 60px; height: 20px;">
+                                                        <div class="progress-bar" style="width: 95%">95%</div>
+                                                    </div>
+                                                </td>
+                                                <td>18 hrs/week</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="teacher-avatar me-2">MN</div>
+                                                        <div>
+                                                            <strong>Ms. Nakato</strong><br>
+                                                            <small class="text-muted">T002</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Mathematics</td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
+                                                    <span class="badge bg-primary">S.3 Science</span>
+                                                </td>
+                                                <td>
+                                                    <div class="progress" style="width: 60px; height: 20px;">
+                                                        <div class="progress-bar" style="width: 92%">92%</div>
+                                                    </div>
+                                                </td>
+                                                <td>16 hrs/week</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="teacher-avatar me-2">DM</div>
+                                                        <div>
+                                                            <strong>Dr. Mukasa</strong><br>
+                                                            <small class="text-muted">T003</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Mathematics</td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science B</span>
+                                                    <span class="badge bg-primary">S.3 Science</span>
+                                                </td>
+                                                <td>
+                                                    <div class="progress" style="width: 60px; height: 20px;">
+                                                        <div class="progress-bar" style="width: 88%">88%</div>
+                                                    </div>
+                                                </td>
+                                                <td>14 hrs/week</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions & Recent Activity -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">Quick Actions</div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary mb-2">
+                                        <i class="fas fa-user-plus"></i> Assign Teacher
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-check-circle"></i> Approve Results
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-chart-bar"></i> View Performance
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-eye"></i> Track Teachers
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">Recent Activity</div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Teacher Assigned</h6>
+                                        <p class="text-muted mb-0">Mr. Okello to S.4 Science A</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Results Approved</h6>
+                                        <p class="text-muted mb-0">Mathematics results approved</p>
+                                        <small class="text-muted">1 day ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Performance Updated</h6>
+                                        <p class="text-muted mb-0">Department performance report</p>
+                                        <small class="text-muted">3 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Department Performance Overview -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Department Performance Overview</h5>
+                        <small class="text-muted">Mathematics Department - Performance Metrics</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Department Statistics</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Total Teachers:</strong></td>
+                                        <td>8</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Active Teachers:</strong></td>
+                                        <td>7</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Classes:</strong></td>
+                                        <td>15</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Students:</strong></td>
+                                        <td>450</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Average Performance:</strong></td>
+                                        <td>89.2%</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Performance Metrics</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Pass Rate:</strong></td>
+                                        <td>92.5%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Department Rank:</strong></td>
+                                        <td>1st</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Top Teacher:</strong></td>
+                                        <td>Mr. Okello (95%)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Workload Average:</strong></td>
+                                        <td>16 hrs/week</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Results Pending:</strong></td>
+                                        <td>3 classes</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/hod.js"></script>
+    <script>
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

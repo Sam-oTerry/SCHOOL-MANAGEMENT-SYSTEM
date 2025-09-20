@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Teacher Dashboard - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
+    <link rel="stylesheet" href="../../assets/css/users/subject-teacher.css">
+    <style>
+        :root {
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .role-badge {
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .feature-icon i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .subject-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .subject-icon i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .student-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <div class="logo-container">
+                            <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
+                        </div>
+                        <h5 class="text-white">Subject Teacher</h5>
+                        <p class="small text-white-50">Staff ID: ST1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-lists.html">
+                                <i class="fas fa-users"></i> Student Lists
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="project-work.html">
+                                <i class="fas fa-tasks"></i> Project Work
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Results Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Subject Teacher Dashboard</h4>
+                        <span class="role-badge">Subject Teacher</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Statistics Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-book"></i>
+                            <div class="number">3</div>
+                            <div class="label">My Subjects</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <div class="number">5</div>
+                            <div class="label">Total Classes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="number">120</div>
+                            <div class="label">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="number">85%</div>
+                            <div class="label">Average Performance</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Row -->
+                <div class="row">
+                    <!-- My Subjects -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>My Subjects</span>
+                                <button class="btn btn-sm btn-primary">View All</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Classes</th>
+                                                <th>Students</th>
+                                                <th>Average Score</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="subject-icon">
+                                                            <i class="fas fa-calculator"></i>
+                                                        </div>
+                                                        <div>
+                                                            <strong>Mathematics</strong><br>
+                                                            <small class="text-muted">Core Subject</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
+                                                    <span class="badge bg-primary">S.4 Science B</span>
+                                                </td>
+                                                <td>45</td>
+                                                <td>82.5%</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="subject-icon">
+                                                            <i class="fas fa-atom"></i>
+                                                        </div>
+                                                        <div>
+                                                            <strong>Physics</strong><br>
+                                                            <small class="text-muted">Science Subject</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
+                                                    <span class="badge bg-primary">S.3 Science</span>
+                                                </td>
+                                                <td>30</td>
+                                                <td>78.2%</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="subject-icon">
+                                                            <i class="fas fa-flask"></i>
+                                                        </div>
+                                                        <div>
+                                                            <strong>Chemistry</strong><br>
+                                                            <small class="text-muted">Science Subject</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary me-1">S.4 Science B</span>
+                                                    <span class="badge bg-primary">S.3 Science</span>
+                                                </td>
+                                                <td>30</td>
+                                                <td>79.8%</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions & Recent Activity -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">Quick Actions</div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary mb-2">
+                                        <i class="fas fa-edit"></i> Enter Grades
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-users"></i> View Students
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-tasks"></i> Add Project
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-chart-bar"></i> Analyze Results
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">Recent Activity</div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Grade Entry</h6>
+                                        <p class="text-muted mb-0">Mathematics - S.4 Science A</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Project Added</h6>
+                                        <p class="text-muted mb-0">Physics Project - S.3 Science</p>
+                                        <small class="text-muted">1 day ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Results Analyzed</h6>
+                                        <p class="text-muted mb-0">Chemistry Performance</p>
+                                        <small class="text-muted">3 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grading System Info -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Grading System</h5>
+                        <small class="text-muted">New Curriculum A-F Grading</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Grade Scale</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Grade</th>
+                                            <th>Range</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-success">A</span></td>
+                                            <td>90-100%</td>
+                                            <td>Excellent</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">B</span></td>
+                                            <td>80-89%</td>
+                                            <td>Very Good</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-info">C</span></td>
+                                            <td>70-79%</td>
+                                            <td>Good</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-warning">D</span></td>
+                                            <td>60-69%</td>
+                                            <td>Satisfactory</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-secondary">E</span></td>
+                                            <td>50-59%</td>
+                                            <td>Pass</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-danger">F</span></td>
+                                            <td>0-49%</td>
+                                            <td>Fail</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Marking Weight</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Mid-term (20%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 20%">20%</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">End-term (80%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 80%">80%</div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> Final grade is calculated as: (Mid-term × 0.2) + (End-term × 0.8)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/subject-teacher.js"></script>
+    <script>
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements - Head of Department</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/hod.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Head of Department</h6>
+                        <small class="text-muted">Staff ID: HOD1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-teachers.html">
+                                <i class="fas fa-users"></i> My Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-assignment.html">
+                                <i class="fas fa-user-plus"></i> Teacher Assignment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-performance.html">
+                                <i class="fas fa-chart-line"></i> Department Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-approval.html">
+                                <i class="fas fa-check-circle"></i> Results Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-analytics.html">
+                                <i class="fas fa-chart-bar"></i> Department Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Announcements</h4>
+                        <span class="role-badge">Department Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Announcement Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Announcement Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" id="category-filter" onchange="filterAnnouncements()">
+                                    <option value="">All Categories</option>
+                                    <option value="department">Department</option>
+                                    <option value="academic">Academic</option>
+                                    <option value="general">General</option>
+                                    <option value="meetings">Meetings</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Priority</label>
+                                <select class="form-select" id="priority-filter" onchange="filterAnnouncements()">
+                                    <option value="">All Priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterAnnouncements()">
+                                    <option value="">All Status</option>
+                                    <option value="unread">Unread</option>
+                                    <option value="read">Read</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                                        <i class="fas fa-plus"></i> Create
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="refreshAnnouncements()">
+                                        <i class="fas fa-sync"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Announcements List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Department Announcements</h5>
+                        <small class="text-muted">You have 4 unread announcements</small>
+                    </div>
+                    <div class="card-body">
+                        <div id="announcements-list">
+                            <!-- Announcements will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Create Announcement Modal -->
+    <div class="modal fade" id="createAnnouncementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-announcement-form">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="announcement-title" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="announcement-category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="department">Department</option>
+                                        <option value="academic">Academic</option>
+                                        <option value="general">General</option>
+                                        <option value="meetings">Meetings</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" id="announcement-priority" required>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Recipients</label>
+                            <select class="form-select" id="announcement-recipients" required>
+                                <option value="">Select Recipients</option>
+                                <option value="department-teachers">Department Teachers</option>
+                                <option value="all-teachers">All Teachers</option>
+                                <option value="specific-teachers">Specific Teachers</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <textarea class="form-control" id="announcement-content" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Attachments</label>
+                            <input type="file" class="form-control" id="announcement-attachments" multiple>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createAnnouncement()">Create Announcement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Detail Modal -->
+    <div class="modal fade" id="announcementDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detail-title">Announcement Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <span class="badge" id="detail-category"></span>
+                        <span class="badge ms-2" id="detail-priority"></span>
+                        <span class="text-muted ms-2" id="detail-date"></span>
+                    </div>
+                    <div id="detail-content"></div>
+                    <div class="mt-3">
+                        <strong>From:</strong> <span id="detail-sender"></span><br>
+                        <strong>To:</strong> <span id="detail-recipients"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editAnnouncement()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="deleteAnnouncement()">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/hod.js"></script>
+    <script>
+        // Announcements Functionality
+        let announcements = [];
+        let currentAnnouncement = null;
+        
+        // Sample announcements data
+        const sampleAnnouncements = [
+            {
+                id: 1,
+                title: 'Department Meeting - Results Review',
+                content: 'We will be holding a department meeting on Friday, October 20th, 2023, at 2:00 PM to review the recent examination results and discuss improvement strategies.',
+                category: 'department',
+                priority: 'high',
+                sender: 'Head of Department',
+                recipients: 'Department Teachers',
+                date: '2023-10-15',
+                time: '09:00 AM',
+                status: 'unread',
+                attachments: ['Meeting Agenda.pdf']
+            },
+            {
+                id: 2,
+                title: 'New Teaching Materials Available',
+                content: 'New teaching materials for the updated curriculum have been received and are available in the department office. Please collect your copies.',
+                category: 'academic',
+                priority: 'medium',
+                sender: 'Head of Department',
+                recipients: 'Department Teachers',
+                date: '2023-10-14',
+                time: '11:30 AM',
+                status: 'unread',
+                attachments: []
+            },
+            {
+                id: 3,
+                title: 'Teacher Training Workshop',
+                content: 'A teacher training workshop on modern teaching methodologies will be conducted next week. All department teachers are encouraged to attend.',
+                category: 'general',
+                priority: 'medium',
+                sender: 'Head of Department',
+                recipients: 'Department Teachers',
+                date: '2023-10-13',
+                time: '03:15 PM',
+                status: 'read',
+                attachments: ['Workshop Schedule.pdf']
+            },
+            {
+                id: 4,
+                title: 'Grade Entry Deadline Reminder',
+                content: 'This is a reminder that all grade entries for Term 1 must be completed and submitted by Friday, October 20th, 2023. Late submissions will not be accepted.',
+                category: 'academic',
+                priority: 'high',
+                sender: 'Head of Department',
+                recipients: 'Department Teachers',
+                date: '2023-10-12',
+                time: '08:00 AM',
+                status: 'unread',
+                attachments: []
+            },
+            {
+                id: 5,
+                title: 'Department Performance Review',
+                content: 'The department performance review for Term 1 shows excellent results. Congratulations to all teachers for their hard work and dedication.',
+                category: 'department',
+                priority: 'low',
+                sender: 'Head of Department',
+                recipients: 'Department Teachers',
+                date: '2023-10-11',
+                time: '04:30 PM',
+                status: 'read',
+                attachments: ['Performance Report.pdf']
+            }
+        ];
+        
+        function initializeAnnouncements() {
+            announcements = [...sampleAnnouncements];
+            displayAnnouncements();
+        }
+        
+        function displayAnnouncements() {
+            const container = document.getElementById('announcements-list');
+            container.innerHTML = '';
+            
+            announcements.forEach(announcement => {
+                const announcementElement = createAnnouncementElement(announcement);
+                container.appendChild(announcementElement);
+            });
+        }
+        
+        function createAnnouncementElement(announcement) {
+            const div = document.createElement('div');
+            div.className = `card mb-3 ${announcement.status === 'unread' ? 'border-primary' : ''}`;
+            
+            const priorityColor = getPriorityColor(announcement.priority);
+            const categoryColor = getCategoryColor(announcement.category);
+            
+            div.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title ${announcement.status === 'unread' ? 'fw-bold' : ''}">
+                                ${announcement.status === 'unread' ? '<i class="fas fa-circle text-primary me-2"></i>' : ''}
+                                ${announcement.title}
+                            </h6>
+                            <p class="card-text text-muted">${announcement.content.substring(0, 100)}...</p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge ${categoryColor} me-2">${announcement.category.toUpperCase()}</span>
+                                <span class="badge ${priorityColor} me-2">${announcement.priority.toUpperCase()}</span>
+                                <small class="text-muted me-3">
+                                    <i class="fas fa-user"></i> ${announcement.sender}
+                                </small>
+                                <small class="text-muted me-3">
+                                    <i class="fas fa-calendar"></i> ${formatDate(announcement.date)} ${announcement.time}
+                                </small>
+                                ${announcement.attachments.length > 0 ? 
+                                    `<small class="text-muted"><i class="fas fa-paperclip"></i> ${announcement.attachments.length} attachment(s)</small>` : 
+                                    ''
+                                }
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewAnnouncement(${announcement.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="editAnnouncement(${announcement.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement(${announcement.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function getPriorityColor(priority) {
+            switch(priority) {
+                case 'high': return 'bg-danger';
+                case 'medium': return 'bg-warning';
+                case 'low': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function getCategoryColor(category) {
+            switch(category) {
+                case 'department': return 'bg-primary';
+                case 'academic': return 'bg-success';
+                case 'general': return 'bg-secondary';
+                case 'meetings': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function viewAnnouncement(announcementId) {
+            const announcement = announcements.find(a => a.id === announcementId);
+            if (!announcement) return;
+            
+            currentAnnouncement = announcement;
+            
+            // Populate modal
+            document.getElementById('detail-title').textContent = announcement.title;
+            document.getElementById('detail-content').innerHTML = `<p>${announcement.content}</p>`;
+            document.getElementById('detail-category').textContent = announcement.category.toUpperCase();
+            document.getElementById('detail-category').className = `badge ${getCategoryColor(announcement.category)}`;
+            document.getElementById('detail-priority').textContent = announcement.priority.toUpperCase();
+            document.getElementById('detail-priority').className = `badge ${getPriorityColor(announcement.priority)}`;
+            document.getElementById('detail-date').textContent = `${formatDate(announcement.date)} ${announcement.time}`;
+            document.getElementById('detail-sender').textContent = announcement.sender;
+            document.getElementById('detail-recipients').textContent = announcement.recipients;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('announcementDetailModal'));
+            modal.show();
+        }
+        
+        function createAnnouncement() {
+            const title = document.getElementById('announcement-title').value;
+            const category = document.getElementById('announcement-category').value;
+            const priority = document.getElementById('announcement-priority').value;
+            const recipients = document.getElementById('announcement-recipients').value;
+            const content = document.getElementById('announcement-content').value;
+            
+            if (!title || !category || !priority || !recipients || !content) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            const newAnnouncement = {
+                id: announcements.length + 1,
+                title,
+                content,
+                category,
+                priority,
+                sender: 'Head of Department',
+                recipients,
+                date: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                status: 'unread',
+                attachments: []
+            };
+            
+            announcements.unshift(newAnnouncement);
+            displayAnnouncements();
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createAnnouncementModal'));
+            modal.hide();
+            document.getElementById('create-announcement-form').reset();
+            
+            showNotification('Announcement created successfully!', 'success');
+        }
+        
+        function editAnnouncement(announcementId) {
+            if (announcementId) {
+                const announcement = announcements.find(a => a.id === announcementId);
+                if (announcement) {
+                    alert(`Edit Announcement:\n\nTitle: ${announcement.title}\n\nThis feature will open the edit form for the announcement.`);
+                }
+            } else if (currentAnnouncement) {
+                alert(`Edit Announcement:\n\nTitle: ${currentAnnouncement.title}\n\nThis feature will open the edit form for the announcement.`);
+            }
+        }
+        
+        function deleteAnnouncement(announcementId) {
+            if (announcementId) {
+                if (confirm('Are you sure you want to delete this announcement?')) {
+                    announcements = announcements.filter(a => a.id !== announcementId);
+                    displayAnnouncements();
+                    showNotification('Announcement deleted successfully!', 'success');
+                }
+            } else if (currentAnnouncement) {
+                if (confirm('Are you sure you want to delete this announcement?')) {
+                    announcements = announcements.filter(a => a.id !== currentAnnouncement.id);
+                    displayAnnouncements();
+                    showNotification('Announcement deleted successfully!', 'success');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('announcementDetailModal'));
+                    modal.hide();
+                }
+            }
+        }
+        
+        function filterAnnouncements() {
+            const category = document.getElementById('category-filter').value;
+            const priority = document.getElementById('priority-filter').value;
+            const status = document.getElementById('status-filter').value;
+            
+            let filteredAnnouncements = announcements;
+            
+            if (category) {
+                filteredAnnouncements = filteredAnnouncements.filter(a => a.category === category);
+            }
+            
+            if (priority) {
+                filteredAnnouncements = filteredAnnouncements.filter(a => a.priority === priority);
+            }
+            
+            if (status) {
+                filteredAnnouncements = filteredAnnouncements.filter(a => a.status === status);
+            }
+            
+            displayFilteredAnnouncements(filteredAnnouncements);
+        }
+        
+        function displayFilteredAnnouncements(filteredAnnouncements) {
+            const container = document.getElementById('announcements-list');
+            container.innerHTML = '';
+            
+            filteredAnnouncements.forEach(announcement => {
+                const announcementElement = createAnnouncementElement(announcement);
+                container.appendChild(announcementElement);
+            });
+        }
+        
+        function refreshAnnouncements() {
+            showNotification('Announcements refreshed!', 'info');
+            displayAnnouncements();
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAnnouncements();
+        });
+    </script>
+</body>
+</html>

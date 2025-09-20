@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Entry - Class Teacher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3 d-flex flex-column h-100">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Class Teacher</h6>
+                        <small class="text-muted">Staff ID: CT1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-users"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="class-performance.html">
+                                <i class="fas fa-chart-line"></i> Class Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Grade Entry</h4>
+                        <span class="role-badge">Class Teacher</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Grade Entry Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Grade Entry Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Subject</label>
+                                <select class="form-select" id="subject-select" onchange="loadStudents()">
+                                    <option value="">Select Subject</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="physics">Physics</option>
+                                    <option value="chemistry">Chemistry</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-select" onchange="loadStudents()">
+                                    <option value="">Select Class</option>
+                                    <option value="s4-science-a">S.4 Science A</option>
+                                    <option value="s4-science-b">S.4 Science B</option>
+                                    <option value="s3-science">S.3 Science</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Term</label>
+                                <select class="form-select" id="term-select" onchange="loadStudents()">
+                                    <option value="term1">Term 1</option>
+                                    <option value="term2">Term 2</option>
+                                    <option value="term3">Term 3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Assessment Type</label>
+                                <select class="form-select" id="assessment-type" onchange="loadStudents()">
+                                    <option value="midterm">Mid-term (20%)</option>
+                                    <option value="endterm">End-term (80%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grading System Info -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Grading System</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-success fs-6">A</div>
+                                    <p class="mb-0 mt-1">80-100%</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-primary fs-6">B</div>
+                                    <p class="mb-0 mt-1">70-79%</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-info fs-6">C</div>
+                                    <p class="mb-0 mt-1">60-69%</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-warning fs-6">D</div>
+                                    <p class="mb-0 mt-1">50-59%</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-danger fs-6">E</div>
+                                    <p class="mb-0 mt-1">40-49%</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <div class="badge bg-dark fs-6">F</div>
+                                    <p class="mb-0 mt-1">0-39%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grade Entry Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Enter Grades</h5>
+                        <small class="text-muted">Mid-term: 20% | End-term: 80%</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Mid-term Score</th>
+                                        <th>End-term Score</th>
+                                        <th>Total Score</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="grades-tbody">
+                                    <!-- Grades will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="saveGrades()">
+                                <i class="fas fa-save"></i> Save All Grades
+                            </button>
+                            <button class="btn btn-success" onclick="submitGrades()">
+                                <i class="fas fa-check"></i> Submit for Approval
+                            </button>
+                            <button class="btn btn-info" onclick="exportGrades()">
+                                <i class="fas fa-download"></i> Export Grades
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/class-teacher.js"></script>
+    <script>
+        // Grade Entry Functionality
+        let currentGrades = [];
+        let students = [];
+        
+        // Sample students data
+        const sampleStudents = [
+            { id: 'ST001', name: 'John Doe', midterm: '', endterm: '', total: 0, grade: '' },
+            { id: 'ST002', name: 'Mary Smith', midterm: '', endterm: '', total: 0, grade: '' },
+            { id: 'ST003', name: 'Peter Johnson', midterm: '', endterm: '', total: 0, grade: '' },
+            { id: 'ST004', name: 'Sarah Wilson', midterm: '', endterm: '', total: 0, grade: '' },
+            { id: 'ST005', name: 'David Brown', midterm: '', endterm: '', total: 0, grade: '' }
+        ];
+        
+        function initializeGradeEntry() {
+            students = [...sampleStudents];
+            displayGrades();
+        }
+        
+        function loadStudents() {
+            const subject = document.getElementById('subject-select').value;
+            const classSelect = document.getElementById('class-select').value;
+            const term = document.getElementById('term-select').value;
+            const assessmentType = document.getElementById('assessment-type').value;
+            
+            if (!subject || !classSelect) {
+                alert('Please select both subject and class.');
+                return;
+            }
+            
+            // Load students for the selected subject and class
+            displayGrades();
+        }
+        
+        function displayGrades() {
+            const tbody = document.getElementById('grades-tbody');
+            tbody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>
+                        <input type="number" class="form-control" id="midterm-${student.id}" 
+                               value="${student.midterm}" min="0" max="100" 
+                               onchange="calculateTotal('${student.id}')">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control" id="endterm-${student.id}" 
+                               value="${student.endterm}" min="0" max="100" 
+                               onchange="calculateTotal('${student.id}')">
+                    </td>
+                    <td>
+                        <span id="total-${student.id}" class="fw-bold">${student.total}</span>
+                    </td>
+                    <td>
+                        <span id="grade-${student.id}" class="badge">${student.grade}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentDetails('${student.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function calculateTotal(studentId) {
+            const midtermScore = parseFloat(document.getElementById(`midterm-${studentId}`).value) || 0;
+            const endtermScore = parseFloat(document.getElementById(`endterm-${studentId}`).value) || 0;
+            
+            // Calculate weighted total: Mid-term 20% + End-term 80%
+            const total = (midtermScore * 0.2) + (endtermScore * 0.8);
+            
+            // Update total display
+            document.getElementById(`total-${studentId}`).textContent = total.toFixed(1);
+            
+            // Calculate and display grade
+            const grade = calculateGrade(total);
+            const gradeElement = document.getElementById(`grade-${studentId}`);
+            gradeElement.textContent = grade;
+            gradeElement.className = `badge ${getGradeColor(grade)}`;
+            
+            // Update student data
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                student.midterm = midtermScore;
+                student.endterm = endtermScore;
+                student.total = total;
+                student.grade = grade;
+            }
+        }
+        
+        function calculateGrade(total) {
+            if (total >= 80) return 'A';
+            if (total >= 70) return 'B';
+            if (total >= 60) return 'C';
+            if (total >= 50) return 'D';
+            if (total >= 40) return 'E';
+            return 'F';
+        }
+        
+        function getGradeColor(grade) {
+            switch(grade) {
+                case 'A': return 'bg-success';
+                case 'B': return 'bg-primary';
+                case 'C': return 'bg-info';
+                case 'D': return 'bg-warning';
+                case 'E': return 'bg-danger';
+                case 'F': return 'bg-dark';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function saveGrades() {
+            // Validate all grades are entered
+            const incompleteGrades = students.filter(s => s.midterm === '' || s.endterm === '');
+            
+            if (incompleteGrades.length > 0) {
+                alert('Please enter all grades before saving.');
+                return;
+            }
+            
+            // Save grades (in real application, this would send to server)
+            showNotification('Grades saved successfully!', 'success');
+        }
+        
+        function submitGrades() {
+            // Validate all grades are entered
+            const incompleteGrades = students.filter(s => s.midterm === '' || s.endterm === '');
+            
+            if (incompleteGrades.length > 0) {
+                alert('Please enter all grades before submitting.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to submit these grades for approval?')) {
+                // Submit grades for approval (in real application, this would send to server)
+                showNotification('Grades submitted for approval!', 'success');
+            }
+        }
+        
+        function exportGrades() {
+            alert('Export Grades feature:\n\nThis will download the grades as an Excel file for backup or external use.');
+        }
+        
+        function viewStudentDetails(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            alert(`Student Details:\n\nID: ${student.id}\nName: ${student.name}\nMid-term: ${student.midterm}%\nEnd-term: ${student.endterm}%\nTotal: ${student.total}%\nGrade: ${student.grade}`);
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGradeEntry();
+        });
+    </script>
+</body>
+</html>

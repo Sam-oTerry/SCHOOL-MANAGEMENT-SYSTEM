@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - System Administrator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">System Administrator</h6>
+                        <small class="text-muted">Staff ID: SYS1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> System Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="user-management.html">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-chalkboard-teacher"></i> Staff Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="system-settings.html">
+                                <i class="fas fa-cog"></i> System Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="term-management.html">
+                                <i class="fas fa-calendar"></i> Term Management
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>System Settings</h4>
+                        <span class="role-badge">System Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Settings Navigation -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Settings Categories</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary w-100 mb-2" onclick="showSettings('general')">
+                                    <i class="fas fa-cog"></i> General Settings
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-success w-100 mb-2" onclick="showSettings('academic')">
+                                    <i class="fas fa-graduation-cap"></i> Academic Settings
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-info w-100 mb-2" onclick="showSettings('security')">
+                                    <i class="fas fa-shield-alt"></i> Security Settings
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-warning w-100 mb-2" onclick="showSettings('backup')">
+                                    <i class="fas fa-database"></i> Backup Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- General Settings -->
+                <div id="general-settings" class="settings-section">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>General Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="general-settings-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">School Name</label>
+                                            <input type="text" class="form-control" id="school-name" value="St. Mary's Secondary School">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">School Code</label>
+                                            <input type="text" class="form-control" id="school-code" value="SMS001">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">School Address</label>
+                                            <textarea class="form-control" id="school-address" rows="3">P.O. Box 123, Kampala, Uganda</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Contact Information</label>
+                                            <input type="tel" class="form-control mb-2" id="school-phone" value="+256 700 123 456">
+                                            <input type="email" class="form-control" id="school-email" value="info@stmarys.edu">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Currency</label>
+                                            <select class="form-select" id="currency">
+                                                <option value="UGX" selected>Ugandan Shilling (UGX)</option>
+                                                <option value="USD">US Dollar (USD)</option>
+                                                <option value="EUR">Euro (EUR)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Time Zone</label>
+                                            <select class="form-select" id="timezone">
+                                                <option value="Africa/Kampala" selected>Africa/Kampala</option>
+                                                <option value="UTC">UTC</option>
+                                                <option value="America/New_York">America/New_York</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" onclick="saveGeneralSettings()">
+                                        <i class="fas fa-save"></i> Save General Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Academic Settings -->
+                <div id="academic-settings" class="settings-section" style="display: none;">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Academic Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="academic-settings-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Academic Year</label>
+                                            <input type="text" class="form-control" id="academic-year" value="2023">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Number of Terms</label>
+                                            <select class="form-select" id="number-of-terms">
+                                                <option value="3" selected>3 Terms</option>
+                                                <option value="2">2 Terms</option>
+                                                <option value="4">4 Terms</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Grading System</label>
+                                            <select class="form-select" id="grading-system">
+                                                <option value="A-F" selected>A-F (New Curriculum)</option>
+                                                <option value="1-9">1-9 (Old System)</option>
+                                                <option value="percentage">Percentage</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Pass Mark</label>
+                                            <input type="number" class="form-control" id="pass-mark" value="50" min="0" max="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Mid-term Weight (%)</label>
+                                            <input type="number" class="form-control" id="midterm-weight" value="20" min="0" max="100">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">End-term Weight (%)</label>
+                                            <input type="number" class="form-control" id="endterm-weight" value="80" min="0" max="100">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" onclick="saveAcademicSettings()">
+                                        <i class="fas fa-save"></i> Save Academic Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div id="security-settings" class="settings-section" style="display: none;">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="security-settings-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Password Policy</label>
+                                            <select class="form-select" id="password-policy">
+                                                <option value="standard" selected>Standard (6+ characters)</option>
+                                                <option value="strong">Strong (8+ characters, mixed case)</option>
+                                                <option value="complex">Complex (8+ characters, numbers, symbols)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Session Timeout (minutes)</label>
+                                            <input type="number" class="form-control" id="session-timeout" value="30" min="5" max="480">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Login Attempts</label>
+                                            <input type="number" class="form-control" id="login-attempts" value="3" min="1" max="10">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Account Lockout Duration (minutes)</label>
+                                            <input type="number" class="form-control" id="lockout-duration" value="15" min="5" max="1440">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="two-factor-auth">
+                                        <label class="form-check-label" for="two-factor-auth">
+                                            Enable Two-Factor Authentication
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="audit-logging">
+                                        <label class="form-check-label" for="audit-logging">
+                                            Enable Audit Logging
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
+                                        <i class="fas fa-save"></i> Save Security Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Backup Settings -->
+                <div id="backup-settings" class="settings-section" style="display: none;">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Backup Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="backup-settings-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Backup Frequency</label>
+                                            <select class="form-select" id="backup-frequency">
+                                                <option value="daily" selected>Daily</option>
+                                                <option value="weekly">Weekly</option>
+                                                <option value="monthly">Monthly</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Backup Time</label>
+                                            <input type="time" class="form-control" id="backup-time" value="02:00">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Retention Period (days)</label>
+                                            <input type="number" class="form-control" id="retention-period" value="30" min="7" max="365">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Backup Location</label>
+                                            <input type="text" class="form-control" id="backup-location" value="/backups/">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="auto-backup">
+                                        <label class="form-check-label" for="auto-backup">
+                                            Enable Automatic Backup
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="email-notifications">
+                                        <label class="form-check-label" for="email-notifications">
+                                            Email Backup Notifications
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-primary" onclick="saveBackupSettings()">
+                                        <i class="fas fa-save"></i> Save Backup Settings
+                                    </button>
+                                    <button type="button" class="btn btn-success ms-2" onclick="createBackup()">
+                                        <i class="fas fa-database"></i> Create Backup Now
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/system-admin.js"></script>
+    <script>
+        // System Settings Functionality
+        function showSettings(category) {
+            // Hide all settings sections
+            document.querySelectorAll('.settings-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(category + '-settings').style.display = 'block';
+            
+            // Update button states
+            document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-info, .btn-outline-warning').forEach(btn => {
+                btn.classList.remove('btn-primary', 'btn-success', 'btn-info', 'btn-warning');
+                btn.classList.add('btn-outline-primary', 'btn-outline-success', 'btn-outline-info', 'btn-outline-warning');
+            });
+            
+            // Highlight active button
+            const activeButton = event.target;
+            if (category === 'general') {
+                activeButton.classList.remove('btn-outline-primary');
+                activeButton.classList.add('btn-primary');
+            } else if (category === 'academic') {
+                activeButton.classList.remove('btn-outline-success');
+                activeButton.classList.add('btn-success');
+            } else if (category === 'security') {
+                activeButton.classList.remove('btn-outline-info');
+                activeButton.classList.add('btn-info');
+            } else if (category === 'backup') {
+                activeButton.classList.remove('btn-outline-warning');
+                activeButton.classList.add('btn-warning');
+            }
+        }
+        
+        function saveGeneralSettings() {
+            const schoolName = document.getElementById('school-name').value;
+            const schoolCode = document.getElementById('school-code').value;
+            const schoolAddress = document.getElementById('school-address').value;
+            const schoolPhone = document.getElementById('school-phone').value;
+            const schoolEmail = document.getElementById('school-email').value;
+            const currency = document.getElementById('currency').value;
+            const timezone = document.getElementById('timezone').value;
+            
+            if (!schoolName || !schoolCode || !schoolAddress || !schoolPhone || !schoolEmail) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Save settings (simulate API call)
+            showNotification('General settings saved successfully!', 'success');
+        }
+        
+        function saveAcademicSettings() {
+            const academicYear = document.getElementById('academic-year').value;
+            const numberOfTerms = document.getElementById('number-of-terms').value;
+            const gradingSystem = document.getElementById('grading-system').value;
+            const passMark = document.getElementById('pass-mark').value;
+            const midtermWeight = document.getElementById('midterm-weight').value;
+            const endtermWeight = document.getElementById('endterm-weight').value;
+            
+            if (!academicYear || !numberOfTerms || !gradingSystem || !passMark || !midtermWeight || !endtermWeight) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            if (parseInt(midtermWeight) + parseInt(endtermWeight) !== 100) {
+                alert('Mid-term and End-term weights must add up to 100%.');
+                return;
+            }
+            
+            // Save settings (simulate API call)
+            showNotification('Academic settings saved successfully!', 'success');
+        }
+        
+        function saveSecuritySettings() {
+            const passwordPolicy = document.getElementById('password-policy').value;
+            const sessionTimeout = document.getElementById('session-timeout').value;
+            const loginAttempts = document.getElementById('login-attempts').value;
+            const lockoutDuration = document.getElementById('lockout-duration').value;
+            const twoFactorAuth = document.getElementById('two-factor-auth').checked;
+            const auditLogging = document.getElementById('audit-logging').checked;
+            
+            if (!passwordPolicy || !sessionTimeout || !loginAttempts || !lockoutDuration) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Save settings (simulate API call)
+            showNotification('Security settings saved successfully!', 'success');
+        }
+        
+        function saveBackupSettings() {
+            const backupFrequency = document.getElementById('backup-frequency').value;
+            const backupTime = document.getElementById('backup-time').value;
+            const retentionPeriod = document.getElementById('retention-period').value;
+            const backupLocation = document.getElementById('backup-location').value;
+            const autoBackup = document.getElementById('auto-backup').checked;
+            const emailNotifications = document.getElementById('email-notifications').checked;
+            
+            if (!backupFrequency || !backupTime || !retentionPeriod || !backupLocation) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Save settings (simulate API call)
+            showNotification('Backup settings saved successfully!', 'success');
+        }
+        
+        function createBackup() {
+            if (confirm('Are you sure you want to create a backup now? This may take a few minutes.')) {
+                alert('Backup process initiated...\n\nThis feature will create a complete backup of the system data.');
+                showNotification('Backup process started!', 'info');
+            }
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show general settings by default
+            showSettings('general');
+        });
+    </script>
+</body>
+</html>

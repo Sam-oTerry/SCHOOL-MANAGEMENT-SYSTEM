@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Progress - Director of Studies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/dos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="rounded-circle mb-2" style="width: 60px; height: 60px;">
+                        <h5 class="text-white">Director of Studies</h5>
+                        <p class="small text-white-50">Staff ID: DOS1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="academic-progress.html">
+                                <i class="fas fa-chart-line"></i> Academic Progress
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-ids.html">
+                                <i class="fas fa-id-card"></i> Student IDs
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Academic Progress</h4>
+                        <span class="role-badge">Academic Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Progress Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Progress Analysis Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Class Level</label>
+                                <select class="form-select" id="class-level" onchange="updateProgress()">
+                                    <option value="">All Levels</option>
+                                    <option value="s1">S.1</option>
+                                    <option value="s2">S.2</option>
+                                    <option value="s3">S.3</option>
+                                    <option value="s4">S.4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Subject</label>
+                                <select class="form-select" id="subject-filter" onchange="updateProgress()">
+                                    <option value="">All Subjects</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="physics">Physics</option>
+                                    <option value="chemistry">Chemistry</option>
+                                    <option value="biology">Biology</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Term</label>
+                                <select class="form-select" id="term-filter" onchange="updateProgress()">
+                                    <option value="term1">Term 1</option>
+                                    <option value="term2">Term 2</option>
+                                    <option value="term3">Term 3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="generateProgressReport()">
+                                        <i class="fas fa-chart-bar"></i> Generate Report
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="exportProgress()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Academic Progress Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>85.2%</h3>
+                                        <p class="mb-0">Overall Average</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>92%</h3>
+                                        <p class="mb-0">Pass Rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>285</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>15</h3>
+                                        <p class="mb-0">Classes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Class Performance Comparison</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="classPerformanceChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Subject Performance</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="subjectPerformanceChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grade Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="gradeDistributionChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Progress Trends</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="progressTrendsChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detailed Progress -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Detailed Academic Progress</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Subject</th>
+                                        <th>Average Score</th>
+                                        <th>Pass Rate</th>
+                                        <th>Top Performer</th>
+                                        <th>Progress</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="progress-tbody">
+                                    <!-- Progress data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Insights and Recommendations -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Insights and Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Key Insights</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i> S.4 classes show excellent performance (90%+)</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i> Mathematics and Physics are top performing subjects</li>
+                                    <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> S.1 classes need attention (75% average)</li>
+                                    <li><i class="fas fa-info-circle text-info me-2"></i> Overall progress is trending upward</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Recommendations</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Provide additional support for S.1 students</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Share best practices from top performing classes</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Organize remedial classes for struggling students</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Review teaching methods for underperforming subjects</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos.js"></script>
+    <script>
+        // Academic Progress Functionality
+        let progressData = {};
+        
+        // Sample progress data
+        const sampleProgressData = [
+            { class: 'S.4 Science A', subject: 'Mathematics', averageScore: 88.5, passRate: 95, topPerformer: 'John Doe (96%)', progress: 'up' },
+            { class: 'S.4 Science A', subject: 'Physics', averageScore: 85.2, passRate: 92, topPerformer: 'Mary Smith (94%)', progress: 'up' },
+            { class: 'S.4 Science B', subject: 'Chemistry', averageScore: 82.8, passRate: 88, topPerformer: 'Peter Johnson (91%)', progress: 'stable' },
+            { class: 'S.3 Science', subject: 'Biology', averageScore: 90.1, passRate: 96, topPerformer: 'Sarah Wilson (98%)', progress: 'up' },
+            { class: 'S.1 Science', subject: 'Mathematics', averageScore: 75.5, passRate: 78, topPerformer: 'David Brown (85%)', progress: 'down' }
+        ];
+        
+        function initializeAcademicProgress() {
+            progressData = [...sampleProgressData];
+            displayProgressData();
+            initializeCharts();
+        }
+        
+        function displayProgressData() {
+            const tbody = document.getElementById('progress-tbody');
+            tbody.innerHTML = '';
+            
+            progressData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.class}</strong></td>
+                    <td>${item.subject}</td>
+                    <td>${item.averageScore}%</td>
+                    <td><span class="badge ${getPassRateColor(item.passRate)}">${item.passRate}%</span></td>
+                    <td>${item.topPerformer}</td>
+                    <td>
+                        <i class="fas fa-arrow-${item.progress === 'up' ? 'up text-success' : item.progress === 'down' ? 'down text-danger' : 'right text-info'}"></i>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${item.class}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewClassReport('${item.class}')">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getPassRateColor(rate) {
+            if (rate >= 90) return 'bg-success';
+            if (rate >= 80) return 'bg-primary';
+            if (rate >= 70) return 'bg-warning';
+            return 'bg-danger';
+        }
+        
+        function initializeCharts() {
+            // Class Performance Chart
+            const classPerformanceCtx = document.getElementById('classPerformanceChart').getContext('2d');
+            new Chart(classPerformanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['S.4 Science A', 'S.4 Science B', 'S.3 Science', 'S.2 Science', 'S.1 Science'],
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: [88.5, 85.2, 82.8, 78.5, 75.5],
+                        backgroundColor: [
+                            '#28a745',
+                            '#007bff',
+                            '#ffc107',
+                            '#17a2b8',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Subject Performance Chart
+            const subjectPerformanceCtx = document.getElementById('subjectPerformanceChart').getContext('2d');
+            new Chart(subjectPerformanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English'],
+                    datasets: [{
+                        data: [85, 82, 78, 90, 75],
+                        backgroundColor: [
+                            '#007bff',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545',
+                            '#17a2b8'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Grade Distribution Chart
+            const gradeDistributionCtx = document.getElementById('gradeDistributionChart').getContext('2d');
+            new Chart(gradeDistributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['A', 'B', 'C', 'D', 'E', 'F'],
+                    datasets: [{
+                        data: [25, 35, 20, 15, 3, 2],
+                        backgroundColor: [
+                            '#28a745',
+                            '#007bff',
+                            '#17a2b8',
+                            '#ffc107',
+                            '#dc3545',
+                            '#343a40'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Progress Trends Chart
+            const progressTrendsCtx = document.getElementById('progressTrendsChart').getContext('2d');
+            new Chart(progressTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    datasets: [{
+                        label: 'Overall Average',
+                        data: [80, 82, 84, 85, 87, 86, 88, 89],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'S.4 Average',
+                        data: [85, 86, 87, 88, 89, 88, 90, 91],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'S.1 Average',
+                        data: [75, 76, 77, 78, 79, 78, 80, 81],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateProgress() {
+            const classLevel = document.getElementById('class-level').value;
+            const subject = document.getElementById('subject-filter').value;
+            const term = document.getElementById('term-filter').value;
+            
+            // Update progress based on selections
+            displayProgressData();
+            
+            // Update charts
+            initializeCharts();
+        }
+        
+        function generateProgressReport() {
+            const classLevel = document.getElementById('class-level').value;
+            const subject = document.getElementById('subject-filter').value;
+            const term = document.getElementById('term-filter').value;
+            
+            alert(`Generating progress report for ${classLevel || 'all levels'} ${subject || 'all subjects'} ${term}...\n\nThis feature will generate a detailed academic progress report.`);
+        }
+        
+        function exportProgress() {
+            alert('Export Progress feature:\n\nThis will download the academic progress report as a PDF or Excel file.');
+        }
+        
+        function viewClassDetails(className) {
+            alert(`Class Details:\n\nClass: ${className}\n\nThis feature will show detailed information about the class performance.`);
+        }
+        
+        function viewClassReport(className) {
+            alert(`Class Report:\n\nGenerating detailed report for ${className}...\n\nThis feature will show comprehensive class performance analytics.`);
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAcademicProgress();
+        });
+    </script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results Approval - Head of Department</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/hod.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Head of Department</h6>
+                        <small class="text-muted">Staff ID: HOD1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-teachers.html">
+                                <i class="fas fa-users"></i> My Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-assignment.html">
+                                <i class="fas fa-user-plus"></i> Teacher Assignment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-performance.html">
+                                <i class="fas fa-chart-line"></i> Department Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="results-approval.html">
+                                <i class="fas fa-check-circle"></i> Results Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-analytics.html">
+                                <i class="fas fa-chart-bar"></i> Department Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Results Approval</h4>
+                        <span class="role-badge">Department Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Approval Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Approval Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Subject</label>
+                                <select class="form-select" id="subject-filter" onchange="filterResults()">
+                                    <option value="">All Subjects</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="physics">Physics</option>
+                                    <option value="chemistry">Chemistry</option>
+                                    <option value="biology">Biology</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-filter" onchange="filterResults()">
+                                    <option value="">All Classes</option>
+                                    <option value="s4-science-a">S.4 Science A</option>
+                                    <option value="s4-science-b">S.4 Science B</option>
+                                    <option value="s3-science">S.3 Science</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterResults()">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm" onclick="approveAll()">
+                                        <i class="fas fa-check"></i> Approve All
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="refreshResults()">
+                                        <i class="fas fa-sync"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Approval Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Approval Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>8</h3>
+                                        <p class="mb-0">Pending Approval</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>15</h3>
+                                        <p class="mb-0">Approved</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white text-center">
+                                    <div class="card-body">
+                                        <h3>2</h3>
+                                        <p class="mb-0">Rejected</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>25</h3>
+                                        <p class="mb-0">Total Results</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results for Approval -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Results for Approval</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Class</th>
+                                        <th>Teacher</th>
+                                        <th>Term</th>
+                                        <th>Students</th>
+                                        <th>Average Score</th>
+                                        <th>Status</th>
+                                        <th>Submitted Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-tbody">
+                                    <!-- Results will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Results Detail Modal -->
+    <div class="modal fade" id="resultsDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Results Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Subject:</strong> <span id="detail-subject"></span></p>
+                            <p><strong>Class:</strong> <span id="detail-class"></span></p>
+                            <p><strong>Teacher:</strong> <span id="detail-teacher"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Term:</strong> <span id="detail-term"></span></p>
+                            <p><strong>Students:</strong> <span id="detail-students"></span></p>
+                            <p><strong>Average Score:</strong> <span id="detail-average"></span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th>Mid-term (20%)</th>
+                                    <th>End-term (80%)</th>
+                                    <th>Total Score</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-detail-tbody">
+                                <!-- Results details will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Grade Distribution:</h6>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <span class="badge bg-success">A: 5</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-primary">B: 8</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-info">C: 12</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-warning">D: 7</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-danger">E: 2</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-dark">F: 1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="approveResults()">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="rejectResults()">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/hod.js"></script>
+    <script>
+        // Results Approval Functionality
+        let results = [];
+        let currentResult = null;
+        
+        // Sample results data
+        const sampleResults = [
+            {
+                id: 1,
+                subject: 'Mathematics',
+                class: 'S.4 Science A',
+                teacher: 'John Smith',
+                term: 'Term 1',
+                students: 35,
+                averageScore: 82.5,
+                status: 'Pending',
+                submittedDate: '2023-10-15',
+                results: [
+                    { studentId: 'ST001', studentName: 'John Doe', midterm: 85, endterm: 78, total: 79.4, grade: 'B' },
+                    { studentId: 'ST002', studentName: 'Mary Smith', midterm: 90, endterm: 82, total: 83.6, grade: 'A' },
+                    { studentId: 'ST003', studentName: 'Peter Johnson', midterm: 75, endterm: 80, total: 79.0, grade: 'B' }
+                ]
+            },
+            {
+                id: 2,
+                subject: 'Physics',
+                class: 'S.4 Science B',
+                teacher: 'Mary Johnson',
+                term: 'Term 1',
+                students: 32,
+                averageScore: 85.2,
+                status: 'Pending',
+                submittedDate: '2023-10-14',
+                results: [
+                    { studentId: 'ST004', studentName: 'Sarah Wilson', midterm: 88, endterm: 85, total: 85.6, grade: 'A' },
+                    { studentId: 'ST005', studentName: 'David Brown', midterm: 82, endterm: 87, total: 86.0, grade: 'A' }
+                ]
+            },
+            {
+                id: 3,
+                subject: 'Chemistry',
+                class: 'S.3 Science',
+                teacher: 'Peter Brown',
+                term: 'Term 1',
+                students: 28,
+                averageScore: 78.8,
+                status: 'Approved',
+                submittedDate: '2023-10-13',
+                results: [
+                    { studentId: 'ST006', studentName: 'Lisa Davis', midterm: 80, endterm: 75, total: 76.0, grade: 'B' },
+                    { studentId: 'ST007', studentName: 'Michael Wilson', midterm: 85, endterm: 82, total: 82.6, grade: 'A' }
+                ]
+            },
+            {
+                id: 4,
+                subject: 'Biology',
+                class: 'S.4 Science A',
+                teacher: 'Sarah Wilson',
+                term: 'Term 1',
+                students: 35,
+                averageScore: 88.1,
+                status: 'Rejected',
+                submittedDate: '2023-10-12',
+                results: [
+                    { studentId: 'ST008', studentName: 'Emma Taylor', midterm: 92, endterm: 88, total: 88.8, grade: 'A' },
+                    { studentId: 'ST009', studentName: 'James Anderson', midterm: 87, endterm: 90, total: 89.4, grade: 'A' }
+                ]
+            }
+        ];
+        
+        function initializeResultsApproval() {
+            results = [...sampleResults];
+            displayResults();
+        }
+        
+        function displayResults() {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${result.subject}</strong></td>
+                    <td>${result.class}</td>
+                    <td>${result.teacher}</td>
+                    <td>${result.term}</td>
+                    <td>${result.students}</td>
+                    <td>${result.averageScore}%</td>
+                    <td><span class="badge ${getStatusColor(result.status)}">${result.status}</span></td>
+                    <td>${formatDate(result.submittedDate)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults(${result.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${result.status === 'Pending' ? 
+                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult(${result.id})">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult(${result.id})">
+                                <i class="fas fa-times"></i>
+                            </button>` : 
+                            ''
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'pending': return 'bg-warning';
+                case 'approved': return 'bg-success';
+                case 'rejected': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function viewResults(resultId) {
+            const result = results.find(r => r.id === resultId);
+            if (!result) return;
+            
+            currentResult = result;
+            
+            // Populate modal
+            document.getElementById('detail-subject').textContent = result.subject;
+            document.getElementById('detail-class').textContent = result.class;
+            document.getElementById('detail-teacher').textContent = result.teacher;
+            document.getElementById('detail-term').textContent = result.term;
+            document.getElementById('detail-students').textContent = result.students;
+            document.getElementById('detail-average').textContent = result.averageScore + '%';
+            
+            // Populate results table
+            const tbody = document.getElementById('results-detail-tbody');
+            tbody.innerHTML = '';
+            
+            result.results.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.studentId}</td>
+                    <td>${student.studentName}</td>
+                    <td>${student.midterm}%</td>
+                    <td>${student.endterm}%</td>
+                    <td>${student.total}%</td>
+                    <td><span class="badge ${getGradeColor(student.grade)}">${student.grade}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('resultsDetailModal'));
+            modal.show();
+        }
+        
+        function getGradeColor(grade) {
+            switch(grade) {
+                case 'A': return 'bg-success';
+                case 'B': return 'bg-primary';
+                case 'C': return 'bg-info';
+                case 'D': return 'bg-warning';
+                case 'E': return 'bg-danger';
+                case 'F': return 'bg-dark';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function approveResults() {
+            if (currentResult) {
+                currentResult.status = 'Approved';
+                displayResults();
+                showNotification('Results approved successfully!', 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resultsDetailModal'));
+                modal.hide();
+            }
+        }
+        
+        function rejectResults() {
+            if (currentResult) {
+                currentResult.status = 'Rejected';
+                displayResults();
+                showNotification('Results rejected!', 'warning');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resultsDetailModal'));
+                modal.hide();
+            }
+        }
+        
+        function approveResult(resultId) {
+            if (confirm('Are you sure you want to approve these results?')) {
+                const result = results.find(r => r.id === resultId);
+                if (result) {
+                    result.status = 'Approved';
+                    displayResults();
+                    showNotification('Results approved successfully!', 'success');
+                }
+            }
+        }
+        
+        function rejectResult(resultId) {
+            if (confirm('Are you sure you want to reject these results?')) {
+                const result = results.find(r => r.id === resultId);
+                if (result) {
+                    result.status = 'Rejected';
+                    displayResults();
+                    showNotification('Results rejected!', 'warning');
+                }
+            }
+        }
+        
+        function filterResults() {
+            const subject = document.getElementById('subject-filter').value;
+            const classFilter = document.getElementById('class-filter').value;
+            const status = document.getElementById('status-filter').value;
+            
+            let filteredResults = results;
+            
+            if (subject) {
+                filteredResults = filteredResults.filter(r => r.subject.toLowerCase() === subject.toLowerCase());
+            }
+            
+            if (classFilter) {
+                filteredResults = filteredResults.filter(r => r.class === classFilter);
+            }
+            
+            if (status) {
+                filteredResults = filteredResults.filter(r => r.status.toLowerCase() === status.toLowerCase());
+            }
+            
+            displayFilteredResults(filteredResults);
+        }
+        
+        function displayFilteredResults(filteredResults) {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            filteredResults.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${result.subject}</strong></td>
+                    <td>${result.class}</td>
+                    <td>${result.teacher}</td>
+                    <td>${result.term}</td>
+                    <td>${result.students}</td>
+                    <td>${result.averageScore}%</td>
+                    <td><span class="badge ${getStatusColor(result.status)}">${result.status}</span></td>
+                    <td>${formatDate(result.submittedDate)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults(${result.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${result.status === 'Pending' ? 
+                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult(${result.id})">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult(${result.id})">
+                                <i class="fas fa-times"></i>
+                            </button>` : 
+                            ''
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function approveAll() {
+            if (confirm('Are you sure you want to approve all pending results?')) {
+                results.forEach(result => {
+                    if (result.status === 'Pending') {
+                        result.status = 'Approved';
+                    }
+                });
+                displayResults();
+                showNotification('All pending results approved!', 'success');
+            }
+        }
+        
+        function refreshResults() {
+            showNotification('Results refreshed!', 'info');
+            displayResults();
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeResultsApproval();
+        });
+    </script>
+</body>
+</html>

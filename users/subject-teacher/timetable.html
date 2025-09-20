@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable - Subject Teacher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/subject-teacher.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Subject Teacher</h6>
+                        <small class="text-muted">Staff ID: ST1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-lists.html">
+                                <i class="fas fa-users"></i> Student Lists
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="project-work.html">
+                                <i class="fas fa-tasks"></i> Project Work
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Results Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Teaching Timetable</h4>
+                        <span class="role-badge">Subject Teacher</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Timetable Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Timetable Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Week</label>
+                                <select class="form-select" id="week-select" onchange="updateTimetable()">
+                                    <option value="current">Current Week</option>
+                                    <option value="next">Next Week</option>
+                                    <option value="previous">Previous Week</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">View</label>
+                                <select class="form-select" id="view-select" onchange="updateTimetable()">
+                                    <option value="weekly">Weekly View</option>
+                                    <option value="daily">Daily View</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Subject Filter</label>
+                                <select class="form-select" id="subject-filter" onchange="updateTimetable()">
+                                    <option value="">All Subjects</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="physics">Physics</option>
+                                    <option value="chemistry">Chemistry</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="printTimetable()">
+                                        <i class="fas fa-print"></i> Print
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="exportTimetable()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weekly Timetable -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Weekly Timetable</h5>
+                        <small class="text-muted">Week of October 16-20, 2023</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered timetable-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Monday</th>
+                                        <th>Tuesday</th>
+                                        <th>Wednesday</th>
+                                        <th>Thursday</th>
+                                        <th>Friday</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timetable-tbody">
+                                    <!-- Timetable will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teaching Schedule Summary -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Teaching Schedule Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-primary">18</h3>
+                                        <p class="mb-0">Total Hours/Week</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-success">3</h3>
+                                        <p class="mb-0">Subjects</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-info">5</h3>
+                                        <p class="mb-0">Classes</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-warning">105</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upcoming Classes -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Upcoming Classes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Subject</th>
+                                        <th>Class</th>
+                                        <th>Room</th>
+                                        <th>Duration</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcoming-classes-tbody">
+                                    <!-- Upcoming classes will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/subject-teacher.js"></script>
+    <script>
+        // Timetable Functionality
+        let timetableData = [];
+        let currentWeek = 'current';
+        
+        // Sample timetable data
+        const sampleTimetableData = [
+            {
+                time: '08:00-09:00',
+                monday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
+                tuesday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
+                wednesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
+                thursday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
+                friday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' }
+            },
+            {
+                time: '09:00-10:00',
+                monday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
+                tuesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
+                wednesday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
+                thursday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
+                friday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' }
+            },
+            {
+                time: '10:00-11:00',
+                monday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
+                tuesday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
+                wednesday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
+                thursday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
+                friday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' }
+            },
+            {
+                time: '11:00-12:00',
+                monday: { subject: 'Break', class: '', room: '' },
+                tuesday: { subject: 'Break', class: '', room: '' },
+                wednesday: { subject: 'Break', class: '', room: '' },
+                thursday: { subject: 'Break', class: '', room: '' },
+                friday: { subject: 'Break', class: '', room: '' }
+            },
+            {
+                time: '12:00-13:00',
+                monday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
+                tuesday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
+                wednesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
+                thursday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
+                friday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' }
+            },
+            {
+                time: '13:00-14:00',
+                monday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
+                tuesday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
+                wednesday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
+                thursday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
+                friday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' }
+            }
+        ];
+        
+        const upcomingClasses = [
+            {
+                date: '2023-10-16',
+                time: '08:00-09:00',
+                subject: 'Mathematics',
+                class: 'S.4 Science A',
+                room: 'Room 101',
+                duration: '1 hour'
+            },
+            {
+                date: '2023-10-16',
+                time: '09:00-10:00',
+                subject: 'Physics',
+                class: 'S.4 Science B',
+                room: 'Lab 1',
+                duration: '1 hour'
+            },
+            {
+                date: '2023-10-17',
+                time: '08:00-09:00',
+                subject: 'Mathematics',
+                class: 'S.4 Science A',
+                room: 'Room 101',
+                duration: '1 hour'
+            },
+            {
+                date: '2023-10-17',
+                time: '12:00-13:00',
+                subject: 'Chemistry',
+                class: 'S.3 Science',
+                room: 'Lab 2',
+                duration: '1 hour'
+            }
+        ];
+        
+        function initializeTimetable() {
+            timetableData = [...sampleTimetableData];
+            displayTimetable();
+            displayUpcomingClasses();
+        }
+        
+        function displayTimetable() {
+            const tbody = document.getElementById('timetable-tbody');
+            tbody.innerHTML = '';
+            
+            timetableData.forEach(slot => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="fw-bold">${slot.time}</td>
+                    <td>${formatTimetableCell(slot.monday)}</td>
+                    <td>${formatTimetableCell(slot.tuesday)}</td>
+                    <td>${formatTimetableCell(slot.wednesday)}</td>
+                    <td>${formatTimetableCell(slot.thursday)}</td>
+                    <td>${formatTimetableCell(slot.friday)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function formatTimetableCell(cell) {
+            if (!cell.subject || cell.subject === 'Break') {
+                return `<span class="text-muted">${cell.subject || 'Free'}</span>`;
+            }
+            
+            return `
+                <div class="timetable-slot">
+                    <div class="fw-bold text-primary">${cell.subject}</div>
+                    <div class="text-muted small">${cell.class}</div>
+                    <div class="text-muted small"><i class="fas fa-map-marker-alt"></i> ${cell.room}</div>
+                </div>
+            `;
+        }
+        
+        function displayUpcomingClasses() {
+            const tbody = document.getElementById('upcoming-classes-tbody');
+            tbody.innerHTML = '';
+            
+            upcomingClasses.forEach(cls => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${cls.date}</strong><br>
+                        <small class="text-muted">${cls.time}</small>
+                    </td>
+                    <td>${cls.subject}</td>
+                    <td>${cls.class}</td>
+                    <td>${cls.room}</td>
+                    <td>${cls.duration}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${cls.date}', '${cls.time}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="startClass('${cls.date}', '${cls.time}')">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateTimetable() {
+            const week = document.getElementById('week-select').value;
+            const view = document.getElementById('view-select').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+            
+            currentWeek = week;
+            
+            // Filter timetable data based on subject filter
+            let filteredData = timetableData;
+            if (subjectFilter) {
+                filteredData = timetableData.map(slot => {
+                    const filteredSlot = { ...slot };
+                    Object.keys(filteredSlot).forEach(day => {
+                        if (day !== 'time' && filteredSlot[day].subject && 
+                            !filteredSlot[day].subject.toLowerCase().includes(subjectFilter.toLowerCase())) {
+                            filteredSlot[day] = { subject: '', class: '', room: '' };
+                        }
+                    });
+                    return filteredSlot;
+                });
+            }
+            
+            // Update display based on view
+            if (view === 'daily') {
+                displayDailyTimetable(filteredData);
+            } else {
+                displayTimetable();
+            }
+        }
+        
+        function displayDailyTimetable(data) {
+            const tbody = document.getElementById('timetable-tbody');
+            tbody.innerHTML = '';
+            
+            // Show only Monday's schedule for daily view
+            data.forEach(slot => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="fw-bold">${slot.time}</td>
+                    <td>${formatTimetableCell(slot.monday)}</td>
+                    <td colspan="4" class="text-center text-muted">Daily View - Monday Only</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function viewClassDetails(date, time) {
+            alert(`Class Details:\n\nDate: ${date}\nTime: ${time}\n\nThis feature will show detailed class information.`);
+        }
+        
+        function startClass(date, time) {
+            alert(`Starting class for ${date} at ${time}\n\nThis feature will open the class management interface.`);
+        }
+        
+        function printTimetable() {
+            window.print();
+        }
+        
+        function exportTimetable() {
+            alert('Exporting timetable...\n\nThis feature will download the timetable as a PDF or Excel file.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTimetable();
+        });
+    </script>
+    
+    <style>
+        .timetable-table {
+            font-size: 0.9rem;
+        }
+        
+        .timetable-table th {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .timetable-table td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .timetable-slot {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .timetable-slot:hover {
+            background-color: #e9ecef;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>

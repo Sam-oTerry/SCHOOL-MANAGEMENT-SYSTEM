@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bursar Dashboard - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
+    <link rel="stylesheet" href="../../assets/css/users/bursar.css">
+    <style>
+        :root {
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .role-badge {
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .feature-icon i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .student-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <div class="logo-container">
+                            <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
+                        </div>
+                        <h5 class="text-white">Bursar</h5>
+                        <p class="small text-white-50">Staff ID: BUR1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="financial-dashboard.html">
+                                <i class="fas fa-chart-pie"></i> Financial Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="fee-collection.html">
+                                <i class="fas fa-money-bill-wave"></i> Fee Collection
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="receipt-management.html">
+                                <i class="fas fa-receipt"></i> Receipt Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="transaction-tracking.html">
+                                <i class="fas fa-exchange-alt"></i> Transaction Tracking
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="payment-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Payment Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="financial-reports.html">
+                                <i class="fas fa-file-alt"></i> Financial Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-users"></i> Staff Management
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Bursar Dashboard</h4>
+                        <span class="role-badge">Financial Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Financial Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-dollar-sign"></i>
+                            <div class="number">UGX 45M</div>
+                            <div class="label">Total Revenue</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-credit-card"></i>
+                            <div class="number">UGX 32M</div>
+                            <div class="label">Total Expenses</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="number">UGX 13M</div>
+                            <div class="label">Net Income</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-percentage"></i>
+                            <div class="number">84%</div>
+                            <div class="label">Fee Collection Rate</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Row -->
+                <div class="row">
+                    <!-- Recent Transactions -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Recent Transactions</span>
+                                <button class="btn btn-sm btn-primary">View All</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Transaction ID</th>
+                                                <th>Date</th>
+                                                <th>Student</th>
+                                                <th>Amount</th>
+                                                <th>Type</th>
+                                                <th>Method</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>TXN001</strong></td>
+                                                <td>2023-10-15</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="student-avatar me-2">MJ</div>
+                                                        <div>
+                                                            <strong>Mukasa John</strong><br>
+                                                            <small class="text-muted">S00123</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>UGX 150,000</td>
+                                                <td>School Fees</td>
+                                                <td>Bank Transfer</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>TXN002</strong></td>
+                                                <td>2023-10-14</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="student-avatar me-2">NM</div>
+                                                        <div>
+                                                            <strong>Nakato Mary</strong><br>
+                                                            <small class="text-muted">S00124</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>UGX 120,000</td>
+                                                <td>School Fees</td>
+                                                <td>Mobile Money</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>TXN003</strong></td>
+                                                <td>2023-10-13</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="student-avatar me-2">OD</div>
+                                                        <div>
+                                                            <strong>Okot David</strong><br>
+                                                            <small class="text-muted">S00125</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>UGX 100,000</td>
+                                                <td>School Fees</td>
+                                                <td>Cash</td>
+                                                <td><span class="badge bg-warning">Pending</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions & Recent Activity -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">Quick Actions</div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary mb-2">
+                                        <i class="fas fa-plus"></i> New Transaction
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-upload"></i> Upload Payments
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-chart-pie"></i> Analyze Payments
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-file-alt"></i> Generate Reports
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">Recent Activity</div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Transaction Processed</h6>
+                                        <p class="text-muted mb-0">Mukasa John - UGX 150,000</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-upload"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Payments Uploaded</h6>
+                                        <p class="text-muted mb-0">Excel file processed</p>
+                                        <small class="text-muted">1 day ago</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Report Generated</h6>
+                                        <p class="text-muted mb-0">Monthly financial report</p>
+                                        <small class="text-muted">3 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Summary -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Financial Summary</h5>
+                        <small class="text-muted">Current financial status and trends</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Fee Collection Status</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Collected (84%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 84%">UGX 38M</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Pending (16%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 16%">UGX 7M</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Payment Methods</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Method</th>
+                                            <th>Count</th>
+                                            <th>Percentage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Bank Transfer</td>
+                                            <td>45</td>
+                                            <td>45%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mobile Money</td>
+                                            <td>35</td>
+                                            <td>35%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cash</td>
+                                            <td>20</td>
+                                            <td>20%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/bursar.js"></script>
+    <script>
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

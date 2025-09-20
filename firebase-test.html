@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .log-entry.success {
+            color: #28a745;
+        }
+        
+        .log-entry.error {
+            color: #dc3545;
+        }
+        
+        .log-entry.info {
+            color: #17a2b8;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Firebase Connection Test</h1>
+            <p>Testing Firebase integration for School Management System</p>
+        </div>
+        
+        <div class="content">
+            <div id="status" class="status info">
+                🔄 Initializing Firebase connection...
+            </div>
+            
+            <button id="testBtn" class="btn" onclick="testFirebaseConnection()">
+                🧪 Test Firebase Connection
+            </button>
+            
+            <button id="authBtn" class="btn" onclick="testFirebaseAuth()">
+                🔐 Test Firebase Auth
+            </button>
+            
+            <button id="dbBtn" class="btn" onclick="testFirebaseDatabase()">
+                📊 Test Firebase Database
+            </button>
+            
+            <div id="log" class="log" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase services
+        import { authService } from './assets/js/auth-service.js';
+        import { dbService } from './assets/js/database-service.js';
+        import { schoolPayService } from './assets/js/schoolpay-service.js';
+        
+        // Make services globally available
+        window.authService = authService;
+        window.dbService = dbService;
+        window.schoolPayService = schoolPayService;
+        
+        // Initialize Firebase connection
+        console.log('🔥 Firebase services initialized');
+        console.log('✅ Auth Service:', authService);
+        console.log('✅ Database Service:', dbService);
+        console.log('✅ School Pay Service:', schoolPayService);
+        
+        // Update status
+        document.getElementById('status').innerHTML = '✅ Firebase services loaded successfully!';
+        document.getElementById('status').className = 'status success';
+    </script>
+    
+    <script>
+        function addLogEntry(message, type = 'info') {
+            const log = document.getElementById('log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+            log.style.display = 'block';
+        }
+        
+        async function testFirebaseConnection() {
+            addLogEntry('🧪 Testing Firebase connection...', 'info');
+            
+            try {
+                if (!window.authService) {
+                    throw new Error('Firebase Auth Service not loaded');
+                }
+                
+                if (!window.dbService) {
+                    throw new Error('Firebase Database Service not loaded');
+                }
+                
+                if (!window.schoolPayService) {
+                    throw new Error('School Pay Service not loaded');
+                }
+                
+                addLogEntry('✅ Firebase connection successful!', 'success');
+                addLogEntry('✅ Auth Service: Available', 'success');
+                addLogEntry('✅ Database Service: Available', 'success');
+                addLogEntry('✅ School Pay Service: Available', 'success');
+                
+            } catch (error) {
+                addLogEntry(`❌ Firebase connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFirebaseAuth() {
+            addLogEntry('🔐 Testing Firebase Authentication...', 'info');
+            
+            try {
+                if (!window.authService) {
+                    throw new Error('Auth Service not available');
+                }
+                
+                const currentUser = window.authService.getCurrentUser();
+                const userRole = window.authService.getUserRole();
+                
+                addLogEntry(`👤 Current User: ${currentUser ? currentUser.email : 'None'}`, 'info');
+                addLogEntry(`🎭 User Role: ${userRole || 'None'}`, 'info');
+                
+                if (currentUser) {
+                    addLogEntry('✅ User is authenticated', 'success');
+                } else {
+                    addLogEntry('ℹ️ No user currently authenticated', 'info');
+                }
+                
+            } catch (error) {
+                addLogEntry(`❌ Auth test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFirebaseDatabase() {
+            addLogEntry('📊 Testing Firebase Database...', 'info');
+            
+            try {
+                if (!window.dbService) {
+                    throw new Error('Database Service not available');
+                }
+                
+                // Test reading from a collection
+                const result = await window.dbService.query('users', []);
+                
+                if (result.success) {
+                    addLogEntry(`✅ Database connection successful!`, 'success');
+                    addLogEntry(`📊 Found ${result.data.length} users in database`, 'success');
+                } else {
+                    addLogEntry(`❌ Database query failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                addLogEntry(`❌ Database test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testFirebaseConnection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

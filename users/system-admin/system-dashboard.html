@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Dashboard - System Administrator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">System Administrator</h6>
+                        <small class="text-muted">Staff ID: SYS1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="system-dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> System Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="user-management.html">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-chalkboard-teacher"></i> Staff Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-settings.html">
+                                <i class="fas fa-cog"></i> System Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="term-management.html">
+                                <i class="fas fa-calendar"></i> Term Management
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>System Dashboard</h4>
+                        <span class="role-badge">System Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- System Overview -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>System Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>285</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>45</h3>
+                                        <p class="mb-0">Total Staff</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>15</h3>
+                                        <p class="mb-0">Classes</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>12</h3>
+                                        <p class="mb-0">Subjects</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Status -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3><i class="fas fa-check-circle"></i></h3>
+                                        <p class="mb-0">System Online</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>99.9%</h3>
+                                        <p class="mb-0">Uptime</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>2</h3>
+                                        <p class="mb-0">Active Users</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>1.2GB</h3>
+                                        <p class="mb-0">Storage Used</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>User Activity</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="userActivityChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>System Performance</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="systemPerformanceChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Recent System Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-tbody">
+                                    <!-- Activity will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100 mb-2" onclick="createUser()">
+                                    <i class="fas fa-user-plus"></i> Create User
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-success w-100 mb-2" onclick="backupSystem()">
+                                    <i class="fas fa-database"></i> Backup System
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-info w-100 mb-2" onclick="viewLogs()">
+                                    <i class="fas fa-file-alt"></i> View Logs
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning w-100 mb-2" onclick="systemMaintenance()">
+                                    <i class="fas fa-tools"></i> Maintenance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Alerts -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>System Alerts & Notifications</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Warning:</strong> Database backup is due in 2 days. Please schedule a backup.
+                        </div>
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Info:</strong> System update available. Version 2.1.0 is ready for installation.
+                        </div>
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Success:</strong> All systems are running normally. No issues detected.
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/system-admin.js"></script>
+    <script>
+        // System Dashboard Functionality
+        let systemActivity = [];
+        
+        // Sample system activity data
+        const sampleActivity = [
+            {
+                time: '2023-10-15 14:30:00',
+                user: 'John Smith',
+                action: 'Login',
+                details: 'Logged into system',
+                status: 'Success'
+            },
+            {
+                time: '2023-10-15 14:25:00',
+                user: 'Mary Johnson',
+                action: 'Data Export',
+                details: 'Exported student records',
+                status: 'Success'
+            },
+            {
+                time: '2023-10-15 14:20:00',
+                user: 'System',
+                action: 'Backup',
+                details: 'Automated backup completed',
+                status: 'Success'
+            },
+            {
+                time: '2023-10-15 14:15:00',
+                user: 'Peter Brown',
+                action: 'User Creation',
+                details: 'Created new teacher account',
+                status: 'Success'
+            },
+            {
+                time: '2023-10-15 14:10:00',
+                user: 'Sarah Wilson',
+                action: 'Password Reset',
+                details: 'Reset password for student account',
+                status: 'Success'
+            }
+        ];
+        
+        function initializeSystemDashboard() {
+            systemActivity = [...sampleActivity];
+            displayActivity();
+            initializeCharts();
+        }
+        
+        function displayActivity() {
+            const tbody = document.getElementById('activity-tbody');
+            tbody.innerHTML = '';
+            
+            systemActivity.forEach(activity => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${activity.time}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.action}</td>
+                    <td>${activity.details}</td>
+                    <td><span class="badge ${getStatusColor(activity.status)}">${activity.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'success': return 'bg-success';
+                case 'warning': return 'bg-warning';
+                case 'error': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function initializeCharts() {
+            // User Activity Chart
+            const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+            new Chart(userActivityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [12, 19, 15, 25, 22, 8, 5],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'New Logins',
+                        data: [8, 12, 10, 18, 15, 3, 2],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // System Performance Chart
+            const systemPerformanceCtx = document.getElementById('systemPerformanceChart').getContext('2d');
+            new Chart(systemPerformanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CPU Usage', 'Memory Usage', 'Disk Usage', 'Network'],
+                    datasets: [{
+                        data: [25, 40, 15, 20],
+                        backgroundColor: [
+                            '#007bff',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        function createUser() {
+            alert('Create User feature:\n\nThis will open the user creation form to add new users to the system.');
+        }
+        
+        function backupSystem() {
+            if (confirm('Are you sure you want to create a system backup? This may take a few minutes.')) {
+                alert('System backup initiated...\n\nThis feature will create a complete backup of the system data.');
+            }
+        }
+        
+        function viewLogs() {
+            alert('View Logs feature:\n\nThis will open the system logs viewer to monitor system activities and errors.');
+        }
+        
+        function systemMaintenance() {
+            alert('System Maintenance feature:\n\nThis will open the maintenance panel for system optimization and updates.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSystemDashboard();
+        });
+    </script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>

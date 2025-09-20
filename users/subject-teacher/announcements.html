@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements - Subject Teacher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/subject-teacher.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Subject Teacher</h6>
+                        <small class="text-muted">Staff ID: ST1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-lists.html">
+                                <i class="fas fa-users"></i> Student Lists
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="project-work.html">
+                                <i class="fas fa-tasks"></i> Project Work
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Results Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Announcements</h4>
+                        <span class="role-badge">Subject Teacher</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Announcements List -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>School Announcements</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="refreshAnnouncements()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">
+                                <i class="fas fa-check-double"></i> Mark All as Read
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="announcements-list">
+                            <!-- Announcements will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Announcements -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Recent Announcements</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-announcements-tbody">
+                                    <!-- Recent announcements will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Announcement Details Modal -->
+    <div class="modal fade" id="announcementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="announcement-title">Announcement Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Author:</strong> <span id="announcement-author"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date:</strong> <span id="announcement-date"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Priority:</strong> <span id="announcement-priority"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Category:</strong> <span id="announcement-category"></span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div id="announcement-content">
+                        <!-- Announcement content will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="markAsRead()">
+                        <i class="fas fa-check"></i> Mark as Read
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/subject-teacher.js"></script>
+    <script>
+        // Announcements Functionality
+        let announcements = [];
+        let currentAnnouncement = null;
+        
+        // Sample announcements data
+        const sampleAnnouncements = [
+            {
+                id: 'A001',
+                title: 'Mid-term Examination Schedule',
+                content: 'The mid-term examinations will commence on October 25th, 2023. All students are required to be present and prepared. The examination schedule has been posted on the notice board.',
+                author: 'Director of Studies',
+                date: '2023-10-15',
+                priority: 'High',
+                category: 'Academic',
+                status: 'Unread',
+                type: 'General'
+            },
+            {
+                id: 'A002',
+                title: 'Mathematics Project Submission Deadline',
+                content: 'All Mathematics projects for S.4 Science classes must be submitted by November 15th, 2023. Late submissions will not be accepted.',
+                author: 'Mathematics Department',
+                date: '2023-10-14',
+                priority: 'Medium',
+                category: 'Academic',
+                status: 'Read',
+                type: 'Subject Specific'
+            },
+            {
+                id: 'A003',
+                title: 'Parent-Teacher Meeting',
+                content: 'The next Parent-Teacher meeting is scheduled for November 5th, 2023, at 2:00 PM. All parents are encouraged to attend.',
+                author: 'Head Teacher',
+                date: '2023-10-13',
+                priority: 'High',
+                category: 'General',
+                status: 'Unread',
+                type: 'General'
+            },
+            {
+                id: 'A004',
+                title: 'Physics Laboratory Safety Guidelines',
+                content: 'New safety guidelines for the Physics laboratory have been implemented. All students and teachers must follow these guidelines strictly.',
+                author: 'Physics Department',
+                date: '2023-10-12',
+                priority: 'High',
+                category: 'Safety',
+                status: 'Read',
+                type: 'Subject Specific'
+            },
+            {
+                id: 'A005',
+                title: 'School Fees Payment Reminder',
+                content: 'This is a reminder that school fees for the third term are due by October 30th, 2023. Please ensure timely payment.',
+                author: 'Bursar',
+                date: '2023-10-11',
+                priority: 'Medium',
+                category: 'Financial',
+                status: 'Unread',
+                type: 'General'
+            }
+        ];
+        
+        function initializeAnnouncements() {
+            announcements = [...sampleAnnouncements];
+            displayAnnouncements();
+            displayRecentAnnouncements();
+        }
+        
+        function displayAnnouncements() {
+            const container = document.getElementById('announcements-list');
+            container.innerHTML = '';
+            
+            announcements.forEach(announcement => {
+                const announcementCard = document.createElement('div');
+                announcementCard.className = `card mb-3 ${announcement.status === 'Unread' ? 'border-primary' : ''}`;
+                announcementCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title ${announcement.status === 'Unread' ? 'fw-bold' : ''}">
+                                    ${announcement.title}
+                                    ${announcement.status === 'Unread' ? '<span class="badge bg-primary ms-2">New</span>' : ''}
+                                </h6>
+                                <p class="card-text text-muted">${announcement.content.substring(0, 150)}...</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> ${announcement.author} | 
+                                            <i class="fas fa-calendar"></i> ${announcement.date} | 
+                                            <i class="fas fa-tag"></i> ${announcement.category}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <span class="badge ${getPriorityColor(announcement.priority)} me-2">${announcement.priority}</span>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewAnnouncement('${announcement.id}')">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(announcementCard);
+            });
+        }
+        
+        function displayRecentAnnouncements() {
+            const tbody = document.getElementById('recent-announcements-tbody');
+            tbody.innerHTML = '';
+            
+            announcements.slice(0, 5).forEach(announcement => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${announcement.date}</td>
+                    <td>
+                        <strong>${announcement.title}</strong>
+                        ${announcement.status === 'Unread' ? '<span class="badge bg-primary ms-2">New</span>' : ''}
+                    </td>
+                    <td>${announcement.author}</td>
+                    <td><span class="badge ${getPriorityColor(announcement.priority)}">${announcement.priority}</span></td>
+                    <td><span class="badge ${announcement.status === 'Read' ? 'bg-success' : 'bg-warning'}">${announcement.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewAnnouncement('${announcement.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getPriorityColor(priority) {
+            const colors = {
+                'High': 'bg-danger',
+                'Medium': 'bg-warning',
+                'Low': 'bg-info'
+            };
+            return colors[priority] || 'bg-secondary';
+        }
+        
+        function viewAnnouncement(announcementId) {
+            const announcement = announcements.find(a => a.id === announcementId);
+            if (announcement) {
+                currentAnnouncement = announcement;
+                
+                document.getElementById('announcement-title').textContent = announcement.title;
+                document.getElementById('announcement-author').textContent = announcement.author;
+                document.getElementById('announcement-date').textContent = announcement.date;
+                document.getElementById('announcement-priority').innerHTML = `<span class="badge ${getPriorityColor(announcement.priority)}">${announcement.priority}</span>`;
+                document.getElementById('announcement-category').textContent = announcement.category;
+                document.getElementById('announcement-content').innerHTML = `
+                    <div class="alert alert-info">
+                        <h6>Announcement Content:</h6>
+                        <p>${announcement.content}</p>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
+                modal.show();
+            }
+        }
+        
+        function markAsRead() {
+            if (currentAnnouncement) {
+                currentAnnouncement.status = 'Read';
+                displayAnnouncements();
+                displayRecentAnnouncements();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('announcementModal'));
+                modal.hide();
+                
+                alert('Announcement marked as read');
+            }
+        }
+        
+        function markAllAsRead() {
+            if (confirm('Are you sure you want to mark all announcements as read?')) {
+                announcements.forEach(announcement => {
+                    announcement.status = 'Read';
+                });
+                displayAnnouncements();
+                displayRecentAnnouncements();
+                alert('All announcements marked as read');
+            }
+        }
+        
+        function refreshAnnouncements() {
+            initializeAnnouncements();
+            alert('Announcements refreshed');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAnnouncements();
+        });
+    </script>
+</body>
+</html>

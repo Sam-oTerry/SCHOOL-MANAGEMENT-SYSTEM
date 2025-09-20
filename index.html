@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal - Adilang Secondary School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #1a2a6c 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .school-info {
+            margin-bottom: 30px;
+        }
+        
+        .school-info h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .school-info h3 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .school-info .tagline {
+            font-size: 18px;
+            margin-top: 15px;
+            color: #ffcc00;
+            font-weight: 600;
+            font-style: italic;
+        }
+        
+        .school-info .established {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .features {
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .features li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .features i {
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffcc00;
+        }
+        
+        .powered-by {
+            position: absolute;
+            bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .powered-by span {
+            color: #ffcc00;
+            font-weight: 600;
+        }
+        
+        .admin-notice {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            border-left: 4px solid #ffcc00;
+        }
+        
+        .right-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #f9f9f9;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #1a2a6c;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .logo span {
+            color: #2a5298;
+        }
+        
+        .logo .motto {
+            font-style: italic;
+            color: #1a2a6c;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #1a2a6c;
+            box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.2);
+            outline: none;
+        }
+        
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 42px;
+            color: #777;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .remember {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember input {
+            margin-right: 8px;
+        }
+        
+        .forgot a {
+            color: #1a2a6c;
+            text-decoration: none;
+        }
+        
+        .forgot a:hover {
+            text-decoration: underline;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2a5298;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+        }
+        
+        .divider span {
+            background: #f9f9f9;
+            position: relative;
+            padding: 0 15px;
+            color: #777;
+        }
+        
+        .help {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+        
+        .help a {
+            color: #1a2a6c;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                max-width: 450px;
+            }
+            
+            .left-panel {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="school-info">
+                <h2>ADILANG SECONDARY SCHOOL</h2>
+                <h3>Agago District, Uganda</h3>
+                <p class="established">Established in 1990</p>
+                <p class="tagline">Determination with Discipline</p>
+            </div>
+            
+            <ul class="features">
+                <li><i class="fas fa-chalkboard-teacher"></i> Staff Management Portal</li>
+                <li><i class="fas fa-book-open"></i> Academic Resources</li>
+                <li><i class="fas fa-clipboard-list"></i> Attendance Tracking</li>
+                <li><i class="fas fa-graduation-cap"></i> Student Performance Monitoring</li>
+                <li><i class="fas fa-calendar-alt"></i> School Calendar & Events</li>
+            </ul>
+            
+            <div class="admin-notice">
+                <i class="fas fa-info-circle"></i> Staff accounts are created by system administrator only.
+                Contact admin for access credentials.
+            </div>
+            
+            <div class="powered-by">
+                Powered by <span>STARLET TECHNOLOGIES</span>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="logo">
+                <h1><i class="fas fa-school"></i> Staff <span>Portal</span></h1>
+                <p class="motto">Login to access the school management system</p>
+            </div>
+            
+            <form>
+                <div class="input-group">
+                    <label for="username">Staff ID</label>
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="username" placeholder="Enter your staff ID" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                
+                <div class="remember-forgot">
+                    <div class="remember">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <div class="forgot">
+                        <a href="#">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <button type="submit"><i class="fas fa-sign-in-alt"></i> Login to Staff Portal</button>
+            </form>
+            
+            <div class="divider">
+                <span>System Information</span>
+            </div>
+            
+            <div class="help">
+                <i class="fas fa-exclamation-circle"></i> For account issues, contact the system administrator
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase services
+        import { authService } from './assets/js/auth-service.js';
+        import { dbService } from './assets/js/database-service.js';
+        import { schoolPayService } from './assets/js/schoolpay-service.js';
+        
+        // Make services globally available
+        window.authService = authService;
+        window.dbService = dbService;
+        window.schoolPayService = schoolPayService;
+        
+        // Initialize Firebase connection
+        console.log('🔥 Firebase services initialized');
+        console.log('✅ Auth Service:', authService);
+        console.log('✅ Database Service:', dbService);
+        console.log('✅ School Pay Service:', schoolPayService);
+    </script>
+    
+    <script>
+        // Firebase-powered login functionality
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Please fill in all fields.');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                const loginBtn = document.querySelector('button[type="submit"]');
+                const originalText = loginBtn.textContent;
+                loginBtn.textContent = 'Signing in...';
+                loginBtn.disabled = true;
+                
+                console.log('🔐 Attempting Firebase authentication...');
+                console.log('📧 Email:', username);
+                
+                // Wait for Firebase services to be available
+                if (!window.authService) {
+                    throw new Error('Firebase Auth Service not loaded. Please refresh the page.');
+                }
+                
+                // Attempt Firebase authentication
+                const result = await window.authService.signIn(username, password);
+                
+                if (result.success) {
+                    console.log('✅ Firebase authentication successful');
+                    
+                    // Wait a moment for user role to load
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Get user role
+                    const userRole = window.authService.getUserRole();
+                    console.log('👤 User Role:', userRole);
+                    
+                    if (!userRole) {
+                        console.warn('⚠️ User role not found, using default');
+                    }
+                    
+                    // Store user session
+                    sessionStorage.setItem('userEmail', username);
+                    sessionStorage.setItem('userRole', userRole || 'staff');
+                    
+                    // Redirect to appropriate dashboard
+                    const dashboardMap = {
+                        'head_teacher': 'users/head-teacher/dashboard.html',
+                        'system_admin': 'users/system-admin/dashboard.html',
+                        'dos': 'users/dos/dashboard.html',
+                        'bursar': 'users/bursar/dashboard.html',
+                        'class_teacher': 'users/class-teacher/dashboard.html',
+                        'subject_teacher': 'users/subject-teacher/dashboard.html',
+                        'hod': 'users/hod/dashboard.html'
+                    };
+                    
+                    const dashboard = dashboardMap[userRole] || 'users/head-teacher/dashboard.html';
+                    console.log('🚀 Redirecting to:', dashboard);
+                    window.location.href = dashboard;
+                } else {
+                    console.error('❌ Firebase authentication failed:', result.error);
+                    alert(`Login failed: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                alert(`An error occurred during login: ${error.message}`);
+            } finally {
+                // Reset button state
+                const loginBtn = document.querySelector('button[type="submit"]');
+                loginBtn.textContent = 'Login to Staff Portal';
+                loginBtn.disabled = false;
+            }
+        }
+        
+        // Enhanced logout function
+        async function logout() {
+            try {
+                await window.authService.signOut();
+                sessionStorage.clear();
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Force logout even if Firebase logout fails
+                sessionStorage.clear();
+                window.location.href = '/index.html';
+            }
+        }
+        
+        // Make logout function globally available
+        window.logout = logout;
+        
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
+        
+        // Check if user is already logged in
+        window.addEventListener('load', function() {
+            console.log('🔄 Checking authentication state...');
+            
+            // Wait for Firebase services to load
+            setTimeout(() => {
+                if (window.authService) {
+                    const currentUser = window.authService.getCurrentUser();
+                    const userRole = window.authService.getUserRole();
+                    
+                    console.log('👤 Current User:', currentUser);
+                    console.log('🎭 User Role:', userRole);
+                    
+                    if (currentUser && userRole) {
+                        console.log('✅ User already authenticated, redirecting...');
+                        // User is already logged in, redirect to dashboard
+                        const dashboardMap = {
+                            'head_teacher': 'users/head-teacher/dashboard.html',
+                            'system_admin': 'users/system-admin/dashboard.html',
+                            'dos': 'users/dos/dashboard.html',
+                            'bursar': 'users/bursar/dashboard.html',
+                            'class_teacher': 'users/class-teacher/dashboard.html',
+                            'subject_teacher': 'users/subject-teacher/dashboard.html',
+                            'hod': 'users/hod/dashboard.html'
+                        };
+                        
+                        const dashboard = dashboardMap[userRole];
+                        if (dashboard) {
+                            console.log('🚀 Redirecting to:', dashboard);
+                            window.location.href = dashboard;
+                        }
+                    } else {
+                        console.log('❌ No authenticated user found');
+                    }
+                } else {
+                    console.log('⚠️ Firebase services not yet loaded');
+                }
+            }, 2000); // Wait 2 seconds for Firebase to initialize
+        });
+    </script>
+</body>
+</html>

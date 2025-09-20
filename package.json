@@ -1,0 +1,36 @@
+{
+  "name": "school-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive School Management System with Firebase integration",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 3000",
+    "build": "echo 'No build process required for static site'",
+    "test": "echo 'No tests specified'"
+  },
+  "dependencies": {
+    "firebase": "^12.3.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "school",
+    "management",
+    "system",
+    "firebase",
+    "education",
+    "uganda"
+  ],
+  "author": "School Management System Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/school-management-system.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

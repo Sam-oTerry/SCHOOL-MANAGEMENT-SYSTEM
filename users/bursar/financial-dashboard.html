@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard - Bursar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/bursar.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="rounded-circle mb-2" style="width: 60px; height: 60px;">
+                        <h5 class="text-white">Bursar</h5>
+                        <p class="small text-white-50">Staff ID: BUR1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="financial-dashboard.html">
+                                <i class="fas fa-chart-pie"></i> Financial Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="fee-collection.html">
+                                <i class="fas fa-money-bill-wave"></i> Fee Collection
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="receipt-management.html">
+                                <i class="fas fa-receipt"></i> Receipt Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="transaction-tracking.html">
+                                <i class="fas fa-exchange-alt"></i> Transaction Tracking
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="payment-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Payment Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="financial-reports.html">
+                                <i class="fas fa-file-alt"></i> Financial Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-users"></i> Staff Management
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Financial Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Print</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> New Transaction
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Staff ID Display -->
+                <div class="alert alert-info">
+                    <i class="fas fa-id-card"></i> <strong>Staff ID:</strong> BUR1234
+                </div>
+
+                <!-- Financial Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">UGX 45M</h4>
+                                        <p class="card-text">Total Revenue</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-dollar-sign fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">UGX 32M</h4>
+                                        <p class="card-text">Total Expenses</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-credit-card fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">UGX 13M</h4>
+                                        <p class="card-text">Net Income</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-chart-line fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title">84%</h4>
+                                        <p class="card-text">Fee Collection Rate</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-percentage fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Recent Transactions</h5>
+                        <small class="text-muted">Latest financial transactions</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Date</th>
+                                        <th>Student</th>
+                                        <th>Amount</th>
+                                        <th>Type</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>TXN001</strong></td>
+                                        <td>2023-10-15</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="student-avatar me-2">MJ</div>
+                                                <div>
+                                                    <strong>Mukasa John</strong><br>
+                                                    <small class="text-muted">S00123</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>UGX 150,000</td>
+                                        <td>School Fees</td>
+                                        <td>Bank Transfer</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN001')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>TXN002</strong></td>
+                                        <td>2023-10-14</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="student-avatar me-2">NM</div>
+                                                <div>
+                                                    <strong>Nakato Mary</strong><br>
+                                                    <small class="text-muted">S00124</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>UGX 120,000</td>
+                                        <td>School Fees</td>
+                                        <td>Mobile Money</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN002')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>TXN003</strong></td>
+                                        <td>2023-10-13</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="student-avatar me-2">OD</div>
+                                                <div>
+                                                    <strong>Okot David</strong><br>
+                                                    <small class="text-muted">S00125</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>UGX 100,000</td>
+                                        <td>School Fees</td>
+                                        <td>Cash</td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="viewTransaction('TXN003')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Collection Status -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Fee Collection Status</h5>
+                        <small class="text-muted">Current fee collection progress</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Collection Progress</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Collected (84%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 84%">UGX 38M</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Pending (16%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 16%">UGX 7M</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Payment Methods</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Method</th>
+                                            <th>Count</th>
+                                            <th>Percentage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Bank Transfer</td>
+                                            <td>45</td>
+                                            <td>45%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mobile Money</td>
+                                            <td>35</td>
+                                            <td>35%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cash</td>
+                                            <td>20</td>
+                                            <td>20%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Breakdown -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Expense Breakdown</h5>
+                        <small class="text-muted">Monthly expense analysis</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Expense Categories</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Amount</th>
+                                            <th>Percentage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Salaries</td>
+                                            <td>UGX 20M</td>
+                                            <td>62.5%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Utilities</td>
+                                            <td>UGX 5M</td>
+                                            <td>15.6%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Maintenance</td>
+                                            <td>UGX 3M</td>
+                                            <td>9.4%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Supplies</td>
+                                            <td>UGX 4M</td>
+                                            <td>12.5%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Monthly Trend</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Month</th>
+                                            <th>Revenue</th>
+                                            <th>Expenses</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Jan</td>
+                                            <td>UGX 42M</td>
+                                            <td>UGX 30M</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Feb</td>
+                                            <td>UGX 38M</td>
+                                            <td>UGX 28M</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mar</td>
+                                            <td>UGX 45M</td>
+                                            <td>UGX 32M</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Apr</td>
+                                            <td>UGX 47M</td>
+                                            <td>UGX 35M</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/bursar.js"></script>
+    <script>
+        // Bursar specific functionality
+        function viewTransaction(transactionId) {
+            console.log('Viewing transaction:', transactionId);
+            // Implement transaction viewing logic
+        }
+    </script>
+</body>
+</html>

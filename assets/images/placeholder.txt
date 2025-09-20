@@ -1,0 +1,30 @@
+# Images Directory
+# This directory contains all image assets for the School Management System
+
+## Logo Files
+- logo.png - Main school logo
+- logo-small.png - Small version of logo for navigation
+- favicon.ico - Website favicon
+
+## User Avatars
+- default-avatar.png - Default user avatar
+- teacher-avatar.png - Default teacher avatar
+- student-avatar.png - Default student avatar
+
+## Icons
+- dashboard-icons/ - Dashboard icon set
+- navigation-icons/ - Navigation icon set
+- status-icons/ - Status indicator icons
+
+## Background Images
+- login-bg.jpg - Login page background
+- dashboard-bg.jpg - Dashboard background
+
+## Report Images
+- report-header.png - Report header image
+- school-stamp.png - Official school stamp
+
+## Placeholder Images
+- student-placeholder.jpg - Placeholder for student photos
+- teacher-placeholder.jpg - Placeholder for teacher photos
+- class-placeholder.jpg - Placeholder for class photos

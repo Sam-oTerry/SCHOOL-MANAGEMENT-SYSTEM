@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bursaries - Head Teacher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/head-teacher.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Head Teacher</h6>
+                        <small class="text-muted">Staff ID: HT1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="finance-records.html">
+                                <i class="fas fa-chart-pie"></i> Finance Records
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-users"></i> Staff Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="school-fees.html">
+                                <i class="fas fa-money-bill-wave"></i> School Fees
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="bursaries.html">
+                                <i class="fas fa-gift"></i> Bursaries
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Bursary Management</h4>
+                        <span class="role-badge">School Leadership</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Bursary Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Bursary Management Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Bursary Type</label>
+                                <select class="form-select" id="type-filter" onchange="filterBursaries()">
+                                    <option value="">All Types</option>
+                                    <option value="full">Full Bursary</option>
+                                    <option value="half">Half Bursary</option>
+                                    <option value="partial">Partial Bursary</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterBursaries()">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="expired">Expired</option>
+                                    <option value="suspended">Suspended</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-filter" onchange="filterBursaries()">
+                                    <option value="">All Classes</option>
+                                    <option value="s1">S.1</option>
+                                    <option value="s2">S.2</option>
+                                    <option value="s3">S.3</option>
+                                    <option value="s4">S.4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addBursaryModal">
+                                        <i class="fas fa-plus"></i> Add Bursary
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="exportBursaries()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bursary Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Bursary Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>25</h3>
+                                        <p class="mb-0">Total Bursaries</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>20</h3>
+                                        <p class="mb-0">Active</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>UGX 15,000,000</h3>
+                                        <p class="mb-0">Total Value</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>5</h3>
+                                        <p class="mb-0">Pending</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bursary Types -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Bursary Types</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h4>Full Bursary</h4>
+                                        <p class="mb-0">100% fee waiver</p>
+                                        <small>15 students</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h4>Half Bursary</h4>
+                                        <p class="mb-0">50% fee waiver</p>
+                                        <small>8 students</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h4>Partial Bursary</h4>
+                                        <p class="mb-0">25% fee waiver</p>
+                                        <small>2 students</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bursaries List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bursaries List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Class</th>
+                                        <th>Bursary Type</th>
+                                        <th>Value</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bursaries-tbody">
+                                    <!-- Bursaries will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Bursary Modal -->
+    <div class="modal fade" id="addBursaryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Bursary</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-bursary-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Student</label>
+                                    <select class="form-select" id="student-select" required>
+                                        <option value="">Select Student</option>
+                                        <option value="ST001">John Doe - S.4 Science A</option>
+                                        <option value="ST002">Mary Smith - S.4 Science A</option>
+                                        <option value="ST003">Peter Johnson - S.3 Science</option>
+                                        <option value="ST004">Sarah Wilson - S.2 Science</option>
+                                        <option value="ST005">David Brown - S.1 Science</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Bursary Type</label>
+                                    <select class="form-select" id="bursary-type" required>
+                                        <option value="">Select Type</option>
+                                        <option value="full">Full Bursary (100%)</option>
+                                        <option value="half">Half Bursary (50%)</option>
+                                        <option value="partial">Partial Bursary (25%)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="start-date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="end-date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Academic Year</label>
+                                    <select class="form-select" id="academic-year" required>
+                                        <option value="2023">2023</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Terms Covered</label>
+                                    <select class="form-select" id="terms-covered" required>
+                                        <option value="all">All Terms</option>
+                                        <option value="term1">Term 1 Only</option>
+                                        <option value="term2">Term 2 Only</option>
+                                        <option value="term3">Term 3 Only</option>
+                                        <option value="term1-2">Terms 1 & 2</option>
+                                        <option value="term2-3">Terms 2 & 3</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Bursary</label>
+                            <textarea class="form-control" id="bursary-reason" rows="3" required placeholder="Explain the reason for granting this bursary..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Conditions</label>
+                            <textarea class="form-control" id="bursary-conditions" rows="3" placeholder="Any conditions or requirements for this bursary..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="renewable">
+                                <label class="form-check-label" for="renewable">
+                                    Renewable bursary
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addBursary()">Add Bursary</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bursary Detail Modal -->
+    <div class="modal fade" id="bursaryDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bursary Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Student:</strong> <span id="detail-student"></span></p>
+                            <p><strong>Class:</strong> <span id="detail-class"></span></p>
+                            <p><strong>Bursary Type:</strong> <span id="detail-type"></span></p>
+                            <p><strong>Value:</strong> <span id="detail-value"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Start Date:</strong> <span id="detail-start-date"></span></p>
+                            <p><strong>End Date:</strong> <span id="detail-end-date"></span></p>
+                            <p><strong>Status:</strong> <span id="detail-status"></span></p>
+                            <p><strong>Renewable:</strong> <span id="detail-renewable"></span></p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Reason:</strong></p>
+                        <p id="detail-reason"></p>
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Conditions:</strong></p>
+                        <p id="detail-conditions"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editBursary()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="deleteBursary()">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/head-teacher.js"></script>
+    <script>
+        // Bursary Management Functionality
+        let bursaries = [];
+        let currentBursaryId = 1001;
+        
+        // Sample bursaries data
+        const sampleBursaries = [
+            {
+                id: 1001,
+                studentId: 'ST001',
+                studentName: 'John Doe',
+                class: 'S.4 Science A',
+                type: 'Full Bursary',
+                value: 1100000,
+                startDate: '2023-09-01',
+                endDate: '2024-08-31',
+                status: 'Active',
+                reason: 'Excellent academic performance and financial need',
+                conditions: 'Maintain average grade of B+ or above',
+                renewable: true
+            },
+            {
+                id: 1002,
+                studentId: 'ST002',
+                studentName: 'Mary Smith',
+                class: 'S.4 Science A',
+                type: 'Half Bursary',
+                value: 550000,
+                startDate: '2023-09-01',
+                endDate: '2024-08-31',
+                status: 'Active',
+                reason: 'Good academic performance and family financial constraints',
+                conditions: 'Maintain average grade of B or above',
+                renewable: true
+            },
+            {
+                id: 1003,
+                studentId: 'ST003',
+                studentName: 'Peter Johnson',
+                class: 'S.3 Science',
+                type: 'Partial Bursary',
+                value: 275000,
+                startDate: '2023-09-01',
+                endDate: '2024-08-31',
+                status: 'Active',
+                reason: 'Merit-based scholarship for outstanding performance',
+                conditions: 'Maintain average grade of A- or above',
+                renewable: false
+            },
+            {
+                id: 1004,
+                studentId: 'ST004',
+                studentName: 'Sarah Wilson',
+                class: 'S.2 Science',
+                type: 'Full Bursary',
+                value: 950000,
+                startDate: '2023-09-01',
+                endDate: '2024-08-31',
+                status: 'Active',
+                reason: 'Orphaned student with exceptional academic potential',
+                conditions: 'Maintain good conduct and academic performance',
+                renewable: true
+            },
+            {
+                id: 1005,
+                studentId: 'ST005',
+                studentName: 'David Brown',
+                class: 'S.1 Science',
+                type: 'Half Bursary',
+                value: 450000,
+                startDate: '2023-09-01',
+                endDate: '2024-08-31',
+                status: 'Suspended',
+                reason: 'Family financial difficulties',
+                conditions: 'Maintain average grade of C+ or above',
+                renewable: true
+            }
+        ];
+        
+        function initializeBursaries() {
+            bursaries = [...sampleBursaries];
+            displayBursaries();
+        }
+        
+        function displayBursaries() {
+            const tbody = document.getElementById('bursaries-tbody');
+            tbody.innerHTML = '';
+            
+            bursaries.forEach(bursary => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bursary.studentId}</td>
+                    <td>${bursary.studentName}</td>
+                    <td>${bursary.class}</td>
+                    <td><span class="badge ${getTypeColor(bursary.type)}">${bursary.type}</span></td>
+                    <td>UGX ${formatNumber(bursary.value)}</td>
+                    <td>${formatDate(bursary.startDate)}</td>
+                    <td>${formatDate(bursary.endDate)}</td>
+                    <td><span class="badge ${getStatusColor(bursary.status)}">${bursary.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewBursary(${bursary.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editBursary(${bursary.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBursary(${bursary.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getTypeColor(type) {
+            switch(type.toLowerCase()) {
+                case 'full bursary': return 'bg-success';
+                case 'half bursary': return 'bg-warning';
+                case 'partial bursary': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'active': return 'bg-success';
+                case 'expired': return 'bg-danger';
+                case 'suspended': return 'bg-warning';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function addBursary() {
+            const studentId = document.getElementById('student-select').value;
+            const type = document.getElementById('bursary-type').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const academicYear = document.getElementById('academic-year').value;
+            const termsCovered = document.getElementById('terms-covered').value;
+            const reason = document.getElementById('bursary-reason').value;
+            const conditions = document.getElementById('bursary-conditions').value;
+            const renewable = document.getElementById('renewable').checked;
+            
+            if (!studentId || !type || !startDate || !endDate || !academicYear || !termsCovered || !reason) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Get student details
+            const studentDetails = getStudentDetails(studentId);
+            const bursaryValue = calculateBursaryValue(type, studentDetails.class);
+            
+            const newBursary = {
+                id: currentBursaryId++,
+                studentId,
+                studentName: studentDetails.name,
+                class: studentDetails.class,
+                type: type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' '),
+                value: bursaryValue,
+                startDate,
+                endDate,
+                status: 'Active',
+                reason,
+                conditions,
+                renewable,
+                academicYear,
+                termsCovered
+            };
+            
+            bursaries.push(newBursary);
+            displayBursaries();
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addBursaryModal'));
+            modal.hide();
+            document.getElementById('add-bursary-form').reset();
+            
+            showNotification('Bursary added successfully!', 'success');
+        }
+        
+        function getStudentDetails(studentId) {
+            const studentMap = {
+                'ST001': { name: 'John Doe', class: 'S.4 Science A' },
+                'ST002': { name: 'Mary Smith', class: 'S.4 Science A' },
+                'ST003': { name: 'Peter Johnson', class: 'S.3 Science' },
+                'ST004': { name: 'Sarah Wilson', class: 'S.2 Science' },
+                'ST005': { name: 'David Brown', class: 'S.1 Science' }
+            };
+            return studentMap[studentId] || { name: 'Unknown Student', class: 'Unknown Class' };
+        }
+        
+        function calculateBursaryValue(type, studentClass) {
+            const baseFees = {
+                'S.1 Science': 900000,
+                'S.2 Science': 950000,
+                'S.3 Science': 1025000,
+                'S.4 Science A': 1100000
+            };
+            
+            const baseFee = baseFees[studentClass] || 900000;
+            
+            switch(type.toLowerCase()) {
+                case 'full': return baseFee;
+                case 'half': return baseFee * 0.5;
+                case 'partial': return baseFee * 0.25;
+                default: return 0;
+            }
+        }
+        
+        function viewBursary(bursaryId) {
+            const bursary = bursaries.find(b => b.id === bursaryId);
+            if (!bursary) return;
+            
+            // Populate modal
+            document.getElementById('detail-student').textContent = `${bursary.studentName} (${bursary.studentId})`;
+            document.getElementById('detail-class').textContent = bursary.class;
+            document.getElementById('detail-type').textContent = bursary.type;
+            document.getElementById('detail-value').textContent = 'UGX ' + formatNumber(bursary.value);
+            document.getElementById('detail-start-date').textContent = formatDate(bursary.startDate);
+            document.getElementById('detail-end-date').textContent = formatDate(bursary.endDate);
+            document.getElementById('detail-status').textContent = bursary.status;
+            document.getElementById('detail-renewable').textContent = bursary.renewable ? 'Yes' : 'No';
+            document.getElementById('detail-reason').textContent = bursary.reason;
+            document.getElementById('detail-conditions').textContent = bursary.conditions || 'No specific conditions';
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('bursaryDetailModal'));
+            modal.show();
+        }
+        
+        function editBursary(bursaryId) {
+            if (bursaryId) {
+                const bursary = bursaries.find(b => b.id === bursaryId);
+                if (bursary) {
+                    alert(`Edit Bursary:\n\nStudent: ${bursary.studentName}\nType: ${bursary.type}\nValue: UGX ${formatNumber(bursary.value)}\n\nThis feature will open the edit form for the bursary.`);
+                }
+            } else {
+                alert('Edit Bursary feature:\n\nThis will open the edit form for the bursary.');
+            }
+        }
+        
+        function deleteBursary(bursaryId) {
+            if (bursaryId) {
+                if (confirm('Are you sure you want to delete this bursary?')) {
+                    bursaries = bursaries.filter(b => b.id !== bursaryId);
+                    displayBursaries();
+                    showNotification('Bursary deleted successfully!', 'success');
+                }
+            } else {
+                if (confirm('Are you sure you want to delete this bursary?')) {
+                    showNotification('Bursary deleted successfully!', 'success');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('bursaryDetailModal'));
+                    modal.hide();
+                }
+            }
+        }
+        
+        function filterBursaries() {
+            const typeFilter = document.getElementById('type-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const classFilter = document.getElementById('class-filter').value;
+            
+            let filteredBursaries = bursaries;
+            
+            if (typeFilter) {
+                filteredBursaries = filteredBursaries.filter(b => 
+                    b.type.toLowerCase().includes(typeFilter.toLowerCase())
+                );
+            }
+            
+            if (statusFilter) {
+                filteredBursaries = filteredBursaries.filter(b => b.status.toLowerCase() === statusFilter.toLowerCase());
+            }
+            
+            if (classFilter) {
+                filteredBursaries = filteredBursaries.filter(b => 
+                    b.class.toLowerCase().includes(classFilter.toLowerCase())
+                );
+            }
+            
+            displayFilteredBursaries(filteredBursaries);
+        }
+        
+        function displayFilteredBursaries(filteredBursaries) {
+            const tbody = document.getElementById('bursaries-tbody');
+            tbody.innerHTML = '';
+            
+            filteredBursaries.forEach(bursary => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bursary.studentId}</td>
+                    <td>${bursary.studentName}</td>
+                    <td>${bursary.class}</td>
+                    <td><span class="badge ${getTypeColor(bursary.type)}">${bursary.type}</span></td>
+                    <td>UGX ${formatNumber(bursary.value)}</td>
+                    <td>${formatDate(bursary.startDate)}</td>
+                    <td>${formatDate(bursary.endDate)}</td>
+                    <td><span class="badge ${getStatusColor(bursary.status)}">${bursary.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewBursary(${bursary.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editBursary(${bursary.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBursary(${bursary.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function exportBursaries() {
+            alert('Export Bursaries feature:\n\nThis will download the bursaries data as a PDF or Excel file.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBursaries();
+        });
+    </script>
+</body>
+</html>

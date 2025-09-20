@@ -1,0 +1,526 @@
+/* Subject Teacher Specific Styles */
+.subject-teacher-dashboard {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.subject-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.subject-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.subject-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.subject-card.math {
+    border-left-color: #dc3545;
+}
+
+.subject-card.english {
+    border-left-color: #28a745;
+}
+
+.subject-card.science {
+    border-left-color: #17a2b8;
+}
+
+.subject-card.history {
+    border-left-color: #ffc107;
+}
+
+.subject-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.subject-icon.math {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+}
+
+.subject-icon.english {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.subject-icon.science {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+}
+
+.subject-icon.history {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.subject-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+.subject-classes {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.subject-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.subject-stat {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.subject-stat .number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+}
+
+.subject-stat .label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 3px;
+}
+
+.my-subjects {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+}
+
+.subjects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.subjects-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0;
+}
+
+.subjects-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.subjects-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.subjects-btn:hover {
+    background: var(--secondary);
+    transform: translateY(-1px);
+}
+
+.subjects-btn.secondary {
+    background: #6c757d;
+}
+
+.subjects-btn.secondary:hover {
+    background: #5a6268;
+}
+
+.subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.subject-item {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.subject-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.subject-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.subject-item-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0;
+}
+
+.subject-item-level {
+    background: var(--primary);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.subject-item-classes {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.subject-item-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.subject-item-stat {
+    text-align: center;
+    background: white;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.subject-item-stat .number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+}
+
+.subject-item-stat .label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.subject-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.subject-item-btn {
+    flex: 1;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.subject-item-btn:hover {
+    background: var(--secondary);
+    transform: translateY(-1px);
+}
+
+.grade-entry {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+}
+
+.grade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.grade-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0;
+}
+
+.grade-filters {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.grade-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.grade-filter-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.grade-filter-select {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    background: white;
+}
+
+.grade-table {
+    margin: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.grade-table th {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.grade-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.student-grade-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.student-grade-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.student-grade-details h6 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--dark);
+    font-size: 0.9rem;
+}
+
+.student-grade-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.grade-input {
+    width: 60px;
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.grade-input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(26, 79, 139, 0.1);
+}
+
+.grade-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.grade-action-btn {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 0.7rem;
+}
+
+.grade-action-btn.save {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.grade-action-btn.save:hover {
+    background-color: #28a745;
+    color: white;
+    transform: scale(1.1);
+}
+
+.grade-action-btn.edit {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.grade-action-btn.edit:hover {
+    background-color: #ffc107;
+    color: white;
+    transform: scale(1.1);
+}
+
+.subject-reports {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.reports-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.reports-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.report-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.report-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.report-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.report-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 8px;
+}
+
+.report-description {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Responsive Design for Subject Teacher */
+@media (max-width: 768px) {
+    .subject-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .subjects-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .subjects-btn {
+        width: 100%;
+    }
+    
+    .subjects-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .grade-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .grade-table {
+        font-size: 0.85rem;
+    }
+    
+    .grade-table th,
+    .grade-table td {
+        padding: 10px 8px;
+    }
+    
+    .grade-actions {
+        flex-direction: column;
+    }
+}

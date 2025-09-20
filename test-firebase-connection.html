@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔥 Firebase Connection Test</h1>
+        <p>This page tests if Firebase can be imported and initialized correctly.</p>
+        
+        <div id="status-container">
+            <div class="status info">🔄 Testing Firebase imports...</div>
+        </div>
+        
+        <button onclick="testFirebase()">Test Firebase Connection</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        let logElement = document.getElementById('log');
+        let statusContainer = document.getElementById('status-container');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}\n`;
+            logElement.textContent += logMessage;
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Update status
+            statusContainer.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function clearLog() {
+            logElement.textContent = '';
+            statusContainer.innerHTML = '<div class="status info">🔄 Ready to test Firebase...</div>';
+        }
+        
+        // Test Firebase imports
+        async function testFirebase() {
+            try {
+                log('🔄 Starting Firebase connection test...', 'info');
+                
+                // Test Firebase App import
+                log('📦 Importing Firebase App...');
+                const { initializeApp } = await import('./assets/js/firebase-config.js');
+                log('✅ Firebase App imported successfully');
+                
+                // Test Firebase services
+                log('🔧 Testing Firebase services...');
+                const { auth, db } = await import('./assets/js/firebase-config.js');
+                log('✅ Firebase Auth service loaded');
+                log('✅ Firebase Firestore service loaded');
+                
+                // Test authentication service
+                log('🔐 Testing Auth Service...');
+                const { authService } = await import('./assets/js/auth-service.js');
+                log('✅ Auth Service loaded successfully');
+                
+                // Test database service
+                log('🗄️ Testing Database Service...');
+                const { dbService } = await import('./assets/js/database-service.js');
+                log('✅ Database Service loaded successfully');
+                
+                // Test current user
+                const currentUser = authService.getCurrentUser();
+                log(`👤 Current User: ${currentUser ? currentUser.email : 'Not signed in'}`);
+                
+                log('🎉 All Firebase services loaded successfully!', 'success');
+                log('✅ Firebase connection test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(`❌ Firebase test failed: ${error.message}`, 'error');
+                log(`🔍 Error details: ${error.stack}`, 'error');
+            }
+        }
+        
+        // Make functions globally available
+        window.testFirebase = testFirebase;
+        window.clearLog = clearLog;
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded, ready to test Firebase...', 'info');
+        });
+    </script>
+</body>
+</html>

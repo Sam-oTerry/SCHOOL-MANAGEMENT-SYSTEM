@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Administrator Dashboard - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
+    <link rel="stylesheet" href="../../assets/css/users/system-admin.css">
+    <style>
+        :root {
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .role-badge {
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .feature-icon i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <div class="logo-container">
+                            <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
+                        </div>
+                        <h5 class="text-white">System Administrator</h5>
+                        <p class="small text-white-50">Staff ID: SA1234</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-dashboard.html">
+                                <i class="fas fa-chart-line"></i> System Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="user-management.html">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="account-creation.html">
+                                <i class="fas fa-user-plus"></i> Account Creation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-user-tie"></i> Staff Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="term-management.html">
+                                <i class="fas fa-calendar"></i> Term Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-settings.html">
+                                <i class="fas fa-cog"></i> System Settings
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>System Administrator Dashboard</h4>
+                        <span class="role-badge">System Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- System Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-user-graduate"></i>
+                            <div class="number">1,248</div>
+                            <div class="label">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="number">93</div>
+                            <div class="label">Total Staff</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <div class="number">45</div>
+                            <div class="label">Total Classes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <i class="fas fa-building"></i>
+                            <div class="number">8</div>
+                            <div class="label">Departments</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Row -->
+                <div class="row">
+                    <!-- User Account Management -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>User Account Management</span>
+                                <button class="btn btn-sm btn-primary">Add User</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Full Name</th>
+                                                <th>Role</th>
+                                                <th>Last Login</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="user-avatar me-2">JK</div>
+                                                        <div>
+                                                            <strong>j.kamya</strong><br>
+                                                            <small class="text-muted">Active</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Juliet Kamya</td>
+                                                <td>Class Teacher</td>
+                                                <td>2023-10-15 08:42</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="user-avatar me-2">PO</div>
+                                                        <div>
+                                                            <strong>p.owino</strong><br>
+                                                            <small class="text-muted">Active</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Peter Owino</td>
+                                                <td>Subject Teacher</td>
+                                                <td>2023-10-14 14:30</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="user-avatar me-2">MN</div>
+                                                        <div>
+                                                            <strong>m.nakato</strong><br>
+                                                            <small class="text-muted">Active</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>Nakato Mary</td>
+                                                <td>Bursar</td>
+                                                <td>2023-10-15 09:15</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Status & Quick Actions -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">System Status</div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-database"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Database</h6>
+                                        <p class="text-muted mb-0"><span class="badge bg-success">Online</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-server"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Server</h6>
+                                        <p class="text-muted mb-0"><span class="badge bg-success">Running</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Security</h6>
+                                        <p class="text-muted mb-0"><span class="badge bg-success">Secure</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-backup"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Backup</h6>
+                                        <p class="text-muted mb-0"><span class="badge bg-success">Completed</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">Quick Actions</div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary mb-2">
+                                        <i class="fas fa-user-plus"></i> Create Account
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-cog"></i> System Settings
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-database"></i> Backup Database
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-calendar"></i> Manage Terms
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Settings & Term Management -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">System Settings</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Academic Year</label>
+                                    <input type="text" class="form-control" value="2023">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Term</label>
+                                    <select class="form-select">
+                                        <option>First Term</option>
+                                        <option>Second Term</option>
+                                        <option selected>Third Term</option>
+                                    </select>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" checked>
+                                    <label class="form-check-label" for="flexSwitchCheckDefault">Allow Grade Entry</label>
+                                </div>
+                                <button class="btn btn-primary">Save Settings</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Term Management</div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Term</label>
+                                    <input type="text" class="form-control" value="Third Term 2023" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" value="2023-09-15">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" value="2023-12-15">
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-calendar"></i> Set Term Dates
+                                    </button>
+                                    <button class="btn btn-outline-warning mb-2">
+                                        <i class="fas fa-stop"></i> End Current Term
+                                    </button>
+                                    <button class="btn btn-outline-success">
+                                        <i class="fas fa-play"></i> Start New Term
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/system-admin.js"></script>
+    <script>
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

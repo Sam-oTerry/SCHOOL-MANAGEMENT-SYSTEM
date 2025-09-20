@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Analysis - Bursar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/bursar.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Bursar</h6>
+                        <small class="text-muted">Staff ID: BUR1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="financial-dashboard.html">
+                                <i class="fas fa-chart-pie"></i> Financial Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="fee-collection.html">
+                                <i class="fas fa-money-bill-wave"></i> Fee Collection
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="receipt-management.html">
+                                <i class="fas fa-receipt"></i> Receipt Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="financial-reports.html">
+                                <i class="fas fa-chart-bar"></i> Financial Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="transaction-tracking.html">
+                                <i class="fas fa-exchange-alt"></i> Transaction Tracking
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="payment-analysis.html">
+                                <i class="fas fa-analytics"></i> Payment Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="staff-management.html">
+                                <i class="fas fa-users"></i> Staff Management
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Payment Analysis</h4>
+                        <span class="role-badge">Financial Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Analysis Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Analysis Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Analysis Type</label>
+                                <select class="form-select" id="analysis-type" onchange="updateAnalysis()">
+                                    <option value="payment-methods">Payment Methods</option>
+                                    <option value="fee-categories">Fee Categories</option>
+                                    <option value="student-performance">Student Performance</option>
+                                    <option value="trends">Payment Trends</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Time Period</label>
+                                <select class="form-select" id="time-period" onchange="updateAnalysis()">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Date From</label>
+                                <input type="date" class="form-control" id="date-from" onchange="updateAnalysis()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="generateAnalysis()">
+                                        <i class="fas fa-chart-line"></i> Analyze
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="exportAnalysis()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Analysis Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>74%</h3>
+                                        <p class="mb-0">Payment Rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>UGX 2,450,000</h3>
+                                        <p class="mb-0">Total Collected</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>UGX 850,000</h3>
+                                        <p class="mb-0">Outstanding</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>285</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Payment Methods Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="paymentMethodsChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Fee Categories Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="feeCategoriesChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Payment Trends</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="paymentTrendsChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Student Payment Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="studentPaymentChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detailed Analysis -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Detailed Payment Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Total Amount</th>
+                                        <th>Paid Amount</th>
+                                        <th>Outstanding</th>
+                                        <th>Payment Rate</th>
+                                        <th>Trend</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analysis-tbody">
+                                    <!-- Analysis data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Insights and Recommendations -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Insights and Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Key Insights</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i> Cash payments are the most popular method (45%)</li>
+                                    <li><i class="fas fa-check-circle text-success me-2"></i> Tuition fees have the highest collection rate (85%)</li>
+                                    <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> Library fees have low collection rate (60%)</li>
+                                    <li><i class="fas fa-info-circle text-info me-2"></i> Mobile money usage is increasing (25%)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Recommendations</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Promote mobile money payments for convenience</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Implement payment reminders for outstanding fees</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Offer payment plans for struggling families</li>
+                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Review library fee collection strategies</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/bursar.js"></script>
+    <script>
+        // Payment Analysis Functionality
+        let analysisData = {};
+        
+        // Sample analysis data
+        const sampleAnalysisData = [
+            { category: 'Tuition Fees', totalAmount: 1500000, paidAmount: 1275000, outstanding: 225000, paymentRate: 85, trend: 'up' },
+            { category: 'Examination Fees', totalAmount: 300000, paidAmount: 240000, outstanding: 60000, paymentRate: 80, trend: 'up' },
+            { category: 'Library Fees', totalAmount: 150000, paidAmount: 90000, outstanding: 60000, paymentRate: 60, trend: 'down' },
+            { category: 'Sports Fees', totalAmount: 100000, paidAmount: 75000, outstanding: 25000, paymentRate: 75, trend: 'stable' },
+            { category: 'Other Fees', totalAmount: 200000, paidAmount: 160000, outstanding: 40000, paymentRate: 80, trend: 'up' }
+        ];
+        
+        function initializePaymentAnalysis() {
+            analysisData = [...sampleAnalysisData];
+            displayAnalysisData();
+            initializeCharts();
+        }
+        
+        function displayAnalysisData() {
+            const tbody = document.getElementById('analysis-tbody');
+            tbody.innerHTML = '';
+            
+            analysisData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.category}</strong></td>
+                    <td>UGX ${formatNumber(item.totalAmount)}</td>
+                    <td>UGX ${formatNumber(item.paidAmount)}</td>
+                    <td>UGX ${formatNumber(item.outstanding)}</td>
+                    <td><span class="badge ${getPaymentRateColor(item.paymentRate)}">${item.paymentRate}%</span></td>
+                    <td>
+                        <i class="fas fa-arrow-${item.trend === 'up' ? 'up text-success' : item.trend === 'down' ? 'down text-danger' : 'right text-info'}"></i>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getPaymentRateColor(rate) {
+            if (rate >= 80) return 'bg-success';
+            if (rate >= 60) return 'bg-warning';
+            return 'bg-danger';
+        }
+        
+        function initializeCharts() {
+            // Payment Methods Chart
+            const paymentMethodsCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+            new Chart(paymentMethodsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cash', 'Bank Transfer', 'Mobile Money', 'Cheque'],
+                    datasets: [{
+                        data: [45, 30, 20, 5],
+                        backgroundColor: [
+                            '#007bff',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Fee Categories Chart
+            const feeCategoriesCtx = document.getElementById('feeCategoriesChart').getContext('2d');
+            new Chart(feeCategoriesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Tuition Fees', 'Examination Fees', 'Library Fees', 'Sports Fees', 'Other Fees'],
+                    datasets: [{
+                        label: 'Collection Rate (%)',
+                        data: [85, 80, 60, 75, 80],
+                        backgroundColor: [
+                            '#28a745',
+                            '#007bff',
+                            '#dc3545',
+                            '#ffc107',
+                            '#17a2b8'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Payment Trends Chart
+            const paymentTrendsCtx = document.getElementById('paymentTrendsChart').getContext('2d');
+            new Chart(paymentTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Total Payments',
+                        data: [400000, 450000, 500000, 480000, 520000, 500000],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Outstanding',
+                        data: [200000, 180000, 150000, 170000, 140000, 160000],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Student Payment Chart
+            const studentPaymentCtx = document.getElementById('studentPaymentChart').getContext('2d');
+            new Chart(studentPaymentCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Paid', 'Partial', 'Unpaid'],
+                    datasets: [{
+                        data: [210, 45, 30],
+                        backgroundColor: [
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        function updateAnalysis() {
+            const analysisType = document.getElementById('analysis-type').value;
+            const timePeriod = document.getElementById('time-period').value;
+            const dateFrom = document.getElementById('date-from').value;
+            
+            // Update analysis based on selections
+            displayAnalysisData();
+            
+            // Update charts
+            initializeCharts();
+        }
+        
+        function generateAnalysis() {
+            const analysisType = document.getElementById('analysis-type').value;
+            const timePeriod = document.getElementById('time-period').value;
+            
+            alert(`Generating ${analysisType} analysis for ${timePeriod}...\n\nThis feature will generate detailed payment analysis.`);
+        }
+        
+        function exportAnalysis() {
+            alert('Export Analysis feature:\n\nThis will download the payment analysis report as a PDF or Excel file.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePaymentAnalysis();
+        });
+    </script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>

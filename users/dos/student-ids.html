@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student IDs - Director of Studies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/dos.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Director of Studies</h6>
+                        <small class="text-muted">Staff ID: DOS1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-progress.html">
+                                <i class="fas fa-chart-line"></i> Academic Progress
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="student-ids.html">
+                                <i class="fas fa-id-card"></i> Student IDs
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Student ID Management</h4>
+                        <span class="role-badge">Academic Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- ID Management Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Student ID Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-filter" onchange="filterStudentIDs()">
+                                    <option value="">All Classes</option>
+                                    <option value="s4-science-a">S.4 Science A</option>
+                                    <option value="s4-science-b">S.4 Science B</option>
+                                    <option value="s3-science">S.3 Science</option>
+                                    <option value="s2-science">S.2 Science</option>
+                                    <option value="s1-science">S.1 Science</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterStudentIDs()">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="expired">Expired</option>
+                                    <option value="lost">Lost</option>
+                                    <option value="replaced">Replaced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Search</label>
+                                <input type="text" class="form-control" id="search-students" placeholder="Search by name or ID...">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createIDModal">
+                                        <i class="fas fa-plus"></i> Generate ID
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="printAllIDs()">
+                                        <i class="fas fa-print"></i> Print All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ID Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Student ID Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>285</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>250</h3>
+                                        <p class="mb-0">Active IDs</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>20</h3>
+                                        <p class="mb-0">Lost IDs</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>15</h3>
+                                        <p class="mb-0">New This Month</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Student IDs List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Student IDs List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Class</th>
+                                        <th>Issue Date</th>
+                                        <th>Expiry Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="student-ids-tbody">
+                                    <!-- Student IDs will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Create ID Modal -->
+    <div class="modal fade" id="createIDModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate Student ID</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-id-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Student Name</label>
+                                    <input type="text" class="form-control" id="student-name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Class</label>
+                                    <select class="form-select" id="student-class" required>
+                                        <option value="">Select Class</option>
+                                        <option value="s4-science-a">S.4 Science A</option>
+                                        <option value="s4-science-b">S.4 Science B</option>
+                                        <option value="s3-science">S.3 Science</option>
+                                        <option value="s2-science">S.2 Science</option>
+                                        <option value="s1-science">S.1 Science</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date-of-birth" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone-number" placeholder="+256 700 123 456">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Parent/Guardian Name</label>
+                                    <input type="text" class="form-control" id="parent-name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Parent Phone</label>
+                                    <input type="tel" class="form-control" id="parent-phone" placeholder="+256 700 123 456">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="3" placeholder="Enter student's address..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="print-immediately">
+                                <label class="form-check-label" for="print-immediately">
+                                    Print ID immediately after generation
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="generateStudentID()">Generate ID</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID Preview Modal -->
+    <div class="modal fade" id="idPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Student ID Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="student-id-card">
+                        <div class="id-header">
+                            <h3>ST. MARY'S SECONDARY SCHOOL</h3>
+                            <h4>STUDENT ID CARD</h4>
+                        </div>
+                        <div class="id-content">
+                            <div class="id-photo">
+                                <div class="photo-placeholder">
+                                    <i class="fas fa-user fa-3x"></i>
+                                </div>
+                            </div>
+                            <div class="id-details">
+                                <p><strong>Student ID:</strong> <span id="preview-student-id"></span></p>
+                                <p><strong>Name:</strong> <span id="preview-student-name"></span></p>
+                                <p><strong>Class:</strong> <span id="preview-student-class"></span></p>
+                                <p><strong>Date of Birth:</strong> <span id="preview-dob"></span></p>
+                                <p><strong>Issue Date:</strong> <span id="preview-issue-date"></span></p>
+                                <p><strong>Expiry Date:</strong> <span id="preview-expiry-date"></span></p>
+                            </div>
+                        </div>
+                        <div class="id-footer">
+                            <p><strong>Parent/Guardian:</strong> <span id="preview-parent-name"></span></p>
+                            <p><strong>Phone:</strong> <span id="preview-phone"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printStudentID()">
+                        <i class="fas fa-print"></i> Print ID
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="saveStudentID()">
+                        <i class="fas fa-save"></i> Save ID
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos.js"></script>
+    <script>
+        // Student ID Management Functionality
+        let studentIDs = [];
+        let currentIDNumber = 1001;
+        
+        // Sample student IDs data
+        const sampleStudentIDs = [
+            {
+                id: 'ST001',
+                studentName: 'John Doe',
+                class: 'S.4 Science A',
+                issueDate: '2023-09-01',
+                expiryDate: '2024-08-31',
+                status: 'Active',
+                dateOfBirth: '2005-03-15',
+                phone: '+256 700 123 456',
+                parentName: 'Jane Doe',
+                parentPhone: '+256 700 123 457',
+                address: 'Kampala, Uganda'
+            },
+            {
+                id: 'ST002',
+                studentName: 'Mary Smith',
+                class: 'S.4 Science A',
+                issueDate: '2023-09-01',
+                expiryDate: '2024-08-31',
+                status: 'Active',
+                dateOfBirth: '2005-05-20',
+                phone: '+256 700 123 458',
+                parentName: 'Robert Smith',
+                parentPhone: '+256 700 123 459',
+                address: 'Entebbe, Uganda'
+            },
+            {
+                id: 'ST003',
+                studentName: 'Peter Johnson',
+                class: 'S.4 Science B',
+                issueDate: '2023-09-01',
+                expiryDate: '2024-08-31',
+                status: 'Active',
+                dateOfBirth: '2005-07-10',
+                phone: '+256 700 123 460',
+                parentName: 'Sarah Johnson',
+                parentPhone: '+256 700 123 461',
+                address: 'Jinja, Uganda'
+            },
+            {
+                id: 'ST004',
+                studentName: 'Sarah Wilson',
+                class: 'S.3 Science',
+                issueDate: '2023-09-01',
+                expiryDate: '2024-08-31',
+                status: 'Lost',
+                dateOfBirth: '2006-02-14',
+                phone: '+256 700 123 462',
+                parentName: 'Michael Wilson',
+                parentPhone: '+256 700 123 463',
+                address: 'Wakiso, Uganda'
+            },
+            {
+                id: 'ST005',
+                studentName: 'David Brown',
+                class: 'S.2 Science',
+                issueDate: '2023-09-01',
+                expiryDate: '2024-08-31',
+                status: 'Active',
+                dateOfBirth: '2007-09-05',
+                phone: '+256 700 123 464',
+                parentName: 'Lisa Brown',
+                parentPhone: '+256 700 123 465',
+                address: 'Mukono, Uganda'
+            }
+        ];
+        
+        function initializeStudentIDs() {
+            studentIDs = [...sampleStudentIDs];
+            displayStudentIDs();
+        }
+        
+        function displayStudentIDs() {
+            const tbody = document.getElementById('student-ids-tbody');
+            tbody.innerHTML = '';
+            
+            studentIDs.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${student.id}</strong></td>
+                    <td>${student.studentName}</td>
+                    <td>${student.class}</td>
+                    <td>${formatDate(student.issueDate)}</td>
+                    <td>${formatDate(student.expiryDate)}</td>
+                    <td><span class="badge ${getStatusColor(student.status)}">${student.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentID('${student.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="printStudentID('${student.id}')">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="replaceStudentID('${student.id}')">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudentID('${student.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'active': return 'bg-success';
+                case 'expired': return 'bg-danger';
+                case 'lost': return 'bg-warning';
+                case 'replaced': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function generateStudentID() {
+            const studentName = document.getElementById('student-name').value;
+            const studentClass = document.getElementById('student-class').value;
+            const dateOfBirth = document.getElementById('date-of-birth').value;
+            const phoneNumber = document.getElementById('phone-number').value;
+            const parentName = document.getElementById('parent-name').value;
+            const parentPhone = document.getElementById('parent-phone').value;
+            const address = document.getElementById('address').value;
+            const printImmediately = document.getElementById('print-immediately').checked;
+            
+            if (!studentName || !studentClass || !dateOfBirth || !parentName) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Generate new student ID
+            const newID = 'ST' + String(currentIDNumber++).padStart(3, '0');
+            const issueDate = new Date().toISOString().split('T')[0];
+            const expiryDate = new Date(new Date().getFullYear() + 1, 8, 31).toISOString().split('T')[0];
+            
+            const newStudent = {
+                id: newID,
+                studentName,
+                class: studentClass,
+                issueDate,
+                expiryDate,
+                status: 'Active',
+                dateOfBirth,
+                phone: phoneNumber,
+                parentName,
+                parentPhone,
+                address
+            };
+            
+            studentIDs.unshift(newStudent);
+            displayStudentIDs();
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createIDModal'));
+            modal.hide();
+            document.getElementById('create-id-form').reset();
+            
+            if (printImmediately) {
+                showIDPreview(newStudent);
+            } else {
+                showNotification('Student ID generated successfully!', 'success');
+            }
+        }
+        
+        function showIDPreview(student) {
+            // Populate preview modal
+            document.getElementById('preview-student-id').textContent = student.id;
+            document.getElementById('preview-student-name').textContent = student.studentName;
+            document.getElementById('preview-student-class').textContent = student.class;
+            document.getElementById('preview-dob').textContent = formatDate(student.dateOfBirth);
+            document.getElementById('preview-issue-date').textContent = formatDate(student.issueDate);
+            document.getElementById('preview-expiry-date').textContent = formatDate(student.expiryDate);
+            document.getElementById('preview-parent-name').textContent = student.parentName;
+            document.getElementById('preview-phone').textContent = student.phone;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('idPreviewModal'));
+            modal.show();
+        }
+        
+        function viewStudentID(studentId) {
+            const student = studentIDs.find(s => s.id === studentId);
+            if (!student) return;
+            
+            showIDPreview(student);
+        }
+        
+        function printStudentID(studentId) {
+            if (studentId) {
+                const student = studentIDs.find(s => s.id === studentId);
+                if (student) {
+                    alert(`Printing Student ID for ${student.studentName}...\n\nThis feature will open the print dialog for the student ID.`);
+                }
+            } else {
+                alert('Printing Student ID...\n\nThis feature will open the print dialog for the student ID.');
+            }
+        }
+        
+        function saveStudentID() {
+            showNotification('Student ID saved successfully!', 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('idPreviewModal'));
+            modal.hide();
+        }
+        
+        function replaceStudentID(studentId) {
+            const student = studentIDs.find(s => s.id === studentId);
+            if (!student) return;
+            
+            if (confirm(`Are you sure you want to replace the ID for ${student.studentName}?`)) {
+                student.status = 'Replaced';
+                displayStudentIDs();
+                showNotification('Student ID marked as replaced!', 'success');
+            }
+        }
+        
+        function deleteStudentID(studentId) {
+            if (confirm('Are you sure you want to delete this student ID?')) {
+                studentIDs = studentIDs.filter(s => s.id !== studentId);
+                displayStudentIDs();
+                showNotification('Student ID deleted successfully!', 'success');
+            }
+        }
+        
+        function filterStudentIDs() {
+            const classFilter = document.getElementById('class-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchTerm = document.getElementById('search-students').value.toLowerCase();
+            
+            let filteredStudents = studentIDs;
+            
+            if (classFilter) {
+                filteredStudents = filteredStudents.filter(s => s.class === classFilter);
+            }
+            
+            if (statusFilter) {
+                filteredStudents = filteredStudents.filter(s => s.status.toLowerCase() === statusFilter.toLowerCase());
+            }
+            
+            if (searchTerm) {
+                filteredStudents = filteredStudents.filter(s => 
+                    s.studentName.toLowerCase().includes(searchTerm) ||
+                    s.id.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            displayFilteredStudentIDs(filteredStudents);
+        }
+        
+        function displayFilteredStudentIDs(filteredStudents) {
+            const tbody = document.getElementById('student-ids-tbody');
+            tbody.innerHTML = '';
+            
+            filteredStudents.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${student.id}</strong></td>
+                    <td>${student.studentName}</td>
+                    <td>${student.class}</td>
+                    <td>${formatDate(student.issueDate)}</td>
+                    <td>${formatDate(student.expiryDate)}</td>
+                    <td><span class="badge ${getStatusColor(student.status)}">${student.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentID('${student.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="printStudentID('${student.id}')">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="replaceStudentID('${student.id}')">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudentID('${student.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function printAllIDs() {
+            alert('Print All IDs feature:\n\nThis will print all student IDs for the selected class or all classes.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStudentIDs();
+        });
+    </script>
+    
+    <style>
+        .student-id-card {
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .id-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .id-header h3 {
+            color: #007bff;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .id-header h4 {
+            color: #6c757d;
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+        }
+        
+        .id-content {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .id-photo {
+            flex-shrink: 0;
+        }
+        
+        .photo-placeholder {
+            width: 80px;
+            height: 100px;
+            background-color: #dee2e6;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        
+        .id-details {
+            flex: 1;
+        }
+        
+        .id-details p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        
+        .id-footer {
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+        }
+        
+        .id-footer p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+            
+            .student-id-card {
+                border: 2px solid #000;
+                margin: 0;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Cards - Class Teacher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3 d-flex flex-column h-100">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Class Teacher</h6>
+                        <small class="text-muted">Staff ID: CT1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-users"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="class-performance.html">
+                                <i class="fas fa-chart-line"></i> Class Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Report Cards</h4>
+                        <span class="role-badge">Class Teacher</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Report Card Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Report Card Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-filter" onchange="filterReportCards()">
+                                    <option value="">All Classes</option>
+                                    <option value="s4-science-a">S.4 Science A</option>
+                                    <option value="s4-science-b">S.4 Science B</option>
+                                    <option value="s3-science">S.3 Science</option>
+                                    <option value="s2-science">S.2 Science</option>
+                                    <option value="s1-science">S.1 Science</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Term</label>
+                                <select class="form-select" id="term-filter" onchange="filterReportCards()">
+                                    <option value="term1">Term 1</option>
+                                    <option value="term2" selected>Term 2</option>
+                                    <option value="term3">Term 3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterReportCards()">
+                                    <option value="">All Status</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="ready">Ready for Review</option>
+                                    <option value="approved">Approved</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm" onclick="generateAllReportCards()">
+                                        <i class="fas fa-magic"></i> Generate All
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="exportReportCards()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Report Card Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Report Card Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>35</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>30</h3>
+                                        <p class="mb-0">Ready</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>3</h3>
+                                        <p class="mb-0">Draft</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>2</h3>
+                                        <p class="mb-0">Approved</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Report Cards List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Report Cards for My Class</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Class</th>
+                                        <th>Average Grade</th>
+                                        <th>Position</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-cards-tbody">
+                                    <!-- Report cards will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Report Card Preview Modal -->
+    <div class="modal fade" id="reportCardModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Report Card Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-card-preview">
+                        <div class="text-center mb-4">
+                            <h3>ST. MARY'S SECONDARY SCHOOL</h3>
+                            <h4>REPORT CARD</h4>
+                            <p>Term 2, 2023</p>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>Student Name:</strong> John Doe</p>
+                                <p><strong>Student ID:</strong> ST001</p>
+                                <p><strong>Class:</strong> S.4 Science A</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Term:</strong> Term 2</p>
+                                <p><strong>Year:</strong> 2023</p>
+                                <p><strong>Position:</strong> 5th out of 35</p>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Mid-term (20%)</th>
+                                        <th>End-term (80%)</th>
+                                        <th>Total</th>
+                                        <th>Grade</th>
+                                        <th>Position</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Mathematics</td>
+                                        <td>85</td>
+                                        <td>78</td>
+                                        <td>79.4</td>
+                                        <td>B</td>
+                                        <td>3rd</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Physics</td>
+                                        <td>90</td>
+                                        <td>82</td>
+                                        <td>83.6</td>
+                                        <td>A</td>
+                                        <td>2nd</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Chemistry</td>
+                                        <td>75</td>
+                                        <td>80</td>
+                                        <td>79.0</td>
+                                        <td>B</td>
+                                        <td>4th</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Biology</td>
+                                        <td>88</td>
+                                        <td>85</td>
+                                        <td>85.6</td>
+                                        <td>A</td>
+                                        <td>1st</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <p><strong>Overall Average:</strong> 82.1%</p>
+                                <p><strong>Overall Grade:</strong> A</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Class Position:</strong> 5th out of 35</p>
+                                <p><strong>Remarks:</strong> Excellent performance</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6>Class Teacher's Comments:</h6>
+                            <textarea class="form-control" rows="3" placeholder="Enter your comments for this student...">John has shown excellent progress this term. He is very attentive in class and participates actively in discussions. He should continue working hard to maintain his good performance.</textarea>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Class Teacher:</strong> Jane Smith</p>
+                                    <p><strong>Date:</strong> 2023-10-15</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Head Teacher:</strong> Dr. Michael Brown</p>
+                                    <p><strong>Date:</strong> 2023-10-16</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Parent Signature:</strong> _______________</p>
+                                    <p><strong>Date:</strong> _______________</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveReportCard()">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="submitReportCard()">
+                        <i class="fas fa-check"></i> Submit for Approval
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/class-teacher.js"></script>
+    <script>
+        // Report Cards Functionality
+        let reportCards = [];
+        
+        // Sample report cards data
+        const sampleReportCards = [
+            {
+                studentId: 'ST001',
+                studentName: 'John Doe',
+                class: 'S.4 Science A',
+                averageGrade: 'A',
+                position: '5th',
+                status: 'Ready'
+            },
+            {
+                studentId: 'ST002',
+                studentName: 'Mary Smith',
+                class: 'S.4 Science A',
+                averageGrade: 'B',
+                position: '8th',
+                status: 'Ready'
+            },
+            {
+                studentId: 'ST003',
+                studentName: 'Peter Johnson',
+                class: 'S.4 Science B',
+                averageGrade: 'A',
+                position: '3rd',
+                status: 'Draft'
+            },
+            {
+                studentId: 'ST004',
+                studentName: 'Sarah Wilson',
+                class: 'S.3 Science',
+                averageGrade: 'C',
+                position: '12th',
+                status: 'Approved'
+            },
+            {
+                studentId: 'ST005',
+                studentName: 'David Brown',
+                class: 'S.2 Science',
+                averageGrade: 'B',
+                position: '7th',
+                status: 'Approved'
+            }
+        ];
+        
+        function initializeReportCards() {
+            reportCards = [...sampleReportCards];
+            displayReportCards();
+        }
+        
+        function displayReportCards() {
+            const tbody = document.getElementById('report-cards-tbody');
+            tbody.innerHTML = '';
+            
+            reportCards.forEach(card => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${card.studentId}</td>
+                    <td>${card.studentName}</td>
+                    <td>${card.class}</td>
+                    <td><span class="badge ${getGradeColor(card.averageGrade)}">${card.averageGrade}</span></td>
+                    <td>${card.position}</td>
+                    <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editReportCard('${card.studentId}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="submitReportCard('${card.studentId}')">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getGradeColor(grade) {
+            switch(grade) {
+                case 'A': return 'bg-success';
+                case 'B': return 'bg-primary';
+                case 'C': return 'bg-info';
+                case 'D': return 'bg-warning';
+                case 'E': return 'bg-danger';
+                case 'F': return 'bg-dark';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function getStatusColor(status) {
+            switch(status.toLowerCase()) {
+                case 'ready': return 'bg-success';
+                case 'draft': return 'bg-warning';
+                case 'approved': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function viewReportCard(studentId) {
+            const card = reportCards.find(c => c.studentId === studentId);
+            if (!card) return;
+            
+            // Show report card preview modal
+            const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
+            modal.show();
+        }
+        
+        function editReportCard(studentId) {
+            const card = reportCards.find(c => c.studentId === studentId);
+            if (!card) return;
+            
+            alert(`Edit Report Card:\n\nStudent: ${card.studentName}\nClass: ${card.class}\n\nThis feature will open the edit form for the report card.`);
+        }
+        
+        function submitReportCard(studentId) {
+            if (studentId) {
+                const card = reportCards.find(c => c.studentId === studentId);
+                if (card) {
+                    card.status = 'Ready';
+                    displayReportCards();
+                    showNotification(`Report card for ${card.studentName} submitted for approval!`, 'success');
+                }
+            } else {
+                showNotification('Report card submitted for approval!', 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reportCardModal'));
+                modal.hide();
+            }
+        }
+        
+        function saveReportCard() {
+            showNotification('Report card saved successfully!', 'success');
+        }
+        
+        function filterReportCards() {
+            const classFilter = document.getElementById('class-filter').value;
+            const term = document.getElementById('term-filter').value;
+            const status = document.getElementById('status-filter').value;
+            
+            let filteredCards = reportCards;
+            
+            if (classFilter) {
+                filteredCards = filteredCards.filter(c => c.class.toLowerCase().includes(classFilter.toLowerCase()));
+            }
+            
+            if (status) {
+                filteredCards = filteredCards.filter(c => c.status.toLowerCase() === status.toLowerCase());
+            }
+            
+            displayFilteredReportCards(filteredCards);
+        }
+        
+        function displayFilteredReportCards(filteredCards) {
+            const tbody = document.getElementById('report-cards-tbody');
+            tbody.innerHTML = '';
+            
+            filteredCards.forEach(card => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${card.studentId}</td>
+                    <td>${card.studentName}</td>
+                    <td>${card.class}</td>
+                    <td><span class="badge ${getGradeColor(card.averageGrade)}">${card.averageGrade}</span></td>
+                    <td>${card.position}</td>
+                    <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editReportCard('${card.studentId}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="submitReportCard('${card.studentId}')">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function generateAllReportCards() {
+            if (confirm('Are you sure you want to generate all report cards for your class?')) {
+                alert('Generate All Report Cards feature:\n\nThis will automatically generate report cards for all students in your class.');
+                showNotification('All report cards generated successfully!', 'success');
+            }
+        }
+        
+        function exportReportCards() {
+            alert('Export Report Cards feature:\n\nThis will download the report cards as a PDF or Excel file.');
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeReportCards();
+        });
+    </script>
+    
+    <style>
+        .report-card-preview {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .report-card-preview table {
+            margin-bottom: 20px;
+        }
+        
+        .report-card-preview th,
+        .report-card-preview td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .report-card-preview th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>

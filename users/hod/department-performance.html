@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Performance - Head of Department</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/hod.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">Head of Department</h6>
+                        <small class="text-muted">Staff ID: HOD1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-teachers.html">
+                                <i class="fas fa-users"></i> My Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-assignment.html">
+                                <i class="fas fa-user-plus"></i> Teacher Assignment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="department-performance.html">
+                                <i class="fas fa-chart-line"></i> Department Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-approval.html">
+                                <i class="fas fa-check-circle"></i> Results Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-analytics.html">
+                                <i class="fas fa-chart-bar"></i> Department Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="header">
+                    <div>
+                        <h4>Department Performance</h4>
+                        <span class="role-badge">Department Management</span>
+                    </div>
+                    <div>
+                        <span id="current-user">John Doe</span>
+                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Performance Controls -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Performance Analysis Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Department</label>
+                                <select class="form-select" id="department-select" onchange="updatePerformance()">
+                                    <option value="science">Science Department</option>
+                                    <option value="mathematics">Mathematics Department</option>
+                                    <option value="languages">Languages Department</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Term</label>
+                                <select class="form-select" id="term-select" onchange="updatePerformance()">
+                                    <option value="term1">Term 1</option>
+                                    <option value="term2">Term 2</option>
+                                    <option value="term3">Term 3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Class Level</label>
+                                <select class="form-select" id="class-level-select" onchange="updatePerformance()">
+                                    <option value="">All Levels</option>
+                                    <option value="s1">S.1</option>
+                                    <option value="s2">S.2</option>
+                                    <option value="s3">S.3</option>
+                                    <option value="s4">S.4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="exportPerformance()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="printPerformance()">
+                                        <i class="fas fa-print"></i> Print
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Department Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Department Performance Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white text-center">
+                                    <div class="card-body">
+                                        <h3>85.2%</h3>
+                                        <p class="mb-0">Department Average</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h3>92%</h3>
+                                        <p class="mb-0">Pass Rate</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h3>15</h3>
+                                        <p class="mb-0">Classes</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h3>12</h3>
+                                        <p class="mb-0">Teachers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Subject Performance Comparison</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="subjectComparisonChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Grade Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="gradeDistributionChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teacher Performance -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Teacher Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Teacher</th>
+                                        <th>Subject</th>
+                                        <th>Classes</th>
+                                        <th>Average Score</th>
+                                        <th>Pass Rate</th>
+                                        <th>Performance Rating</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacher-performance-tbody">
+                                    <!-- Teacher performance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Class Performance -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Class Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Subject</th>
+                                        <th>Teacher</th>
+                                        <th>Average Score</th>
+                                        <th>Pass Rate</th>
+                                        <th>Top Performer</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="class-performance-tbody">
+                                    <!-- Class performance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Trends -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Performance Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceTrendsChart" width="800" height="400"></canvas>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/hod.js"></script>
+    <script>
+        // Department Performance Functionality
+        let performanceData = {};
+        
+        // Sample performance data
+        const samplePerformanceData = {
+            teacherPerformance: [
+                { teacher: 'John Smith', subject: 'Mathematics', classes: 'S.4 Science A, S.4 Science B', average: 88.5, passRate: '95%', rating: 'Excellent' },
+                { teacher: 'Mary Johnson', subject: 'Physics', classes: 'S.4 Science A, S.3 Science', average: 85.2, passRate: '92%', rating: 'Very Good' },
+                { teacher: 'Peter Brown', subject: 'Chemistry', classes: 'S.3 Science, S.4 Science B', average: 82.8, passRate: '88%', rating: 'Good' },
+                { teacher: 'Sarah Wilson', subject: 'Biology', classes: 'S.4 Science A, S.4 Science B', average: 90.1, passRate: '96%', rating: 'Excellent' }
+            ],
+            classPerformance: [
+                { class: 'S.4 Science A', subject: 'Mathematics', teacher: 'John Smith', average: 88.5, passRate: '95%', topPerformer: 'Sarah Wilson (96%)' },
+                { class: 'S.4 Science A', subject: 'Physics', teacher: 'Mary Johnson', average: 85.2, passRate: '92%', topPerformer: 'John Doe (94%)' },
+                { class: 'S.4 Science A', subject: 'Chemistry', teacher: 'Peter Brown', average: 82.8, passRate: '88%', topPerformer: 'Mary Smith (91%)' },
+                { class: 'S.4 Science A', subject: 'Biology', teacher: 'Sarah Wilson', average: 90.1, passRate: '96%', topPerformer: 'David Brown (98%)' }
+            ]
+        };
+        
+        function initializeDepartmentPerformance() {
+            performanceData = { ...samplePerformanceData };
+            displayTeacherPerformance();
+            displayClassPerformance();
+            initializeCharts();
+        }
+        
+        function displayTeacherPerformance() {
+            const tbody = document.getElementById('teacher-performance-tbody');
+            tbody.innerHTML = '';
+            
+            performanceData.teacherPerformance.forEach(teacher => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${teacher.teacher}</strong></td>
+                    <td>${teacher.subject}</td>
+                    <td>${teacher.classes}</td>
+                    <td>${teacher.average}%</td>
+                    <td><span class="badge bg-success">${teacher.passRate}</span></td>
+                    <td><span class="badge ${getRatingColor(teacher.rating)}">${teacher.rating}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewTeacherDetails('${teacher.teacher}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewTeacherReport('${teacher.teacher}')">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function displayClassPerformance() {
+            const tbody = document.getElementById('class-performance-tbody');
+            tbody.innerHTML = '';
+            
+            performanceData.classPerformance.forEach(classPerf => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${classPerf.class}</strong></td>
+                    <td>${classPerf.subject}</td>
+                    <td>${classPerf.teacher}</td>
+                    <td>${classPerf.average}%</td>
+                    <td><span class="badge bg-success">${classPerf.passRate}</span></td>
+                    <td>${classPerf.topPerformer}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${classPerf.class}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewClassReport('${classPerf.class}')">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getRatingColor(rating) {
+            switch(rating.toLowerCase()) {
+                case 'excellent': return 'bg-success';
+                case 'very good': return 'bg-primary';
+                case 'good': return 'bg-info';
+                case 'fair': return 'bg-warning';
+                case 'poor': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        function initializeCharts() {
+            // Subject Comparison Chart
+            const subjectCtx = document.getElementById('subjectComparisonChart').getContext('2d');
+            new Chart(subjectCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mathematics', 'Physics', 'Chemistry', 'Biology'],
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: [88.5, 85.2, 82.8, 90.1],
+                        backgroundColor: [
+                            '#007bff',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Grade Distribution Chart
+            const gradeCtx = document.getElementById('gradeDistributionChart').getContext('2d');
+            new Chart(gradeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['A', 'B', 'C', 'D', 'E', 'F'],
+                    datasets: [{
+                        data: [25, 35, 20, 15, 3, 2],
+                        backgroundColor: [
+                            '#28a745',
+                            '#007bff',
+                            '#17a2b8',
+                            '#ffc107',
+                            '#dc3545',
+                            '#343a40'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Performance Trends Chart
+            const trendsCtx = document.getElementById('performanceTrendsChart').getContext('2d');
+            new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    datasets: [{
+                        label: 'Department Average',
+                        data: [80, 82, 84, 85, 87, 86, 88, 89],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Mathematics',
+                        data: [85, 86, 87, 88, 89, 88, 90, 91],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Physics',
+                        data: [82, 83, 84, 85, 86, 85, 87, 88],
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Chemistry',
+                        data: [78, 79, 80, 81, 82, 81, 83, 84],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updatePerformance() {
+            const department = document.getElementById('department-select').value;
+            const term = document.getElementById('term-select').value;
+            const classLevel = document.getElementById('class-level-select').value;
+            
+            // Update performance data based on selections
+            displayTeacherPerformance();
+            displayClassPerformance();
+            
+            // Update charts
+            initializeCharts();
+        }
+        
+        function viewTeacherDetails(teacherName) {
+            alert(`Teacher Details:\n\nName: ${teacherName}\n\nThis feature will show detailed teacher performance information.`);
+        }
+        
+        function viewTeacherReport(teacherName) {
+            alert(`Teacher Report:\n\nGenerating detailed performance report for ${teacherName}...\n\nThis feature will show comprehensive teacher performance analytics.`);
+        }
+        
+        function viewClassDetails(className) {
+            alert(`Class Details:\n\nClass: ${className}\n\nThis feature will show detailed class performance information.`);
+        }
+        
+        function viewClassReport(className) {
+            alert(`Class Report:\n\nGenerating detailed performance report for ${className}...\n\nThis feature will show comprehensive class performance analytics.`);
+        }
+        
+        function exportPerformance() {
+            alert('Export Performance feature:\n\nThis will download the department performance report as a PDF or Excel file.');
+        }
+        
+        function printPerformance() {
+            window.print();
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '../../index.html';
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDepartmentPerformance();
+        });
+    </script>
+    
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        @media print {
+            .sidebar, .btn, .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</body>
+</html>
