@@ -10,7 +10,7 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" type="text/css">
 </head>
 <body>
     <div class="container-fluid">
@@ -94,6 +94,9 @@
                                 <i class="fas fa-print"></i> Print
                             </button>
                         </div>
+                        <button type="button" class="btn btn-sm btn-outline-info me-2" onclick="createSampleCalendarEvents()">
+                            <i class="fas fa-magic"></i> Create Samples
+                        </button>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addEventModal">
                             <i class="fas fa-plus"></i> Add Event
                         </button>
@@ -309,7 +312,8 @@
         // Global variables
         let currentUser = null;
         let calendar = null;
-        let events = [];
+        let calendarEvents = [];
+        let academicTerms = [];
         let currentView = 'month';
         
         // Check authentication and role
@@ -349,6 +353,11 @@
         function initializeCalendar() {
             const calendarEl = document.getElementById('calendar');
             
+            if (!calendarEl) {
+                console.error('Calendar element not found');
+                return;
+            }
+            
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 headerToolbar: {
@@ -356,7 +365,7 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: loadEvents,
+                events: [],
                 eventClick: function(info) {
                     editEvent(info.event);
                 },
@@ -372,6 +381,8 @@
             });
             
             calendar.render();
+            window.calendar = calendar; // Make calendar globally available
+            loadCalendarEvents();
             loadEventStatistics();
         }
         
@@ -701,6 +712,8 @@
         // Enhanced calendar event loading with real-time updates
         async function loadCalendarEvents() {
             try {
+                console.log('🔄 Loading calendar events...');
+                
                 const eventsSnapshot = await db.collection('calendarEvents')
                     .orderBy('startDate', 'asc')
                     .get();
@@ -714,11 +727,13 @@
                     });
                 });
                 
+                console.log(`✅ Loaded ${calendarEvents.length} calendar events`);
+                
                 updateCalendar();
                 updateEventStats();
                 
             } catch (error) {
-                console.error('Error loading calendar events:', error);
+                console.error('❌ Error loading calendar events:', error);
                 showError('Failed to load calendar events. Please try again.');
             }
         }
@@ -749,24 +764,33 @@
         // Update calendar with new events
         function updateCalendar() {
             if (window.calendar) {
-                // Clear existing events
-                window.calendar.removeAllEvents();
-                
-                // Add new events
-                calendarEvents.forEach(event => {
-                    window.calendar.addEvent({
-                        id: event.id,
-                        title: event.title,
-                        start: event.startDate?.toDate(),
-                        end: event.endDate?.toDate(),
-                        color: getEventColor(event.type),
-                        extendedProps: {
-                            description: event.description,
-                            type: event.type,
-                            location: event.location
-                        }
+                try {
+                    // Clear existing events
+                    window.calendar.removeAllEvents();
+                    
+                    // Add new events
+                    calendarEvents.forEach(event => {
+                        window.calendar.addEvent({
+                            id: event.id,
+                            title: event.title,
+                            start: event.startDate?.toDate(),
+                            end: event.endDate?.toDate(),
+                            backgroundColor: getEventColor(event.type),
+                            borderColor: getEventColor(event.type),
+                            extendedProps: {
+                                description: event.description,
+                                type: event.type,
+                                location: event.location
+                            }
+                        });
                     });
-                });
+                    
+                    console.log(`📅 Updated calendar with ${calendarEvents.length} events`);
+                } catch (error) {
+                    console.error('Error updating calendar:', error);
+                }
+            } else {
+                console.error('Calendar not initialized');
             }
         }
         
@@ -858,6 +882,68 @@
             }
         }
         
+        // Create sample calendar events for testing
+        async function createSampleCalendarEvents() {
+            if (!currentUser) {
+                console.log('❌ No current user, cannot create sample events');
+                return;
+            }
+            
+            try {
+                console.log('🔄 Creating sample calendar events...');
+                
+                const sampleEvents = [
+                    {
+                        title: "Mid-Term Examinations",
+                        description: "Mid-term examinations for all classes",
+                        type: "exam",
+                        location: "All Classrooms",
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)), // 7 days from now
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)) // 10 days from now
+                    },
+                    {
+                        title: "Parent-Teacher Meeting",
+                        description: "Quarterly parent-teacher meeting",
+                        type: "meeting",
+                        location: "School Hall",
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)), // 14 days from now
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000)) // 2 hours later
+                    },
+                    {
+                        title: "Sports Day",
+                        description: "Annual sports day competition",
+                        type: "event",
+                        location: "School Ground",
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 21 * 24 * 60 * 60 * 1000)), // 21 days from now
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 21 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000)) // 6 hours later
+                    },
+                    {
+                        title: "Holiday - Independence Day",
+                        description: "National Independence Day holiday",
+                        type: "holiday",
+                        location: "School Closed",
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)), // 30 days from now
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+                    }
+                ];
+                
+                for (const eventData of sampleEvents) {
+                    await db.collection('calendarEvents').add({
+                        ...eventData,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid
+                    });
+                }
+                
+                console.log('✅ Sample calendar events created successfully');
+                showSuccess('Sample calendar events created successfully!');
+                
+            } catch (error) {
+                console.error('❌ Error creating sample calendar events:', error);
+                showError('Failed to create sample calendar events: ' + error.message);
+            }
+        }
+        
         // Logout function
         function logout() {
             auth.signOut().then(() => {
@@ -873,10 +959,12 @@
         window.addEvent = addEvent;
         window.updateEvent = updateEvent;
         window.deleteEvent = deleteEvent;
+        window.editEvent = editEvent;
         window.changeView = changeView;
         window.filterEvents = filterEvents;
         window.exportCalendar = exportCalendar;
         window.printCalendar = printCalendar;
+        window.createSampleCalendarEvents = createSampleCalendarEvents;
         window.logout = logout;
     </script>
 </body>
