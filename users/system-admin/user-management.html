@@ -148,34 +148,34 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3">
-                                <div class="card bg-primary text-white text-center">
+                                <div class="card bg-primary text-white text-center stat-card">
                                     <div class="card-body">
-                                        <h3>45</h3>
+                                        <h3 class="number">0</h3>
                                         <p class="mb-0">Total Users</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-success text-white text-center">
+                                <div class="card bg-success text-white text-center stat-card">
                                     <div class="card-body">
-                                        <h3>42</h3>
+                                        <h3 class="number">0</h3>
                                         <p class="mb-0">Active Users</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-warning text-white text-center">
+                                <div class="card bg-warning text-white text-center stat-card">
                                     <div class="card-body">
-                                        <h3>2</h3>
-                                        <p class="mb-0">Suspended</p>
+                                        <h3 class="number">0</h3>
+                                        <p class="mb-0">Staff Members</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-info text-white text-center">
+                                <div class="card bg-info text-white text-center stat-card">
                                     <div class="card-body">
-                                        <h3>1</h3>
-                                        <p class="mb-0">New This Week</p>
+                                        <h3 class="number">0</h3>
+                                        <p class="mb-0">Administrators</p>
                                     </div>
                                 </div>
                             </div>
@@ -194,6 +194,7 @@
                                 <thead>
                                     <tr>
                                         <th>User</th>
+                                        <th>Staff ID</th>
                                         <th>Email</th>
                                         <th>Full Name</th>
                                         <th>Role</th>
@@ -825,6 +826,7 @@
                 filteredUsers = [...allUsers];
                 displayUsers();
                 updateUserStats();
+                calculateUserStatistics();
                 
                 console.log(`✅ Loaded ${allUsers.length} users from Firestore`);
                 
@@ -844,7 +846,7 @@
             if (filteredUsers.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="8" class="text-center text-muted py-4">
                             <i class="fas fa-users fa-2x mb-2"></i><br>
                             No users found
                         </td>
@@ -870,6 +872,8 @@
             const createdAt = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
             const status = user.status || 'active';
             const statusColor = status === 'active' ? 'success' : status === 'inactive' ? 'secondary' : 'danger';
+            const staffId = user.staffId || 'N/A';
+            const staffIdColor = user.staffId ? 'primary' : 'secondary';
             
             row.innerHTML = `
                 <td>
@@ -880,6 +884,9 @@
                             <small class="text-muted">ID: ${user.id.substring(0, 8)}...</small>
                         </div>
                     </div>
+                </td>
+                <td>
+                    <span class="badge bg-${staffIdColor}">${staffId}</span>
                 </td>
                 <td>${user.email}</td>
                 <td>${fullName}</td>
@@ -910,26 +917,88 @@
         // Update user statistics
         function updateUserStats() {
             const totalUsers = allUsers.length;
-            const activeUsers = allUsers.filter(user => user.status !== 'inactive').length;
+            const activeUsers = allUsers.filter(user => (user.status || 'active') === 'active').length;
             const adminUsers = allUsers.filter(user => user.role === 'system_admin').length;
-            const staffUsers = allUsers.filter(user => ['head_teacher', 'class_teacher', 'subject_teacher', 'bursar', 'dos', 'hod'].includes(user.role)).length;
+            const staffUsers = allUsers.filter(user => [
+                'head_teacher', 'class_teacher', 'subject_teacher', 
+                'bursar', 'dos', 'hod', 'teacher'
+            ].includes(user.role)).length;
             
-            // Update stats cards if they exist
+            // Update stats cards
             const statsCards = document.querySelectorAll('.stat-card .number');
             if (statsCards.length >= 4) {
                 statsCards[0].textContent = totalUsers;
                 statsCards[1].textContent = activeUsers;
-                statsCards[2].textContent = adminUsers;
-                statsCards[3].textContent = staffUsers;
+                statsCards[2].textContent = staffUsers;
+                statsCards[3].textContent = adminUsers;
             }
             
+            // Update card colors based on values
+            updateStatsCardColors(totalUsers, activeUsers, staffUsers, adminUsers);
+            
             // Log statistics for debugging
-            console.log('User Statistics:', {
+            console.log('📊 User Statistics Updated:', {
                 total: totalUsers,
                 active: activeUsers,
-                admins: adminUsers,
-                staff: staffUsers
+                staff: staffUsers,
+                admins: adminUsers
             });
+        }
+        
+        // Update stats card colors based on values
+        function updateStatsCardColors(total, active, staff, admins) {
+            const cards = document.querySelectorAll('.stat-card');
+            
+            // Total Users card
+            if (cards[0]) {
+                cards[0].className = `card ${total > 0 ? 'bg-primary' : 'bg-secondary'} text-white text-center stat-card`;
+            }
+            
+            // Active Users card
+            if (cards[1]) {
+                const activePercentage = total > 0 ? (active / total) * 100 : 0;
+                let color = 'bg-secondary';
+                if (activePercentage >= 90) color = 'bg-success';
+                else if (activePercentage >= 70) color = 'bg-warning';
+                else if (activePercentage >= 50) color = 'bg-danger';
+                cards[1].className = `card ${color} text-white text-center stat-card`;
+            }
+            
+            // Staff Members card
+            if (cards[2]) {
+                cards[2].className = `card ${staff > 0 ? 'bg-warning' : 'bg-secondary'} text-white text-center stat-card`;
+            }
+            
+            // Administrators card
+            if (cards[3]) {
+                cards[3].className = `card ${admins > 0 ? 'bg-info' : 'bg-secondary'} text-white text-center stat-card`;
+            }
+        }
+        
+        // Generate unique staff ID (simple sequential numbering)
+        async function generateStaffId() {
+            try {
+                // Get the latest staff ID from all users
+                const querySnapshot = await db.collection('users')
+                    .where('staffId', '>=', 'STF0001')
+                    .where('staffId', '<', 'STF9999')
+                    .orderBy('staffId', 'desc')
+                    .limit(1)
+                    .get();
+                
+                let nextNumber = 1;
+                if (!querySnapshot.empty) {
+                    const latestStaffId = querySnapshot.docs[0].data().staffId;
+                    const currentNumber = parseInt(latestStaffId.substring(3)); // Remove 'STF' prefix
+                    nextNumber = currentNumber + 1;
+                }
+                
+                return 'STF' + String(nextNumber).padStart(4, '0');
+            } catch (error) {
+                console.error('Error generating staff ID:', error);
+                // Fallback to timestamp-based ID
+                return 'STF' + String(Date.now()).slice(-4);
+            }
         }
         
         // Create new user
@@ -961,6 +1030,9 @@
             }
             
             try {
+                // Generate staff ID
+                const staffId = await generateStaffId();
+                
                 // Create user in Firebase Auth
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
@@ -975,6 +1047,7 @@
                     uid: user.uid,
                     email: email,
                     role: role,
+                    staffId: staffId,
                     personalInfo: {
                         fullName: fullName,
                         firstName: firstName,
@@ -990,7 +1063,7 @@
                     createdBy: currentUser.uid
                 });
                 
-                showSuccess('User created successfully!');
+                showSuccess(`User created successfully! Staff ID: ${staffId}`);
                 document.getElementById('create-user-form').reset();
                 bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
                 loadAllUsers();
@@ -1063,6 +1136,7 @@
                     <strong>Department:</strong> ${user.personalInfo?.department || 'Not specified'}<br><br>
                     
                     <h5>Account Information</h5>
+                    <strong>Staff ID:</strong> <span class="badge bg-primary">${user.staffId || 'Not assigned'}</span><br>
                     <strong>User ID:</strong> ${user.id}<br>
                     <strong>Role:</strong> ${user.role.replace('_', ' ').toUpperCase()}<br>
                     <strong>Status:</strong> ${user.status || 'active'}<br>
@@ -1153,7 +1227,8 @@
                 (user.personalInfo?.lastName || '').toLowerCase().includes(searchTerm) ||
                 user.role.toLowerCase().includes(searchTerm) ||
                 (user.personalInfo?.phone || '').includes(searchTerm) ||
-                (user.personalInfo?.department || '').toLowerCase().includes(searchTerm)
+                (user.personalInfo?.department || '').toLowerCase().includes(searchTerm) ||
+                (user.staffId || '').toLowerCase().includes(searchTerm)
             );
             displayUsers();
         }
@@ -1185,7 +1260,8 @@
                     (user.personalInfo?.lastName || '').toLowerCase().includes(searchTerm) ||
                     user.role.toLowerCase().includes(searchTerm) ||
                     (user.personalInfo?.phone || '').includes(searchTerm) ||
-                    (user.personalInfo?.department || '').toLowerCase().includes(searchTerm)
+                    (user.personalInfo?.department || '').toLowerCase().includes(searchTerm) ||
+                    (user.staffId || '').toLowerCase().includes(searchTerm)
                 );
             }
             
@@ -1226,6 +1302,67 @@
             });
         }
         
+        // Calculate and display comprehensive user statistics
+        function calculateUserStatistics() {
+            const totalUsers = allUsers.length;
+            const activeUsers = allUsers.filter(user => (user.status || 'active') === 'active').length;
+            const inactiveUsers = allUsers.filter(user => (user.status || 'active') === 'inactive').length;
+            const suspendedUsers = allUsers.filter(user => user.status === 'suspended').length;
+            
+            // Role-based statistics
+            const roleStats = {};
+            allUsers.forEach(user => {
+                roleStats[user.role] = (roleStats[user.role] || 0) + 1;
+            });
+            
+            // Department statistics
+            const departmentStats = {};
+            allUsers.forEach(user => {
+                const dept = user.personalInfo?.department || 'Not Specified';
+                departmentStats[dept] = (departmentStats[dept] || 0) + 1;
+            });
+            
+            // Recent users (last 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const recentUsers = allUsers.filter(user => {
+                if (!user.createdAt) return false;
+                const userCreated = new Date(user.createdAt.seconds * 1000);
+                return userCreated >= sevenDaysAgo;
+            }).length;
+            
+            // Users with recent login (last 30 days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const recentLoginUsers = allUsers.filter(user => {
+                if (!user.lastLogin) return false;
+                const lastLogin = new Date(user.lastLogin.seconds * 1000);
+                return lastLogin >= thirtyDaysAgo;
+            }).length;
+            
+            console.log('📈 Comprehensive User Statistics:', {
+                total: totalUsers,
+                active: activeUsers,
+                inactive: inactiveUsers,
+                suspended: suspendedUsers,
+                recent: recentUsers,
+                recentLogin: recentLoginUsers,
+                roles: roleStats,
+                departments: departmentStats
+            });
+            
+            return {
+                total: totalUsers,
+                active: activeUsers,
+                inactive: inactiveUsers,
+                suspended: suspendedUsers,
+                recent: recentUsers,
+                recentLogin: recentLoginUsers,
+                roles: roleStats,
+                departments: departmentStats
+            };
+        }
+        
         
         // Logout function
         function logout() {
@@ -1238,6 +1375,41 @@
             });
         }
         
+        // Display detailed statistics in console and optionally in UI
+        function displayDetailedStats() {
+            const stats = calculateUserStatistics();
+            
+            // Create a detailed stats display
+            const statsInfo = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-chart-bar"></i> Detailed User Statistics</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>User Status:</strong><br>
+                            • Total Users: ${stats.total}<br>
+                            • Active: ${stats.active}<br>
+                            • Inactive: ${stats.inactive}<br>
+                            • Suspended: ${stats.suspended}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Activity:</strong><br>
+                            • Recent Users (7 days): ${stats.recent}<br>
+                            • Recent Login (30 days): ${stats.recentLogin}<br>
+                            • Active Rate: ${stats.total > 0 ? ((stats.active / stats.total) * 100).toFixed(1) : 0}%
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // You can uncomment this to display stats in the UI
+            // const statsContainer = document.getElementById('stats-container');
+            // if (statsContainer) {
+            //     statsContainer.innerHTML = statsInfo;
+            // }
+            
+            console.log('📊 Detailed Statistics Display:', stats);
+        }
+        
         // Make functions globally available
         window.createUser = createUser;
         window.editUser = editUser;
@@ -1246,6 +1418,7 @@
         window.deleteUser = deleteUser;
         window.searchUsers = searchUsers;
         window.filterUsers = filterUsers;
+        window.displayDetailedStats = displayDetailedStats;
         window.logout = logout;
     </script>
 </body>
