@@ -183,9 +183,9 @@
                                 <thead>
                                     <tr>
                                         <th>Student</th>
-                                        <th>Student ID</th>
-                                        <th>Class</th>
-                                        <th>Year</th>
+                                        <th>Payment Code</th>
+                                        <th>Class & Year</th>
+                                        <th>Parent/Guardian</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -816,33 +816,54 @@
             };
             const statusColor = statusColors[student.status] || 'secondary';
             
+            // Format class with stream if available
+            const classDisplay = student.stream ? `${student.class} (${student.stream})` : student.class;
+            
             row.innerHTML = `
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="user-avatar me-2">${initials}</div>
                         <div>
                             <strong>${fullName}</strong><br>
-                            <small class="text-muted">${student.email || 'No email'}</small>
+                            <small class="text-muted">${student.email || 'No email'}</small><br>
+                            <small class="text-muted">ID: ${student.studentId || 'N/A'}</small>
                         </div>
                     </div>
                 </td>
-                <td>${student.studentId || 'N/A'}</td>
-                <td>${student.class || 'N/A'}</td>
-                <td>${student.academicYear || 'N/A'}</td>
+                <td>
+                    <div>
+                        <strong>${student.paymentCode || 'N/A'}</strong><br>
+                        <small class="text-muted">Payment Code</small>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <strong>${classDisplay || 'N/A'}</strong><br>
+                        <small class="text-muted">${student.academicYear || 'N/A'}</small>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <strong>${student.parent?.name || 'N/A'}</strong><br>
+                        <small class="text-muted">${student.parent?.relationship || ''}</small>
+                    </div>
+                </td>
                 <td><span class="badge bg-${statusColor}">${student.status || 'Unknown'}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="editStudent('${student.id}')" title="Edit Student">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="viewStudentDetails('${student.id}')" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="viewStudentGrades('${student.id}')" title="View Grades">
-                        <i class="fas fa-chart-line"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${student.id}')" title="Delete Student">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editStudent('${student.id}')" title="Edit Student">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewStudentDetails('${student.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="viewStudentGrades('${student.id}')" title="View Grades">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteStudent('${student.id}')" title="Delete Student">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             
@@ -1140,27 +1161,75 @@
             
             const dateOfBirth = student.dateOfBirth ? new Date(student.dateOfBirth.seconds * 1000).toLocaleDateString() : 'Not set';
             const createdDate = student.createdAt ? new Date(student.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+            const classDisplay = student.stream ? `${student.class} (${student.stream})` : student.class;
             
             const details = `
-                <strong>Student Details:</strong><br><br>
-                <strong>Name:</strong> ${student.firstName} ${student.lastName}<br>
-                <strong>Student ID:</strong> ${student.studentId || 'N/A'}<br>
-                <strong>Email:</strong> ${student.email}<br>
-                <strong>Phone:</strong> ${student.phone || 'Not provided'}<br>
-                <strong>Class:</strong> ${student.class || 'N/A'}<br>
-                <strong>Academic Year:</strong> ${student.academicYear || 'N/A'}<br>
-                <strong>Date of Birth:</strong> ${dateOfBirth}<br>
-                <strong>Gender:</strong> ${student.gender || 'Not specified'}<br>
-                <strong>Address:</strong> ${student.address || 'Not provided'}<br>
-                <strong>Status:</strong> ${student.status || 'Unknown'}<br><br>
-                <strong>Guardian Information:</strong><br>
-                <strong>Name:</strong> ${student.guardian?.name || 'Not provided'}<br>
-                <strong>Phone:</strong> ${student.guardian?.phone || 'Not provided'}<br>
-                <strong>Email:</strong> ${student.guardian?.email || 'Not provided'}<br><br>
-                <strong>Created:</strong> ${createdDate}
+                <div style="text-align: left; max-width: 500px;">
+                    <h4>Student Details</h4>
+                    <hr>
+                    
+                    <h5>Personal Information</h5>
+                    <strong>Name:</strong> ${student.firstName} ${student.lastName}<br>
+                    <strong>Student ID:</strong> ${student.studentId || 'N/A'}<br>
+                    <strong>Admission Number:</strong> ${student.admissionNumber || 'N/A'}<br>
+                    <strong>Payment Code:</strong> ${student.paymentCode || 'N/A'}<br>
+                    <strong>Email:</strong> ${student.email || 'Not provided'}<br>
+                    <strong>Phone:</strong> ${student.phone || 'Not provided'}<br>
+                    <strong>Date of Birth:</strong> ${dateOfBirth}<br>
+                    <strong>Gender:</strong> ${student.gender || 'Not specified'}<br>
+                    <strong>Address:</strong> ${student.address || 'Not provided'}<br>
+                    <strong>Status:</strong> ${student.status || 'Unknown'}<br><br>
+                    
+                    <h5>Academic Information</h5>
+                    <strong>Class:</strong> ${classDisplay || 'N/A'}<br>
+                    <strong>Academic Year:</strong> ${student.academicYear || 'N/A'}<br><br>
+                    
+                    <h5>Parent/Guardian Information</h5>
+                    <strong>Name:</strong> ${student.parent?.name || 'Not provided'}<br>
+                    <strong>Relationship:</strong> ${student.parent?.relationship || 'Not specified'}<br>
+                    <strong>Phone:</strong> ${student.parent?.phone || 'Not provided'}<br>
+                    <strong>Email:</strong> ${student.parent?.email || 'Not provided'}<br>
+                    <strong>Occupation:</strong> ${student.parent?.occupation || 'Not provided'}<br>
+                    <strong>Workplace:</strong> ${student.parent?.workplace || 'Not provided'}<br>
+                    <strong>Address:</strong> ${student.parent?.address || 'Not provided'}<br><br>
+                    
+                    <h5>Emergency Contact</h5>
+                    <strong>Name:</strong> ${student.emergencyContact?.name || 'Not provided'}<br>
+                    <strong>Phone:</strong> ${student.emergencyContact?.phone || 'Not provided'}<br><br>
+                    
+                    <strong>Created:</strong> ${createdDate}
+                </div>
             `;
             
-            alert(details);
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'studentDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Student Details - ${student.firstName} ${student.lastName}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
         }
         
         // View student grades (placeholder)
@@ -1178,7 +1247,13 @@
                 (student.firstName || '').toLowerCase().includes(searchTerm) ||
                 (student.lastName || '').toLowerCase().includes(searchTerm) ||
                 (student.email || '').toLowerCase().includes(searchTerm) ||
-                (student.studentId || '').toLowerCase().includes(searchTerm)
+                (student.studentId || '').toLowerCase().includes(searchTerm) ||
+                (student.paymentCode || '').toLowerCase().includes(searchTerm) ||
+                (student.admissionNumber || '').toLowerCase().includes(searchTerm) ||
+                (student.parent?.name || '').toLowerCase().includes(searchTerm) ||
+                (student.parent?.phone || '').includes(searchTerm) ||
+                (student.class || '').toLowerCase().includes(searchTerm) ||
+                (student.stream || '').toLowerCase().includes(searchTerm)
             );
             displayStudents();
         }
