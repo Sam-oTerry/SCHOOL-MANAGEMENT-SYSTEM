@@ -10,6 +10,45 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    <style>
+        .filter-status {
+            transition: all 0.3s ease;
+        }
+        .filter-status.text-info {
+            background-color: rgba(13, 202, 240, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #0dcaf0;
+        }
+        .search-input:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .filter-select:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .btn-clear-filters:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .term-row {
+            transition: all 0.3s ease;
+        }
+        .term-row:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -81,61 +120,87 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="header">
-                    <div>
-                        <h4>Term Management</h4>
-                        <span class="role-badge">System Management</span>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Term Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportTerms()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printTerms()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
                     </div>
-                    <div>
-                        <span id="current-user">John Doe</span>
-                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTermModal">
+                            <i class="fas fa-plus"></i> Add Term
+                        </button>
                     </div>
                 </div>
                 
-                <!-- Term Controls -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Term Management Controls</h5>
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control search-input" id="searchInput" placeholder="Search terms..." onkeyup="searchTerms()">
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label class="form-label">Academic Year</label>
-                                <select class="form-select" id="academic-year" onchange="updateTerms()">
-                                    <option value="2023" selected>2023</option>
-                                    <option value="2024">2024</option>
-                                    <option value="2025">2025</option>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select filter-select" id="statusFilter" onchange="filterTerms()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="completed">Completed</option>
+                            <option value="upcoming">Upcoming</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Current Term</label>
-                                <select class="form-select" id="current-term" onchange="updateCurrentTerm()">
-                                    <option value="term1">Term 1</option>
-                                    <option value="term2" selected>Term 2</option>
-                                    <option value="term3">Term 3</option>
+                    <div class="col-md-2">
+                        <select class="form-select filter-select" id="yearFilter" onchange="filterTerms()">
+                            <option value="all">All Years</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Actions</label>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTermModal">
-                                        <i class="fas fa-plus"></i> Create Term
-                                    </button>
-                                    <button class="btn btn-success btn-sm" onclick="startNewTerm()">
-                                        <i class="fas fa-play"></i> Start Term
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100 btn-clear-filters" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear
                                     </button>
                                 </div>
                             </div>
+
+                <!-- Term Statistics -->
+                <div class="row mb-4">
                             <div class="col-md-3">
-                                <label class="form-label">Quick Actions</label>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-info btn-sm" onclick="endCurrentTerm()">
-                                        <i class="fas fa-stop"></i> End Term
-                                    </button>
-                                    <button class="btn btn-warning btn-sm" onclick="archiveTerms()">
-                                        <i class="fas fa-archive"></i> Archive
-                                    </button>
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-check text-primary mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Total Terms</p>
                                 </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-play-circle text-success mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Active</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle text-info mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Completed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock text-warning mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Upcoming</p>
                             </div>
                         </div>
                     </div>
@@ -185,21 +250,24 @@
                 </div>
                 
                 <!-- Terms List -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Academic Terms</h5>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Academic Terms</h5>
+                        <div class="filter-status">
+                            <small class="text-muted" id="filterStatus">Showing all terms</small>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="termsTable">
                                 <thead>
                                     <tr>
-                                        <th>Term</th>
+                                        <th>Term Name</th>
+                                        <th>Academic Year</th>
                                         <th>Start Date</th>
                                         <th>End Date</th>
                                         <th>Duration</th>
                                         <th>Status</th>
-                                        <th>Progress</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -211,52 +279,8 @@
                     </div>
                 </div>
                 
-                <!-- Term Deadlines -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Important Deadlines</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Upcoming Deadlines</h6>
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Mid-term Examinations
-                                        <span class="badge bg-primary rounded-pill">5 days</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Report Cards Due
-                                        <span class="badge bg-warning rounded-pill">12 days</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        End of Term
-                                        <span class="badge bg-success rounded-pill">45 days</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Recent Activities</h6>
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
-                                        Term 2 started successfully
-                                    </li>
-                                    <li class="list-group-item">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
-                                        Student enrollment completed
-                                    </li>
-                                    <li class="list-group-item">
-                                        <i class="fas fa-info-circle text-info me-2"></i>
-                                        Timetable published
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </main>
-        </div>
+                    </div>
     </div>
 
     <!-- Create Term Modal -->
@@ -268,37 +292,32 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="create-term-form">
+                    <form id="createTermForm">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Term Name</label>
-                                    <select class="form-select" id="term-name" required>
-                                        <option value="">Select Term</option>
-                                        <option value="term1">Term 1</option>
-                                        <option value="term2">Term 2</option>
-                                        <option value="term3">Term 3</option>
-                                    </select>
+                                    <input type="text" class="form-control" id="termName" placeholder="e.g., Term 1, First Term" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" id="term-academic-year" value="2023" required>
-                                </div>
+                                    <input type="text" class="form-control" id="academicYear" value="2024" required>
                             </div>
                         </div>
+                    </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Start Date</label>
-                                    <input type="date" class="form-control" id="term-start-date" required>
-                                </div>
+                                    <input type="date" class="form-control" id="startDate" required>
+                </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">End Date</label>
-                                    <input type="date" class="form-control" id="term-end-date" required>
+                                    <input type="date" class="form-control" id="endDate" required>
                                 </div>
                             </div>
                         </div>
@@ -306,24 +325,24 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Registration Deadline</label>
-                                    <input type="date" class="form-control" id="registration-deadline">
+                                    <input type="date" class="form-control" id="registrationDeadline">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Examination Period</label>
-                                    <input type="text" class="form-control" id="examination-period" placeholder="e.g., Week 8-9">
+                                    <input type="text" class="form-control" id="examinationPeriod" placeholder="e.g., Week 8-9">
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" id="term-description" rows="3" placeholder="Enter term description..."></textarea>
+                            <textarea class="form-control" id="termDescription" rows="3" placeholder="Enter term description..."></textarea>
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="auto-activate">
-                                <label class="form-check-label" for="auto-activate">
+                                <input class="form-check-input" type="checkbox" id="autoActivate">
+                                <label class="form-check-label" for="autoActivate">
                                     Auto-activate term when start date is reached
                                 </label>
                             </div>
@@ -332,231 +351,89 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createTerm()">Create Term</button>
+                    <button type="button" class="btn btn-primary" onclick="createAcademicTerm()">Create Term</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Term Modal -->
+    <div class="modal fade" id="editTermModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Term</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTermForm">
+                        <input type="hidden" id="editTermId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Term Name</label>
+                                    <input type="text" class="form-control" id="editTermName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Academic Year</label>
+                                    <input type="text" class="form-control" id="editAcademicYear" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="editStartDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="editEndDate" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Registration Deadline</label>
+                                    <input type="date" class="form-control" id="editRegistrationDeadline">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Examination Period</label>
+                                    <input type="text" class="form-control" id="editExaminationPeriod" placeholder="e.g., Week 8-9">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="editTermDescription" rows="3" placeholder="Enter term description..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editAutoActivate">
+                                <label class="form-check-label" for="editAutoActivate">
+                                    Auto-activate term when start date is reached
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateTerm()">Update Term</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteTerm()">Delete Term</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/users/system-admin.js"></script>
-    <script>
-        // Term Management Functionality
-        let terms = [];
-        
-        // Sample terms data
-        const sampleTerms = [
-            {
-                id: 1,
-                name: 'Term 1',
-                academicYear: '2023',
-                startDate: '2023-09-04',
-                endDate: '2023-12-15',
-                duration: '102 days',
-                status: 'Completed',
-                progress: 100
-            },
-            {
-                id: 2,
-                name: 'Term 2',
-                academicYear: '2023',
-                startDate: '2024-01-08',
-                endDate: '2024-04-05',
-                duration: '87 days',
-                status: 'Active',
-                progress: 65
-            },
-            {
-                id: 3,
-                name: 'Term 3',
-                academicYear: '2023',
-                startDate: '2024-04-22',
-                endDate: '2024-08-09',
-                duration: '109 days',
-                status: 'Scheduled',
-                progress: 0
-            }
-        ];
-        
-        function initializeTermManagement() {
-            terms = [...sampleTerms];
-            displayTerms();
-        }
-        
-        function displayTerms() {
-            const tbody = document.getElementById('terms-tbody');
-            tbody.innerHTML = '';
-            
-            terms.forEach(term => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${term.name}</strong></td>
-                    <td>${formatDate(term.startDate)}</td>
-                    <td>${formatDate(term.endDate)}</td>
-                    <td>${term.duration}</td>
-                    <td><span class="badge ${getStatusColor(term.status)}">${term.status}</span></td>
-                    <td>
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar ${getProgressColor(term.progress)}" role="progressbar" 
-                                 style="width: ${term.progress}%" aria-valuenow="${term.progress}" 
-                                 aria-valuemin="0" aria-valuemax="100">
-                                ${term.progress}%
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewTerm(${term.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="editTerm(${term.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTerm(${term.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-        
-        function getStatusColor(status) {
-            switch(status.toLowerCase()) {
-                case 'active': return 'bg-success';
-                case 'completed': return 'bg-primary';
-                case 'scheduled': return 'bg-warning';
-                case 'cancelled': return 'bg-danger';
-                default: return 'bg-secondary';
-            }
-        }
-        
-        function getProgressColor(progress) {
-            if (progress >= 80) return 'bg-success';
-            if (progress >= 50) return 'bg-warning';
-            if (progress >= 20) return 'bg-info';
-            return 'bg-danger';
-        }
-        
-        function createTerm() {
-            const name = document.getElementById('term-name').value;
-            const academicYear = document.getElementById('term-academic-year').value;
-            const startDate = document.getElementById('term-start-date').value;
-            const endDate = document.getElementById('term-end-date').value;
-            const registrationDeadline = document.getElementById('registration-deadline').value;
-            const examinationPeriod = document.getElementById('examination-period').value;
-            const description = document.getElementById('term-description').value;
-            const autoActivate = document.getElementById('auto-activate').checked;
-            
-            if (!name || !academicYear || !startDate || !endDate) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-            
-            if (new Date(startDate) >= new Date(endDate)) {
-                alert('End date must be after start date.');
-                return;
-            }
-            
-            // Calculate duration
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-            
-            const newTerm = {
-                id: terms.length + 1,
-                name: name.charAt(0).toUpperCase() + name.slice(1),
-                academicYear,
-                startDate,
-                endDate,
-                duration: duration + ' days',
-                status: 'Scheduled',
-                progress: 0,
-                registrationDeadline,
-                examinationPeriod,
-                description,
-                autoActivate
-            };
-            
-            terms.push(newTerm);
-            displayTerms();
-            
-            // Close modal and reset form
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createTermModal'));
-            modal.hide();
-            document.getElementById('create-term-form').reset();
-            
-            showNotification('Term created successfully!', 'success');
-        }
-        
-        function viewTerm(termId) {
-            const term = terms.find(t => t.id === termId);
-            if (!term) return;
-            
-            alert(`Term Details:\n\nName: ${term.name}\nAcademic Year: ${term.academicYear}\nStart Date: ${formatDate(term.startDate)}\nEnd Date: ${formatDate(term.endDate)}\nDuration: ${term.duration}\nStatus: ${term.status}\nProgress: ${term.progress}%`);
-        }
-        
-        function editTerm(termId) {
-            const term = terms.find(t => t.id === termId);
-            if (!term) return;
-            
-            alert(`Edit Term:\n\nTerm: ${term.name}\nAcademic Year: ${term.academicYear}\n\nThis feature will open the edit form for the term.`);
-        }
-        
-        function deleteTerm(termId) {
-            if (confirm('Are you sure you want to delete this term?')) {
-                terms = terms.filter(t => t.id !== termId);
-                displayTerms();
-                showNotification('Term deleted successfully!', 'success');
-            }
-        }
-        
-        function updateTerms() {
-            const academicYear = document.getElementById('academic-year').value;
-            
-            // Filter terms by academic year
-            displayTerms();
-        }
-        
-        function updateCurrentTerm() {
-            const currentTerm = document.getElementById('current-term').value;
-            
-            // Update current term
-            showNotification(`Current term updated to ${currentTerm}!`, 'success');
-        }
-        
-        function startNewTerm() {
-            if (confirm('Are you sure you want to start a new term? This will end the current term.')) {
-                alert('Starting new term...\n\nThis feature will end the current term and start a new one.');
-                showNotification('New term started successfully!', 'success');
-            }
-        }
-        
-        function endCurrentTerm() {
-            if (confirm('Are you sure you want to end the current term?')) {
-                alert('Ending current term...\n\nThis feature will end the current term and prepare for the next one.');
-                showNotification('Current term ended successfully!', 'success');
-            }
-        }
-        
-        function archiveTerms() {
-            if (confirm('Are you sure you want to archive completed terms?')) {
-                alert('Archiving terms...\n\nThis feature will archive all completed terms.');
-                showNotification('Terms archived successfully!', 'success');
-            }
-        }
-        
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
-            }
-        }
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeTermManagement();
-        });
-    </script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -582,7 +459,8 @@
         // Global variables
         let currentUser = null;
         let academicTerms = [];
-        let currentAcademicYear = '2024';
+        let filteredTerms = [];
+        let academicYears = [];
         
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
@@ -596,6 +474,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             loadAcademicTerms();
+                            loadAcademicYears();
                             setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
@@ -620,9 +499,9 @@
         // Load academic terms from Firebase
         async function loadAcademicTerms() {
             try {
-                const termsSnapshot = await db.collection('academic_terms')
-                    .where('academicYear', '==', currentAcademicYear)
-                    .orderBy('termNumber', 'asc')
+                console.log('🔄 Loading academic terms...');
+                const termsSnapshot = await db.collection('academicTerms')
+                    .orderBy('createdAt', 'desc')
                     .get();
                 
                 academicTerms = [];
@@ -634,13 +513,42 @@
                     });
                 });
                 
+                filteredTerms = [...academicTerms];
                 displayAcademicTerms();
                 updateTermStats();
+                populateYearFilter();
                 
-                console.log('✅ Academic terms loaded successfully');
+                console.log(`✅ Loaded ${academicTerms.length} academic terms`);
+                
             } catch (error) {
                 console.error('❌ Error loading academic terms:', error);
                 showError('Failed to load academic terms. Please try again.');
+            }
+        }
+        
+        // Load academic years
+        async function loadAcademicYears() {
+            try {
+                const yearsSnapshot = await db.collection('academicYears').get();
+                academicYears = [];
+                yearsSnapshot.forEach(doc => {
+                    const yearData = doc.data();
+                    academicYears.push({
+                        id: doc.id,
+                        ...yearData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${academicYears.length} academic years`);
+                
+            } catch (error) {
+                console.error('Error loading academic years:', error);
+                // Set default years
+                academicYears = [
+                    { id: '1', year: '2024' },
+                    { id: '2', year: '2023' },
+                    { id: '3', year: '2022' }
+                ];
             }
         }
         
@@ -651,41 +559,68 @@
             
             tbody.innerHTML = '';
             
-            academicTerms.forEach(term => {
+            if (filteredTerms.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-calendar-check fa-2x mb-2"></i><br>
+                            No terms found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredTerms.forEach(term => {
                 const row = createTermRow(term);
                 tbody.appendChild(row);
             });
+            
+            console.log(`📊 Displayed ${filteredTerms.length} terms`);
         }
         
         // Create term row
         function createTermRow(term) {
-            const row = document.createElement('tr');
+                const row = document.createElement('tr');
             const startDate = term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'Not set';
             const endDate = term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'Not set';
             const isActive = term.isActive ? 'Active' : 'Inactive';
             const statusClass = term.isActive ? 'bg-success' : 'bg-secondary';
             
-            row.innerHTML = `
-                <td>${term.termName}</td>
-                <td>${term.academicYear}</td>
+            // Calculate duration
+            let duration = 'N/A';
+            if (term.startDate && term.endDate) {
+                const start = new Date(term.startDate.seconds * 1000);
+                const end = new Date(term.endDate.seconds * 1000);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                duration = `${diffDays} days`;
+            }
+            
+                row.innerHTML = `
+                <td><strong>${term.termName || 'N/A'}</strong></td>
+                <td>${term.academicYear || 'N/A'}</td>
                 <td>${startDate}</td>
                 <td>${endDate}</td>
+                <td>${duration}</td>
                 <td><span class="badge ${statusClass}">${isActive}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="editTerm('${term.id}')" title="Edit Term">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="viewTermDetails('${term.id}')" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="toggleTermStatus('${term.id}')" title="Toggle Status">
-                        <i class="fas fa-toggle-${term.isActive ? 'on' : 'off'}"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTerm('${term.id}')" title="Delete Term">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editTerm('${term.id}')" title="Edit Term">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewTermDetails('${term.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="toggleTermStatus('${term.id}')" title="Toggle Status">
+                            <i class="fas fa-toggle-${term.isActive ? 'on' : 'off'}"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteTerm('${term.id}')" title="Delete Term">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    </td>
+                `;
             
             return row;
         }
@@ -693,9 +628,17 @@
         // Update term statistics
         function updateTermStats() {
             const totalTerms = academicTerms.length;
-            const activeTerms = academicTerms.filter(term => term.isActive).length;
-            const completedTerms = academicTerms.filter(term => term.status === 'completed').length;
-            const upcomingTerms = academicTerms.filter(term => term.status === 'upcoming').length;
+            const activeTerms = academicTerms.filter(term => term.isActive === true).length;
+            const completedTerms = academicTerms.filter(term => {
+                if (!term.endDate) return false;
+                const endDate = new Date(term.endDate.seconds * 1000);
+                return endDate < new Date();
+            }).length;
+            const upcomingTerms = academicTerms.filter(term => {
+                if (!term.startDate) return false;
+                const startDate = new Date(term.startDate.seconds * 1000);
+                return startDate > new Date();
+            }).length;
             
             // Update stats cards
             const statsCards = document.querySelectorAll('.stat-card .number');
@@ -705,6 +648,25 @@
                 statsCards[2].textContent = completedTerms;
                 statsCards[3].textContent = upcomingTerms;
             }
+            
+            console.log(`📊 Term Stats - Total: ${totalTerms}, Active: ${activeTerms}, Completed: ${completedTerms}, Upcoming: ${upcomingTerms}`);
+        }
+        
+        // Populate year filter dropdown
+        function populateYearFilter() {
+            const yearFilter = document.getElementById('yearFilter');
+            if (yearFilter) {
+                yearFilter.innerHTML = '<option value="all">All Years</option>';
+                
+                // Get unique years from terms
+                const uniqueYears = [...new Set(academicTerms.map(term => term.academicYear).filter(Boolean))];
+                uniqueYears.sort((a, b) => b - a).forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearFilter.appendChild(option);
+                });
+            }
         }
         
         // Create new academic term
@@ -713,7 +675,10 @@
             const academicYear = document.getElementById('academicYear').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
+            const registrationDeadline = document.getElementById('registrationDeadline').value;
+            const examinationPeriod = document.getElementById('examinationPeriod').value;
             const description = document.getElementById('termDescription').value;
+            const autoActivate = document.getElementById('autoActivate').checked;
             
             if (!termName || !academicYear || !startDate || !endDate) {
                 showError('Please fill in all required fields.');
@@ -734,19 +699,22 @@
                     academicYear: academicYear,
                     startDate: firebase.firestore.Timestamp.fromDate(start),
                     endDate: firebase.firestore.Timestamp.fromDate(end),
+                    registrationDeadline: registrationDeadline ? firebase.firestore.Timestamp.fromDate(new Date(registrationDeadline)) : null,
+                    examinationPeriod: examinationPeriod || '',
                     description: description || '',
                     isActive: false,
                     status: 'upcoming',
-                    termNumber: academicTerms.length + 1,
+                    autoActivate: autoActivate,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     createdBy: currentUser.uid
                 };
                 
-                await db.collection('academic_terms').add(termData);
+                await db.collection('academicTerms').add(termData);
                 
                 showSuccess('Academic term created successfully!');
                 document.getElementById('createTermForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('createTermModal')).hide();
                 loadAcademicTerms();
                 
             } catch (error) {
@@ -756,42 +724,75 @@
         }
         
         // Edit academic term
-        async function editTerm(termId) {
+        function editTerm(termId) {
             const term = academicTerms.find(t => t.id === termId);
             if (!term) return;
             
-            const newTermName = prompt('Enter new term name:', term.termName);
-            const newStartDate = prompt('Enter new start date (YYYY-MM-DD):', 
-                term.startDate ? new Date(term.startDate.seconds * 1000).toISOString().split('T')[0] : '');
-            const newEndDate = prompt('Enter new end date (YYYY-MM-DD):', 
-                term.endDate ? new Date(term.endDate.seconds * 1000).toISOString().split('T')[0] : '');
-            const newDescription = prompt('Enter new description:', term.description || '');
+            // Populate edit form
+            document.getElementById('editTermId').value = term.id;
+            document.getElementById('editTermName').value = term.termName || '';
+            document.getElementById('editAcademicYear').value = term.academicYear || '';
+            document.getElementById('editStartDate').value = term.startDate ? 
+                new Date(term.startDate.seconds * 1000).toISOString().split('T')[0] : '';
+            document.getElementById('editEndDate').value = term.endDate ? 
+                new Date(term.endDate.seconds * 1000).toISOString().split('T')[0] : '';
+            document.getElementById('editRegistrationDeadline').value = term.registrationDeadline ? 
+                new Date(term.registrationDeadline.seconds * 1000).toISOString().split('T')[0] : '';
+            document.getElementById('editExaminationPeriod').value = term.examinationPeriod || '';
+            document.getElementById('editTermDescription').value = term.description || '';
+            document.getElementById('editAutoActivate').checked = term.autoActivate || false;
             
-            if (newTermName && newStartDate && newEndDate) {
-                try {
-                    const start = new Date(newStartDate);
-                    const end = new Date(newEndDate);
-                    
-                    if (start >= end) {
-                        showError('End date must be after start date.');
-                        return;
-                    }
-                    
-                    await db.collection('academic_terms').doc(termId).update({
-                        termName: newTermName,
-                        startDate: firebase.firestore.Timestamp.fromDate(start),
-                        endDate: firebase.firestore.Timestamp.fromDate(end),
-                        description: newDescription,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedBy: currentUser.uid
-                    });
-                    
-                    showSuccess('Academic term updated successfully!');
-                    loadAcademicTerms();
-                } catch (error) {
-                    console.error('Error updating academic term:', error);
-                    showError('Error updating academic term: ' + error.message);
-                }
+            new bootstrap.Modal(document.getElementById('editTermModal')).show();
+        }
+        
+        // Update academic term
+        async function updateTerm() {
+            const termId = document.getElementById('editTermId').value;
+            const termName = document.getElementById('editTermName').value;
+            const academicYear = document.getElementById('editAcademicYear').value;
+            const startDate = document.getElementById('editStartDate').value;
+            const endDate = document.getElementById('editEndDate').value;
+            const registrationDeadline = document.getElementById('editRegistrationDeadline').value;
+            const examinationPeriod = document.getElementById('editExaminationPeriod').value;
+            const description = document.getElementById('editTermDescription').value;
+            const autoActivate = document.getElementById('editAutoActivate').checked;
+            
+            if (!termName || !academicYear || !startDate || !endDate) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Validate dates
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (start >= end) {
+                showError('End date must be after start date.');
+                return;
+            }
+            
+            try {
+                const updateData = {
+                    termName: termName,
+                    academicYear: academicYear,
+                    startDate: firebase.firestore.Timestamp.fromDate(start),
+                    endDate: firebase.firestore.Timestamp.fromDate(end),
+                    registrationDeadline: registrationDeadline ? firebase.firestore.Timestamp.fromDate(new Date(registrationDeadline)) : null,
+                    examinationPeriod: examinationPeriod || '',
+                    description: description || '',
+                    autoActivate: autoActivate,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('academicTerms').doc(termId).update(updateData);
+                
+                showSuccess('Academic term updated successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('editTermModal')).hide();
+                loadAcademicTerms();
+                
+            } catch (error) {
+                console.error('Error updating academic term:', error);
+                showError('Error updating academic term: ' + error.message);
             }
         }
         
@@ -802,20 +803,63 @@
             
             const startDate = term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'Not set';
             const endDate = term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'Not set';
+            const registrationDeadline = term.registrationDeadline ? 
+                new Date(term.registrationDeadline.seconds * 1000).toLocaleDateString() : 'Not set';
             const createdDate = term.createdAt ? new Date(term.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
             
             const details = `
-                <strong>Term Details:</strong><br>
-                <strong>Name:</strong> ${term.termName}<br>
-                <strong>Academic Year:</strong> ${term.academicYear}<br>
-                <strong>Start Date:</strong> ${startDate}<br>
-                <strong>End Date:</strong> ${endDate}<br>
-                <strong>Status:</strong> ${term.isActive ? 'Active' : 'Inactive'}<br>
-                <strong>Description:</strong> ${term.description || 'No description'}<br>
-                <strong>Created:</strong> ${createdDate}
+                <div style="text-align: left; max-width: 500px;">
+                    <h4>Term Details</h4>
+                    <hr>
+                    
+                    <h5>Basic Information</h5>
+                    <strong>Name:</strong> ${term.termName || 'N/A'}<br>
+                    <strong>Academic Year:</strong> ${term.academicYear || 'N/A'}<br>
+                    <strong>Status:</strong> ${term.isActive ? 'Active' : 'Inactive'}<br><br>
+                    
+                    <h5>Dates</h5>
+                    <strong>Start Date:</strong> ${startDate}<br>
+                    <strong>End Date:</strong> ${endDate}<br>
+                    <strong>Registration Deadline:</strong> ${registrationDeadline}<br><br>
+                    
+                    <h5>Additional Information</h5>
+                    <strong>Examination Period:</strong> ${term.examinationPeriod || 'Not specified'}<br>
+                    <strong>Description:</strong> ${term.description || 'No description'}<br>
+                    <strong>Auto-activate:</strong> ${term.autoActivate ? 'Yes' : 'No'}<br><br>
+                    
+                    <strong>Created:</strong> ${createdDate}
+                </div>
             `;
             
-            alert(details);
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'termDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Term Details - ${term.termName}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
         }
         
         // Toggle term status
@@ -833,7 +877,7 @@
                         const batch = db.batch();
                         academicTerms.forEach(t => {
                             if (t.isActive) {
-                                batch.update(db.collection('academic_terms').doc(t.id), {
+                                batch.update(db.collection('academicTerms').doc(t.id), {
                                     isActive: false,
                                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                                     updatedBy: currentUser.uid
@@ -843,7 +887,7 @@
                         await batch.commit();
                     }
                     
-                    await db.collection('academic_terms').doc(termId).update({
+                    await db.collection('academicTerms').doc(termId).update({
                         isActive: newStatus,
                         status: newStatus ? 'active' : 'inactive',
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -858,6 +902,193 @@
                 }
             }
         }
+        
+        // Delete academic term
+        async function deleteTerm(termId) {
+            if (confirm('Are you sure you want to delete this academic term? This action cannot be undone.')) {
+                try {
+                    await db.collection('academicTerms').doc(termId).delete();
+                    showSuccess('Academic term deleted successfully!');
+                    loadAcademicTerms();
+                } catch (error) {
+                    console.error('Error deleting academic term:', error);
+                    showError('Error deleting academic term: ' + error.message);
+                }
+            }
+        }
+        
+        // Search terms
+        function searchTerms() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            console.log('🔍 Searching terms with term:', searchTerm);
+            
+            filteredTerms = academicTerms.filter(term => 
+                (term.termName || '').toLowerCase().includes(searchTerm) ||
+                (term.academicYear || '').toLowerCase().includes(searchTerm) ||
+                (term.description || '').toLowerCase().includes(searchTerm) ||
+                (term.examinationPeriod || '').toLowerCase().includes(searchTerm)
+            );
+            
+            displayAcademicTerms();
+            updateFilterStatus(filteredTerms.length, academicTerms.length);
+            
+            console.log(`📊 Search found ${filteredTerms.length} terms`);
+        }
+        
+        // Filter terms
+        function filterTerms() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            
+            console.log('🔍 Filtering terms:', { statusFilter, yearFilter });
+            
+            let results = [...academicTerms];
+            
+            // Apply status filter
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'active') {
+                    results = results.filter(term => term.isActive === true);
+                } else if (statusFilter === 'inactive') {
+                    results = results.filter(term => term.isActive === false);
+                } else if (statusFilter === 'completed') {
+                    results = results.filter(term => {
+                        if (!term.endDate) return false;
+                        const endDate = new Date(term.endDate.seconds * 1000);
+                        return endDate < new Date();
+                    });
+                } else if (statusFilter === 'upcoming') {
+                    results = results.filter(term => {
+                        if (!term.startDate) return false;
+                        const startDate = new Date(term.startDate.seconds * 1000);
+                        return startDate > new Date();
+                    });
+                }
+            }
+            
+            // Apply year filter
+            if (yearFilter !== 'all') {
+                results = results.filter(term => term.academicYear === yearFilter);
+            }
+            
+            filteredTerms = results;
+            displayAcademicTerms();
+            updateFilterStatus(filteredTerms.length, academicTerms.length);
+            
+            console.log(`📊 Filtered ${filteredTerms.length} terms from ${academicTerms.length} total`);
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            console.log('🧹 Clearing all filters');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('yearFilter').value = 'all';
+            filteredTerms = [...academicTerms];
+            displayAcademicTerms();
+            updateFilterStatus(academicTerms.length, academicTerms.length);
+            console.log(`📊 Reset to show all ${academicTerms.length} terms`);
+        }
+        
+        // Update filter status indicator
+        function updateFilterStatus(filteredCount, totalCount) {
+            const statusElement = document.getElementById('filterStatus');
+            if (statusElement) {
+                if (filteredCount === totalCount) {
+                    statusElement.textContent = `Showing all ${totalCount} terms`;
+                    statusElement.className = 'text-muted';
+                } else {
+                    statusElement.textContent = `Showing ${filteredCount} of ${totalCount} terms`;
+                    statusElement.className = 'text-info fw-bold';
+                }
+            }
+        }
+        
+        // Export terms
+        function exportTerms() {
+            const termsData = filteredTerms.map(term => ({
+                termName: term.termName,
+                academicYear: term.academicYear,
+                startDate: term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'N/A',
+                endDate: term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'N/A',
+                isActive: term.isActive ? 'Active' : 'Inactive',
+                description: term.description || '',
+                examinationPeriod: term.examinationPeriod || ''
+            }));
+            
+            const dataStr = JSON.stringify(termsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `academic-terms-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Terms exported successfully!');
+        }
+        
+        // Print terms
+        function printTerms() {
+            window.print();
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for academic term changes
+            db.collection('academicTerms').onSnapshot((snapshot) => {
+                console.log('📊 Academic terms collection updated');
+                loadAcademicTerms();
+            });
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make functions globally available
+        window.createAcademicTerm = createAcademicTerm;
+        window.editTerm = editTerm;
+        window.updateTerm = updateTerm;
+        window.deleteTerm = deleteTerm;
+        window.viewTermDetails = viewTermDetails;
+        window.toggleTermStatus = toggleTermStatus;
+        window.searchTerms = searchTerms;
+        window.filterTerms = filterTerms;
+        window.clearFilters = clearFilters;
+        window.exportTerms = exportTerms;
+        window.printTerms = printTerms;
+        window.logout = logout;
         
         // Delete academic term
         async function deleteTerm(termId) {
