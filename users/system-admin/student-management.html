@@ -694,6 +694,8 @@
                 displayStudents();
                 updateStudentStats();
                 
+                console.log(`✅ Loaded ${students.length} students from Firestore`);
+                
             } catch (error) {
                 console.error('Error loading students:', error);
                 showError('Failed to load students. Please try again.');
@@ -798,10 +800,24 @@
             
             tbody.innerHTML = '';
             
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
+                            No students found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             filteredStudents.forEach(student => {
                 const row = createStudentRow(student);
                 tbody.appendChild(row);
             });
+            
+            console.log(`📊 Displayed ${filteredStudents.length} students`);
         }
         
         // Create student row
@@ -884,6 +900,8 @@
                 statsCards[2].textContent = graduatedStudents;
                 statsCards[3].textContent = inactiveStudents;
             }
+            
+            console.log(`📊 Student Stats - Total: ${totalStudents}, Active: ${activeStudents}, Graduated: ${graduatedStudents}, Inactive: ${inactiveStudents}`);
         }
         
         // Update stream options based on class selection
@@ -1345,47 +1363,25 @@
         // Setup real-time listeners for dynamic updates
         function setupRealTimeListeners() {
             // Listen for student changes
-            db.collection('users').where('role', '==', 'student').onSnapshot((snapshot) => {
+            db.collection('students').onSnapshot((snapshot) => {
+                console.log('📊 Students collection updated');
                 loadStudents();
                 updateStudentStats();
             });
             
             // Listen for class changes
             db.collection('classes').onSnapshot((snapshot) => {
+                console.log('📚 Classes collection updated');
                 loadClasses();
             });
             
             // Listen for academic year changes
             db.collection('academicYears').onSnapshot((snapshot) => {
+                console.log('📅 Academic years collection updated');
                 loadAcademicYears();
             });
         }
         
-        // Enhanced student loading with real-time updates
-        async function loadStudents() {
-            try {
-                const studentsSnapshot = await db.collection('users')
-                    .where('role', '==', 'student')
-                    .orderBy('personalInfo.fullName')
-                    .get();
-                
-                students = [];
-                studentsSnapshot.forEach(doc => {
-                    const studentData = doc.data();
-                    students.push({
-                        id: doc.id,
-                        ...studentData
-                    });
-                });
-                
-                displayStudents(students);
-                updateStudentStats();
-                
-            } catch (error) {
-                console.error('Error loading students:', error);
-                showError('Failed to load students. Please try again.');
-            }
-        }
         
         // Enhanced class loading with real-time updates
         async function loadClasses() {
