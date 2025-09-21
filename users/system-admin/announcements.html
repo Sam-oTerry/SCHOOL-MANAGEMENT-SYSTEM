@@ -364,6 +364,12 @@
         
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
+            // Skip auth state change if we're creating a user
+            if (window.isCreatingUser) {
+                console.log('🔄 Skipping auth state change during user creation');
+                return;
+            }
+            
             if (user) {
                 db.collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
@@ -749,19 +755,6 @@
             displayAnnouncements();
         }
         
-        // Filter announcements
-        function filterAnnouncements() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            
-            filteredAnnouncements = announcements.filter(announcement => {
-                const statusMatch = statusFilter === 'all' || announcement.status === statusFilter;
-                const typeMatch = typeFilter === 'all' || announcement.type === typeFilter;
-                return statusMatch && typeMatch;
-            });
-            
-            displayAnnouncements();
-        }
         
         // Export announcements
         function exportAnnouncements() {
@@ -821,7 +814,17 @@
         function setupRealTimeListeners() {
             // Listen for announcement changes
             db.collection('announcements').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-                loadAnnouncements();
+                announcements = [];
+                snapshot.forEach(doc => {
+                    const announcementData = doc.data();
+                    announcements.push({
+                        id: doc.id,
+                        ...announcementData
+                    });
+                });
+                
+                filteredAnnouncements = [...announcements];
+                displayAnnouncements();
                 updateAnnouncementStats();
             });
             
@@ -847,7 +850,8 @@
                     });
                 });
                 
-                displayAnnouncements(announcements);
+                filteredAnnouncements = [...announcements];
+                displayAnnouncements();
                 updateAnnouncementStats();
                 
             } catch (error) {
@@ -859,21 +863,17 @@
         // Update announcement statistics
         function updateAnnouncementStats() {
             const totalAnnouncements = announcements.length;
-            const activeAnnouncements = announcements.filter(announcement => announcement.isActive !== false).length;
-            const highPriorityAnnouncements = announcements.filter(announcement => announcement.priority === 'high').length;
-            const todayAnnouncements = announcements.filter(announcement => {
-                const today = new Date();
-                const announcementDate = announcement.createdAt?.toDate();
-                return announcementDate && announcementDate.toDateString() === today.toDateString();
-            }).length;
+            const activeAnnouncements = announcements.filter(announcement => announcement.status === 'active').length;
+            const draftAnnouncements = announcements.filter(announcement => announcement.status === 'draft').length;
+            const urgentAnnouncements = announcements.filter(announcement => announcement.type === 'urgent').length;
             
             // Update stats cards if they exist
             const statsCards = document.querySelectorAll('.stat-card .number');
             if (statsCards.length >= 4) {
                 statsCards[0].textContent = totalAnnouncements;
                 statsCards[1].textContent = activeAnnouncements;
-                statsCards[2].textContent = highPriorityAnnouncements;
-                statsCards[3].textContent = todayAnnouncements;
+                statsCards[2].textContent = draftAnnouncements;
+                statsCards[3].textContent = urgentAnnouncements;
             }
         }
         
@@ -903,25 +903,27 @@
         
         // Enhanced search with real-time filtering
         function searchAnnouncements() {
-            const searchTerm = document.getElementById('search-announcements').value.toLowerCase();
-            const filteredAnnouncements = announcements.filter(announcement => 
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredAnnouncements = announcements.filter(announcement => 
                 announcement.title?.toLowerCase().includes(searchTerm) ||
                 announcement.content?.toLowerCase().includes(searchTerm) ||
-                announcement.priority?.toLowerCase().includes(searchTerm)
+                announcement.type?.toLowerCase().includes(searchTerm)
             );
-            displayAnnouncements(filteredAnnouncements);
+            displayAnnouncements();
         }
         
         // Enhanced filter with real-time updates
-        function filterByPriority() {
-            const priorityFilter = document.getElementById('priority-filter').value;
-            let filteredAnnouncements = announcements;
+        function filterAnnouncements() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
             
-            if (priorityFilter !== 'all') {
-                filteredAnnouncements = announcements.filter(announcement => announcement.priority === priorityFilter);
-            }
+            filteredAnnouncements = announcements.filter(announcement => {
+                const statusMatch = statusFilter === 'all' || announcement.status === statusFilter;
+                const typeMatch = typeFilter === 'all' || announcement.type === typeFilter;
+                return statusMatch && typeMatch;
+            });
             
-            displayAnnouncements(filteredAnnouncements);
+            displayAnnouncements();
         }
         
         // Logout function
@@ -934,6 +936,25 @@
                 window.location.href = '../../index.html';
             });
         }
+        
+        // Clear form when modal is opened
+        function clearAnnouncementForm() {
+            document.getElementById('addAnnouncementForm').reset();
+            // Set default start date to now
+            const now = new Date();
+            const startDate = now.toISOString().slice(0, 16);
+            document.getElementById('announcementStartDate').value = startDate;
+        }
+        
+        // Add event listener for modal opening
+        document.addEventListener('DOMContentLoaded', function() {
+            const addModal = document.getElementById('addAnnouncementModal');
+            if (addModal) {
+                addModal.addEventListener('show.bs.modal', function() {
+                    clearAnnouncementForm();
+                });
+            }
+        });
         
         // Make functions globally available
         window.addAnnouncement = addAnnouncement;
