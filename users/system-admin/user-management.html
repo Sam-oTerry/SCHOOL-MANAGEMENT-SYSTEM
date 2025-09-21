@@ -978,6 +978,7 @@
         // Generate unique staff ID (simple sequential numbering)
         async function generateStaffId() {
             try {
+                console.log('🔍 Querying for latest staff ID...');
                 // Get the latest staff ID from all users
                 const querySnapshot = await db.collection('users')
                     .where('staffId', '>=', 'STF0001')
@@ -986,18 +987,28 @@
                     .limit(1)
                     .get();
                 
+                console.log('📊 Query results:', querySnapshot.size, 'documents found');
+                
                 let nextNumber = 1;
                 if (!querySnapshot.empty) {
                     const latestStaffId = querySnapshot.docs[0].data().staffId;
+                    console.log('🔢 Latest staff ID found:', latestStaffId);
                     const currentNumber = parseInt(latestStaffId.substring(3)); // Remove 'STF' prefix
                     nextNumber = currentNumber + 1;
+                    console.log('🔢 Next number will be:', nextNumber);
+                } else {
+                    console.log('🔢 No existing staff IDs found, starting with 1');
                 }
                 
-                return 'STF' + String(nextNumber).padStart(4, '0');
+                const newStaffId = 'STF' + String(nextNumber).padStart(4, '0');
+                console.log('🆔 Generated staff ID:', newStaffId);
+                return newStaffId;
             } catch (error) {
-                console.error('Error generating staff ID:', error);
+                console.error('❌ Error generating staff ID:', error);
                 // Fallback to timestamp-based ID
-                return 'STF' + String(Date.now()).slice(-4);
+                const fallbackId = 'STF' + String(Date.now()).slice(-4);
+                console.log('🔄 Using fallback staff ID:', fallbackId);
+                return fallbackId;
             }
         }
         
@@ -1029,6 +1040,12 @@
                 return;
             }
             
+            // Check if current user is authenticated
+            if (!currentUser) {
+                showError('You must be logged in to create users. Please refresh the page and try again.');
+                return;
+            }
+            
             // Check if email already exists in current users list
             const existingUser = allUsers.find(user => user.email.toLowerCase() === email.toLowerCase());
             if (existingUser) {
@@ -1043,10 +1060,18 @@
             createButton.disabled = true;
             
             try {
+                console.log('🔄 Starting user creation process...');
+                console.log('📧 Email:', email);
+                console.log('👤 Full Name:', fullName);
+                console.log('🎭 Role:', role);
+                
                 // Generate staff ID
+                console.log('🆔 Generating staff ID...');
                 const staffId = await generateStaffId();
+                console.log('✅ Generated Staff ID:', staffId);
                 
                 // Create user in Firebase Auth with retry logic
+                console.log('🔥 Creating Firebase Auth user...');
                 let userCredential;
                 let retryCount = 0;
                 const maxRetries = 3;
@@ -1054,11 +1079,13 @@
                 while (retryCount < maxRetries) {
                     try {
                         userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        console.log('✅ Firebase Auth user created successfully');
                         break; // Success, exit retry loop
                     } catch (retryError) {
                         retryCount++;
+                        console.error(`❌ Auth attempt ${retryCount} failed:`, retryError.code, retryError.message);
                         if (retryError.code === 'auth/network-request-failed' && retryCount < maxRetries) {
-                            console.log(`Network error, retrying... (${retryCount}/${maxRetries})`);
+                            console.log(`🔄 Network error, retrying... (${retryCount}/${maxRetries})`);
                             await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Exponential backoff
                             continue;
                         }
@@ -1067,14 +1094,18 @@
                 }
                 
                 const user = userCredential.user;
+                console.log('👤 User object:', user);
                 
                 // Update user profile
+                console.log('👤 Updating user profile...');
                 await user.updateProfile({
                     displayName: fullName
                 });
+                console.log('✅ User profile updated');
                 
                 // Create user document in Firestore
-                await db.collection('users').doc(user.uid).set({
+                console.log('📄 Creating Firestore document...');
+                const userDocData = {
                     uid: user.uid,
                     email: email,
                     role: role,
@@ -1092,7 +1123,11 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     createdBy: currentUser.uid
-                });
+                };
+                
+                console.log('📄 Document data:', userDocData);
+                await db.collection('users').doc(user.uid).set(userDocData);
+                console.log('✅ Firestore document created successfully');
                 
                 showSuccess(`User created successfully! Staff ID: ${staffId}`);
                 document.getElementById('create-user-form').reset();
