@@ -1096,14 +1096,26 @@
                 const user = userCredential.user;
                 console.log('👤 User object:', user);
                 
-                // Update user profile
+                // Update user profile (optional - continue even if this fails)
                 console.log('👤 Updating user profile...');
-                await user.updateProfile({
-                    displayName: fullName
-                });
-                console.log('✅ User profile updated');
+                try {
+                    // Add a timeout for profile update
+                    const profileUpdatePromise = user.updateProfile({
+                        displayName: fullName
+                    });
+                    
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Profile update timeout')), 5000);
+                    });
+                    
+                    await Promise.race([profileUpdatePromise, timeoutPromise]);
+                    console.log('✅ User profile updated');
+                } catch (profileError) {
+                    console.warn('⚠️ Profile update failed, continuing with user creation:', profileError.message);
+                    // Continue with user creation even if profile update fails
+                }
                 
-                // Create user document in Firestore
+                // Create user document in Firestore with retry logic
                 console.log('📄 Creating Firestore document...');
                 const userDocData = {
                     uid: user.uid,
@@ -1126,8 +1138,28 @@
                 };
                 
                 console.log('📄 Document data:', userDocData);
-                await db.collection('users').doc(user.uid).set(userDocData);
-                console.log('✅ Firestore document created successfully');
+                
+                // Try to create Firestore document with retry logic
+                let firestoreRetryCount = 0;
+                const maxFirestoreRetries = 3;
+                let firestoreSuccess = false;
+                
+                while (firestoreRetryCount < maxFirestoreRetries && !firestoreSuccess) {
+                    try {
+                        await db.collection('users').doc(user.uid).set(userDocData);
+                        console.log('✅ Firestore document created successfully');
+                        firestoreSuccess = true;
+                    } catch (firestoreError) {
+                        firestoreRetryCount++;
+                        console.error(`❌ Firestore attempt ${firestoreRetryCount} failed:`, firestoreError.message);
+                        if (firestoreRetryCount < maxFirestoreRetries) {
+                            console.log(`🔄 Retrying Firestore operation... (${firestoreRetryCount}/${maxFirestoreRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, 1000 * firestoreRetryCount));
+                        } else {
+                            throw firestoreError;
+                        }
+                    }
+                }
                 
                 showSuccess(`User created successfully! Staff ID: ${staffId}`);
                 document.getElementById('create-user-form').reset();
