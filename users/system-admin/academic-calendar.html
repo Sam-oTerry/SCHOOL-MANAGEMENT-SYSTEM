@@ -490,12 +490,12 @@
                     createdBy: currentUser.uid
                 };
                 
-                await db.collection('calendar_events').add(eventData);
+                await db.collection('calendarEvents').add(eventData);
                 
                 showSuccess('Event added successfully!');
                 document.getElementById('addEventForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
-                calendar.refetchEvents();
+                loadCalendarEvents();
                 
             } catch (error) {
                 console.error('Error adding event:', error);
@@ -505,7 +505,7 @@
         
         // Edit event
         function editEvent(event) {
-            const eventData = events.find(e => e.id === event.id);
+            const eventData = calendarEvents.find(e => e.id === event.id);
             if (!eventData) return;
             
             document.getElementById('editEventId').value = event.id;
@@ -535,7 +535,7 @@
             }
             
             try {
-                await db.collection('calendar_events').doc(eventId).update({
+                await db.collection('calendarEvents').doc(eventId).update({
                     title: title,
                     type: type,
                     startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
@@ -548,7 +548,7 @@
                 
                 showSuccess('Event updated successfully!');
                 bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
-                calendar.refetchEvents();
+                loadCalendarEvents();
                 
             } catch (error) {
                 console.error('Error updating event:', error);
@@ -562,11 +562,11 @@
             
             if (confirm('Are you sure you want to delete this event?')) {
                 try {
-                    await db.collection('calendar_events').doc(eventId).delete();
+                    await db.collection('calendarEvents').doc(eventId).delete();
                     
                     showSuccess('Event deleted successfully!');
                     bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
-                    calendar.refetchEvents();
+                    loadCalendarEvents();
                     
                 } catch (error) {
                     console.error('Error deleting event:', error);
@@ -613,30 +613,43 @@
         // Filter events
         function filterEvents() {
             const filter = document.getElementById('eventFilter').value;
-            calendar.removeAllEvents();
             
-            if (filter === 'all') {
-                calendar.addEventSource(loadEvents());
-            } else {
-                const filteredEvents = events.filter(event => event.type === filter);
-                const calendarEvents = filteredEvents.map(event => ({
-                    id: event.id,
-                    title: event.title,
-                    start: event.startDate.toDate(),
-                    end: event.endDate.toDate(),
-                    backgroundColor: getEventColor(event.type),
-                    borderColor: getEventColor(event.type)
-                }));
-                calendar.addEventSource(calendarEvents);
+            if (window.calendar) {
+                // Get all existing events and remove them
+                const existingEvents = window.calendar.getEvents();
+                existingEvents.forEach(event => event.remove());
+                
+                let eventsToShow = calendarEvents;
+                
+                if (filter !== 'all') {
+                    eventsToShow = calendarEvents.filter(event => event.type === filter);
+                }
+                
+                // Add filtered events
+                eventsToShow.forEach(event => {
+                    window.calendar.addEvent({
+                        id: event.id,
+                        title: event.title,
+                        start: event.startDate?.toDate(),
+                        end: event.endDate?.toDate(),
+                        backgroundColor: getEventColor(event.type),
+                        borderColor: getEventColor(event.type),
+                        extendedProps: {
+                            description: event.description,
+                            type: event.type,
+                            location: event.location
+                        }
+                    });
+                });
             }
         }
         
         // Update event statistics
         function updateEventStatistics() {
-            const totalEvents = events.length;
-            const academicEvents = events.filter(event => event.type === 'academic').length;
-            const holidays = events.filter(event => event.type === 'holiday').length;
-            const exams = events.filter(event => event.type === 'exam').length;
+            const totalEvents = calendarEvents.length;
+            const academicEvents = calendarEvents.filter(event => event.type === 'academic').length;
+            const holidays = calendarEvents.filter(event => event.type === 'holiday').length;
+            const exams = calendarEvents.filter(event => event.type === 'exam').length;
             
             const statsCards = document.querySelectorAll('.stat-card .number');
             if (statsCards.length >= 4) {
