@@ -935,6 +935,48 @@
             }
         }
         
+        // Generate unique student ID (ASS + Level + YY + 4 digits)
+        async function generateStudentId(studentClass) {
+            try {
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = currentYear.toString().slice(-2); // Last 2 digits of year
+                
+                // Determine level based on class
+                let levelPrefix = 'ST'; // Default for O-Level
+                if (studentClass === 'S.5' || studentClass === 'S.6') {
+                    levelPrefix = 'AL'; // A-Level
+                } else if (studentClass === 'S.1' || studentClass === 'S.2' || studentClass === 'S.3' || studentClass === 'S.4') {
+                    levelPrefix = 'OL'; // O-Level
+                }
+                
+                const prefix = 'ASS' + levelPrefix + yearPrefix; // e.g., ASSOL24, ASSAL24
+                
+                // Get the latest student ID for this level and year
+                const querySnapshot = await db.collection('students')
+                    .where('studentId', '>=', prefix + '0001')
+                    .where('studentId', '<', prefix + '9999')
+                    .orderBy('studentId', 'desc')
+                    .limit(1)
+                    .get();
+                
+                let nextNumber = 1;
+                if (!querySnapshot.empty) {
+                    const latestStudentId = querySnapshot.docs[0].data().studentId;
+                    const currentNumber = parseInt(latestStudentId.substring(6)); // Remove 'ASSXXYY' prefix (6 chars)
+                    nextNumber = currentNumber + 1;
+                }
+                
+                return prefix + String(nextNumber).padStart(4, '0');
+            } catch (error) {
+                console.error('Error generating student ID:', error);
+                // Fallback to timestamp-based ID
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = currentYear.toString().slice(-2);
+                const levelPrefix = (studentClass === 'S.5' || studentClass === 'S.6') ? 'AL' : 'OL';
+                return 'ASS' + levelPrefix + yearPrefix + String(Date.now()).slice(-4);
+            }
+        }
+        
         // Add new student
         async function addStudent() {
             const firstName = document.getElementById('studentFirstName').value;
@@ -967,8 +1009,8 @@
             }
             
             try {
-                // Generate student ID and admission number if not provided
-                const studentId = `STU${Date.now().toString().slice(-6)}`;
+                // Generate student ID with level and year prefix and sequential numbering
+                const studentId = await generateStudentId(studentClass);
                 const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
                 
                 const studentData = {
@@ -1005,7 +1047,7 @@
                 
                 await db.collection('students').add(studentData);
                 
-                showSuccess('Student added successfully!');
+                showSuccess(`Student added successfully! Student ID: ${studentId}`);
                 document.getElementById('addStudentForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
                 loadStudents();
