@@ -93,6 +93,9 @@
                                 <i class="fas fa-print"></i> Print
                             </button>
                         </div>
+                        <button type="button" class="btn btn-sm btn-outline-info me-2" onclick="createSampleAnnouncements()">
+                            <i class="fas fa-magic"></i> Create Samples
+                        </button>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addAnnouncementModal">
                             <i class="fas fa-plus"></i> New Announcement
                         </button>
@@ -460,9 +463,20 @@
             container.innerHTML = '';
             
             if (filteredAnnouncements.length === 0) {
-                container.innerHTML = '<div class="text-center py-4"><p class="text-muted">No announcements found.</p></div>';
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-bullhorn text-muted fa-3x mb-3"></i>
+                        <h5 class="text-muted">No announcements found</h5>
+                        <p class="text-muted">Create your first announcement to get started.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAnnouncementModal">
+                            <i class="fas fa-plus"></i> Create Announcement
+                        </button>
+                    </div>
+                `;
                 return;
             }
+            
+            console.log(`📋 Displaying ${filteredAnnouncements.length} announcements`);
             
             filteredAnnouncements.forEach(announcement => {
                 const announcementCard = createAnnouncementCard(announcement);
@@ -949,6 +963,66 @@
             });
         }
         
+        // Create sample announcements for testing
+        async function createSampleAnnouncements() {
+            if (!currentUser) {
+                console.log('❌ No current user, cannot create sample announcements');
+                return;
+            }
+            
+            try {
+                console.log('🔄 Creating sample announcements...');
+                
+                const sampleAnnouncements = [
+                    {
+                        title: "Welcome to the New Academic Year",
+                        type: "general",
+                        content: "We are excited to welcome all students and staff to the new academic year. Please ensure you have all necessary materials and are ready for classes.",
+                        status: "active",
+                        pinned: true,
+                        targetAudience: ["all"],
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date()),
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) // 30 days from now
+                    },
+                    {
+                        title: "Important: School Fees Payment Deadline",
+                        type: "urgent",
+                        content: "This is a reminder that school fees for the current term are due by the end of this month. Please ensure payments are made on time to avoid any inconveniences.",
+                        status: "active",
+                        pinned: false,
+                        targetAudience: ["students", "parents"],
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date()),
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 days from now
+                    },
+                    {
+                        title: "Parent-Teacher Meeting Scheduled",
+                        type: "event",
+                        content: "We are pleased to announce that the parent-teacher meeting will be held next Friday at 2:00 PM. All parents are encouraged to attend.",
+                        status: "active",
+                        pinned: false,
+                        targetAudience: ["parents"],
+                        startDate: firebase.firestore.Timestamp.fromDate(new Date()),
+                        endDate: firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)) // 14 days from now
+                    }
+                ];
+                
+                for (const announcementData of sampleAnnouncements) {
+                    await db.collection('announcements').add({
+                        ...announcementData,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid
+                    });
+                }
+                
+                console.log('✅ Sample announcements created successfully');
+                showSuccess('Sample announcements created successfully!');
+                
+            } catch (error) {
+                console.error('❌ Error creating sample announcements:', error);
+                showError('Failed to create sample announcements: ' + error.message);
+            }
+        }
+        
         // Clear form when modal is opened
         function clearAnnouncementForm() {
             document.getElementById('addAnnouncementForm').reset();
@@ -980,6 +1054,7 @@
         window.filterAnnouncements = filterAnnouncements;
         window.exportAnnouncements = exportAnnouncements;
         window.printAnnouncements = printAnnouncements;
+        window.createSampleAnnouncements = createSampleAnnouncements;
         window.logout = logout;
     </script>
 </body>
