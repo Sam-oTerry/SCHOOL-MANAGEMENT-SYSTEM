@@ -25,8 +25,13 @@
                     
                     <ul class="nav flex-column">
                         <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="system-dashboard.html">
-                                <i class="fas fa-tachometer-alt"></i> System Dashboard
+                                <i class="fas fa-chart-line"></i> System Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
@@ -50,18 +55,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="staff-management.html">
-                                <i class="fas fa-chalkboard-teacher"></i> Staff Management
+                            <a class="nav-link" href="subject-management.html">
+                                <i class="fas fa-book"></i> Subject Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="term-management.html">
+                                <i class="fas fa-calendar-check"></i> Term Management
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="system-settings.html">
                                 <i class="fas fa-cog"></i> System Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="term-management.html">
-                                <i class="fas fa-calendar"></i> Term Management
                             </a>
                         </li>
                     </ul>
@@ -118,7 +123,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Search</label>
-                                <input type="text" class="form-control" id="search-users" placeholder="Search users...">
+                                <input type="text" class="form-control" id="search-users" placeholder="Search users..." onkeyup="searchUsers()">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Actions</label>
@@ -285,12 +290,72 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="2" placeholder="Enter address"></textarea>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Department</label>
                             <select class="form-select" id="department">
                                 <option value="">Select Department</option>
+                                
+                                <!-- Administration -->
                                 <option value="administration">Administration</option>
-                                <option value="teaching">Teaching</option>
                                 <option value="support">Support Staff</option>
+                                
+                                <!-- Compulsory Subjects (Senior 1-2) -->
+                                <optgroup label="Compulsory Subjects (S1-S2)">
+                                    <option value="english-language">English Language</option>
+                                    <option value="mathematics">Mathematics</option>
+                                    <option value="history-political-education">History & Political Education</option>
+                                    <option value="physics">Physics</option>
+                                    <option value="chemistry">Chemistry</option>
+                                    <option value="biology">Biology</option>
+                                    <option value="geography">Geography</option>
+                                    <option value="kiswahili">Kiswahili</option>
+                                    <option value="physical-education">Physical Education</option>
+                                    <option value="religious-education">Religious Education</option>
+                                    <option value="general-science">General Science</option>
+                                </optgroup>
+                                
+                                <!-- Elective Subjects (S1-S2) -->
+                                <optgroup label="Elective Subjects (S1-S2)">
+                                    <option value="literature-english">Literature in English</option>
+                                    <option value="luganda">Luganda (or other local languages)</option>
+                                    <option value="french">French</option>
+                                    <option value="fine-art">Fine Art</option>
+                                    <option value="entrepreneurship-education">Entrepreneurship Education</option>
+                                    <option value="performing-arts">Performing Arts</option>
+                                    <option value="agriculture">Agriculture</option>
+                                    <option value="ict">Information and Computer Technology (ICT)</option>
+                                    <option value="business-studies">Business Studies/Commerce</option>
+                                    <option value="home-economics">Home Economics</option>
+                                    <option value="woodwork">Woodwork</option>
+                                    <option value="metal-fabrication">Metal Fabrication</option>
+                                </optgroup>
+                                
+                                <!-- Upper Secondary (S5-S6) Principal Subjects -->
+                                <optgroup label="Upper Secondary Principal Subjects (S5-S6)">
+                                    <option value="biology-advanced">Biology (A-Level)</option>
+                                    <option value="chemistry-advanced">Chemistry (A-Level)</option>
+                                    <option value="physics-advanced">Physics (A-Level)</option>
+                                    <option value="mathematics-advanced">Mathematics (A-Level)</option>
+                                    <option value="geography-advanced">Geography (A-Level)</option>
+                                    <option value="economics">Economics</option>
+                                    <option value="history-advanced">History (A-Level)</option>
+                                    <option value="literature-english-advanced">Literature in English (A-Level)</option>
+                                    <option value="divinity">Divinity (Religious Studies)</option>
+                                    <option value="fine-art-advanced">Fine Art (A-Level)</option>
+                                    <option value="business-studies-advanced">Business Studies (A-Level)</option>
+                                    <option value="entrepreneurship-advanced">Entrepreneurship (A-Level)</option>
+                                    <option value="accountancy">Accountancy</option>
+                                </optgroup>
+                                
+                                <!-- Compulsory Subsidiary Subjects -->
+                                <optgroup label="Compulsory Subsidiary Subjects (S5-S6)">
+                                    <option value="general-paper">General Paper</option>
+                                    <option value="subsidiary-mathematics">Subsidiary Mathematics</option>
+                                    <option value="subsidiary-ict">Subsidiary ICT</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -769,7 +834,7 @@
         
         // Display users in the table
         function displayUsers() {
-            const tbody = document.querySelector('#usersTable tbody');
+            const tbody = document.getElementById('users-tbody');
             if (!tbody) return;
             
             tbody.innerHTML = '';
@@ -829,7 +894,7 @@
             const adminUsers = allUsers.filter(user => user.role === 'system_admin').length;
             const staffUsers = allUsers.filter(user => ['head_teacher', 'class_teacher', 'subject_teacher', 'bursar', 'dos', 'hod'].includes(user.role)).length;
             
-            // Update stats cards
+            // Update stats cards if they exist
             const statsCards = document.querySelectorAll('.stat-card .number');
             if (statsCards.length >= 4) {
                 statsCards[0].textContent = totalUsers;
@@ -837,16 +902,27 @@
                 statsCards[2].textContent = adminUsers;
                 statsCards[3].textContent = staffUsers;
             }
+            
+            // Log statistics for debugging
+            console.log('User Statistics:', {
+                total: totalUsers,
+                active: activeUsers,
+                admins: adminUsers,
+                staff: staffUsers
+            });
         }
         
         // Create new user
         async function createUser() {
-            const email = document.getElementById('userEmail').value;
-            const password = document.getElementById('userPassword').value;
-            const fullName = document.getElementById('userFullName').value;
-            const role = document.getElementById('userRole').value;
-            const phone = document.getElementById('userPhone').value;
-            const address = document.getElementById('userAddress').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const fullName = `${firstName} ${lastName}`.trim();
+            const role = document.getElementById('user-role').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const department = document.getElementById('department').value;
             
             if (!email || !password || !fullName || !role) {
                 showError('Please fill in all required fields.');
@@ -870,9 +946,12 @@
                     role: role,
                     personalInfo: {
                         fullName: fullName,
+                        firstName: firstName,
+                        lastName: lastName,
                         email: email,
                         phone: phone || '',
-                        address: address || ''
+                        address: address || '',
+                        department: department || ''
                     },
                     status: 'active',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -881,7 +960,7 @@
                 });
                 
                 showSuccess('User created successfully!');
-                document.getElementById('createUserForm').reset();
+                document.getElementById('create-user-form').reset();
                 loadAllUsers();
                 
             } catch (error) {
@@ -977,7 +1056,7 @@
         
         // Search users
         function searchUsers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
             filteredUsers = allUsers.filter(user => 
                 user.email.toLowerCase().includes(searchTerm) ||
                 (user.personalInfo?.fullName || '').toLowerCase().includes(searchTerm) ||
