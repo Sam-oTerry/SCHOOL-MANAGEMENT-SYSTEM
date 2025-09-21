@@ -509,6 +509,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             loadSystemAnalytics();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -774,6 +775,90 @@
                     }
                 }
             });
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for user changes
+            db.collection('users').onSnapshot((snapshot) => {
+                loadUserAnalytics();
+                loadStudentAnalytics();
+            });
+            
+            // Listen for system performance changes
+            db.collection('systemStats').doc('main').onSnapshot((doc) => {
+                if (doc.exists) {
+                    loadSystemPerformance();
+                }
+            });
+            
+            // Listen for announcements
+            db.collection('announcements').onSnapshot((snapshot) => {
+                loadSystemAnalytics();
+            });
+        }
+        
+        // Enhanced system analytics with real-time data
+        async function loadSystemAnalytics() {
+            try {
+                // Load system statistics
+                const systemStatsDoc = await db.collection('systemStats').doc('main').get();
+                const systemStats = systemStatsDoc.exists ? systemStatsDoc.data() : {};
+                
+                // Load user analytics
+                const usersSnapshot = await db.collection('users').get();
+                const totalUsers = usersSnapshot.size;
+                
+                // Load announcement analytics
+                const announcementsSnapshot = await db.collection('announcements').get();
+                const totalAnnouncements = announcementsSnapshot.size;
+                
+                // Update dashboard with real-time data
+                updateDashboard({
+                    totalUsers,
+                    totalAnnouncements,
+                    systemStats
+                });
+                
+            } catch (error) {
+                console.error('Error loading system analytics:', error);
+            }
+        }
+        
+        // Update dashboard with real-time data
+        function updateDashboard(data) {
+            // Update system status
+            updateSystemStatus(data.systemStats);
+            
+            // Update charts with new data
+            if (window.userGrowthChart) {
+                updateUserGrowthChart(data);
+            }
+            
+            if (window.systemPerformanceChart) {
+                updateSystemPerformanceChart(data);
+            }
+        }
+        
+        // Update system status indicators
+        function updateSystemStatus(stats) {
+            const statusIndicators = document.querySelectorAll('.status-indicator');
+            statusIndicators.forEach(indicator => {
+                const status = indicator.dataset.status;
+                indicator.className = `status-indicator ${status}`;
+            });
+        }
+        
+        // Update user growth chart
+        function updateUserGrowthChart(data) {
+            // This would update the Chart.js chart with new data
+            console.log('Updating user growth chart with data:', data);
+        }
+        
+        // Update system performance chart
+        function updateSystemPerformanceChart(data) {
+            // This would update the Chart.js chart with new data
+            console.log('Updating system performance chart with data:', data);
         }
         
         // Logout function

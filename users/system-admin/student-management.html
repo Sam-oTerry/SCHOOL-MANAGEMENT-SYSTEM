@@ -463,6 +463,7 @@
                             loadStudents();
                             loadClasses();
                             loadAcademicYears();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -955,6 +956,174 @@
             `;
             document.body.insertBefore(alertDiv, document.body.firstChild);
             setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for student changes
+            db.collection('users').where('role', '==', 'student').onSnapshot((snapshot) => {
+                loadStudents();
+                updateStudentStats();
+            });
+            
+            // Listen for class changes
+            db.collection('classes').onSnapshot((snapshot) => {
+                loadClasses();
+            });
+            
+            // Listen for academic year changes
+            db.collection('academicYears').onSnapshot((snapshot) => {
+                loadAcademicYears();
+            });
+        }
+        
+        // Enhanced student loading with real-time updates
+        async function loadStudents() {
+            try {
+                const studentsSnapshot = await db.collection('users')
+                    .where('role', '==', 'student')
+                    .orderBy('personalInfo.fullName')
+                    .get();
+                
+                students = [];
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    students.push({
+                        id: doc.id,
+                        ...studentData
+                    });
+                });
+                
+                displayStudents(students);
+                updateStudentStats();
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showError('Failed to load students. Please try again.');
+            }
+        }
+        
+        // Enhanced class loading with real-time updates
+        async function loadClasses() {
+            try {
+                const classesSnapshot = await db.collection('classes').get();
+                classes = [];
+                classesSnapshot.forEach(doc => {
+                    const classData = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        ...classData
+                    });
+                });
+                
+                updateClassSelector();
+                
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        }
+        
+        // Enhanced academic year loading with real-time updates
+        async function loadAcademicYears() {
+            try {
+                const academicYearsSnapshot = await db.collection('academicYears')
+                    .orderBy('year', 'desc')
+                    .get();
+                
+                academicYears = [];
+                academicYearsSnapshot.forEach(doc => {
+                    const yearData = doc.data();
+                    academicYears.push({
+                        id: doc.id,
+                        ...yearData
+                    });
+                });
+                
+                updateAcademicYearSelector();
+                
+            } catch (error) {
+                console.error('Error loading academic years:', error);
+            }
+        }
+        
+        // Update student statistics
+        function updateStudentStats() {
+            const totalStudents = students.length;
+            const activeStudents = students.filter(student => student.isActive !== false).length;
+            const maleStudents = students.filter(student => student.personalInfo?.gender === 'male').length;
+            const femaleStudents = students.filter(student => student.personalInfo?.gender === 'female').length;
+            
+            // Update stats cards if they exist
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalStudents;
+                statsCards[1].textContent = activeStudents;
+                statsCards[2].textContent = maleStudents;
+                statsCards[3].textContent = femaleStudents;
+            }
+        }
+        
+        // Update class selector dropdown
+        function updateClassSelector() {
+            const classSelector = document.getElementById('class-filter');
+            if (classSelector) {
+                classSelector.innerHTML = '<option value="">All Classes</option>';
+                classes.forEach(classItem => {
+                    const option = document.createElement('option');
+                    option.value = classItem.id;
+                    option.textContent = classItem.name;
+                    classSelector.appendChild(option);
+                });
+            }
+        }
+        
+        // Update academic year selector dropdown
+        function updateAcademicYearSelector() {
+            const yearSelector = document.getElementById('academic-year-filter');
+            if (yearSelector) {
+                yearSelector.innerHTML = '<option value="">All Years</option>';
+                academicYears.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year.id;
+                    option.textContent = year.year;
+                    yearSelector.appendChild(option);
+                });
+            }
+        }
+        
+        // Enhanced search with real-time filtering
+        function searchStudents() {
+            const searchTerm = document.getElementById('search-students').value.toLowerCase();
+            const filteredStudents = students.filter(student => 
+                student.personalInfo?.fullName?.toLowerCase().includes(searchTerm) ||
+                student.personalInfo?.studentId?.toLowerCase().includes(searchTerm) ||
+                student.personalInfo?.phone?.includes(searchTerm) ||
+                student.personalInfo?.email?.toLowerCase().includes(searchTerm)
+            );
+            displayStudents(filteredStudents);
+        }
+        
+        // Enhanced filter with real-time updates
+        function filterStudents() {
+            const classFilter = document.getElementById('class-filter').value;
+            const yearFilter = document.getElementById('academic-year-filter').value;
+            const genderFilter = document.getElementById('gender-filter').value;
+            
+            let filteredStudents = students;
+            
+            if (classFilter) {
+                filteredStudents = filteredStudents.filter(student => student.academicInfo?.currentClass === classFilter);
+            }
+            
+            if (yearFilter) {
+                filteredStudents = filteredStudents.filter(student => student.academicInfo?.academicYear === yearFilter);
+            }
+            
+            if (genderFilter) {
+                filteredStudents = filteredStudents.filter(student => student.personalInfo?.gender === genderFilter);
+            }
+            
+            displayStudents(filteredStudents);
         }
         
         // Logout function

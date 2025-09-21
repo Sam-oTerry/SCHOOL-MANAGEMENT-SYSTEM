@@ -788,6 +788,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             loadAllUsers();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -1097,6 +1098,83 @@
             `;
             document.body.insertBefore(alertDiv, document.body.firstChild);
             setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for user changes
+            db.collection('users').onSnapshot((snapshot) => {
+                loadAllUsers();
+                updateUserStats();
+            });
+            
+            // Listen for role changes
+            db.collection('users').onSnapshot((snapshot) => {
+                updateUserStats();
+            });
+        }
+        
+        // Enhanced user loading with real-time updates
+        async function loadAllUsers() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                users = [];
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    users.push({
+                        id: doc.id,
+                        ...userData
+                    });
+                });
+                
+                displayUsers(users);
+                updateUserStats();
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showError('Failed to load users. Please try again.');
+            }
+        }
+        
+        // Enhanced user stats with real-time data
+        function updateUserStats() {
+            const totalUsers = users.length;
+            const activeUsers = users.filter(user => user.isActive !== false).length;
+            const adminUsers = users.filter(user => user.role === 'system_admin').length;
+            const teacherUsers = users.filter(user => user.role === 'teacher').length;
+            
+            // Update stats cards if they exist
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalUsers;
+                statsCards[1].textContent = activeUsers;
+                statsCards[2].textContent = adminUsers;
+                statsCards[3].textContent = teacherUsers;
+            }
+        }
+        
+        // Enhanced search with real-time filtering
+        function searchUsers() {
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
+            const filteredUsers = users.filter(user => 
+                user.personalInfo?.fullName?.toLowerCase().includes(searchTerm) ||
+                user.email?.toLowerCase().includes(searchTerm) ||
+                user.role?.toLowerCase().includes(searchTerm) ||
+                user.personalInfo?.phone?.includes(searchTerm)
+            );
+            displayUsers(filteredUsers);
+        }
+        
+        // Enhanced filter with real-time updates
+        function filterByRole() {
+            const roleFilter = document.getElementById('role-filter').value;
+            let filteredUsers = users;
+            
+            if (roleFilter !== 'all') {
+                filteredUsers = users.filter(user => user.role === roleFilter);
+            }
+            
+            displayUsers(filteredUsers);
         }
         
         // Logout function

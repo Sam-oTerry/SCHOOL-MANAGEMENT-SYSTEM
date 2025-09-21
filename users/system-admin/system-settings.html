@@ -566,6 +566,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             loadSystemSettings();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -849,6 +850,139 @@
             `;
             document.body.insertBefore(alertDiv, document.body.firstChild);
             setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for system settings changes
+            db.collection('systemSettings').doc('main').onSnapshot((doc) => {
+                if (doc.exists) {
+                    loadSystemSettings();
+                }
+            });
+            
+            // Listen for system statistics changes
+            db.collection('systemStats').doc('main').onSnapshot((doc) => {
+                if (doc.exists) {
+                    updateSystemStats(doc.data());
+                }
+            });
+        }
+        
+        // Enhanced system settings loading with real-time updates
+        async function loadSystemSettings() {
+            try {
+                const settingsDoc = await db.collection('systemSettings').doc('main').get();
+                
+                if (settingsDoc.exists) {
+                    const settings = settingsDoc.data();
+                    populateSettingsForm(settings);
+                } else {
+                    // Create default settings if they don't exist
+                    await createDefaultSettings();
+                }
+                
+            } catch (error) {
+                console.error('Error loading system settings:', error);
+                showError('Failed to load system settings. Please try again.');
+            }
+        }
+        
+        // Update system statistics
+        function updateSystemStats(stats) {
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = stats.totalUsers || 0;
+                statsCards[1].textContent = stats.totalStudents || 0;
+                statsCards[2].textContent = stats.totalStaff || 0;
+                statsCards[3].textContent = stats.totalClasses || 0;
+            }
+        }
+        
+        // Enhanced settings saving with real-time updates
+        async function saveSystemSettings() {
+            try {
+                const settingsData = {
+                    schoolName: document.getElementById('school-name').value,
+                    schoolAddress: document.getElementById('school-address').value,
+                    schoolPhone: document.getElementById('school-phone').value,
+                    schoolEmail: document.getElementById('school-email').value,
+                    academicYear: document.getElementById('academic-year').value,
+                    currentTerm: document.getElementById('current-term').value,
+                    systemTimezone: document.getElementById('system-timezone').value,
+                    systemLanguage: document.getElementById('system-language').value,
+                    maxFileSize: parseInt(document.getElementById('max-file-size').value),
+                    emailNotifications: document.getElementById('email-notifications').checked,
+                    smsNotifications: document.getElementById('sms-notifications').checked,
+                    autoBackup: document.getElementById('auto-backup').checked,
+                    backupFrequency: document.getElementById('backup-frequency').value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('systemSettings').doc('main').set(settingsData, { merge: true });
+                
+                showSuccess('System settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving system settings:', error);
+                showError('Error saving system settings: ' + error.message);
+            }
+        }
+        
+        // Enhanced settings export with real-time data
+        async function exportSettings() {
+            try {
+                const settingsDoc = await db.collection('systemSettings').doc('main').get();
+                const settings = settingsDoc.exists ? settingsDoc.data() : {};
+                
+                const dataStr = JSON.stringify(settings, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                showSuccess('Settings exported successfully!');
+                
+            } catch (error) {
+                console.error('Error exporting settings:', error);
+                showError('Error exporting settings: ' + error.message);
+            }
+        }
+        
+        // Enhanced settings import with validation
+        async function importSettings() {
+            const fileInput = document.getElementById('settings-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select a file to import.');
+                return;
+            }
+            
+            try {
+                const text = await file.text();
+                const settings = JSON.parse(text);
+                
+                // Validate settings structure
+                if (!settings.schoolName || !settings.schoolEmail) {
+                    showError('Invalid settings file. Missing required fields.');
+                    return;
+                }
+                
+                // Save imported settings
+                await db.collection('systemSettings').doc('main').set(settings, { merge: true });
+                
+                showSuccess('Settings imported successfully!');
+                loadSystemSettings(); // Reload to show imported settings
+                
+            } catch (error) {
+                console.error('Error importing settings:', error);
+                showError('Error importing settings: ' + error.message);
+            }
         }
         
         // Logout function

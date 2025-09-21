@@ -248,6 +248,53 @@
                 
                 <!-- Main Content Row -->
                 <div class="row">
+                    <!-- Recent Activity -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Recent Users</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-users">
+                                    <!-- Recent users will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Announcements -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Recent Announcements</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-announcements">
+                                    <!-- Recent announcements will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">User Statistics</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="user-stats">
+                                    <!-- User statistics will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Row -->
+                <div class="row">
                     <!-- User Account Management -->
                     <div class="col-md-8">
                         <div class="card">
@@ -511,6 +558,8 @@
                             updateUserInfo(user, userData);
                             // Load dashboard data
                             loadDashboardData();
+                            // Setup real-time listeners
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin, User role:', userRole);
                             alert('Access denied. You do not have system administrator privileges.');
@@ -771,6 +820,183 @@
                     console.error('Error deleting user:', error);
                     alert('Error deleting user: ' + error.message);
                 }
+            }
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for user changes
+            db.collection('users').onSnapshot((snapshot) => {
+                updateUserStats();
+                loadRecentUsers();
+            });
+            
+            // Listen for announcements
+            db.collection('announcements').orderBy('createdAt', 'desc').limit(5).onSnapshot((snapshot) => {
+                loadRecentAnnouncements();
+            });
+            
+            // Listen for system stats changes
+            db.collection('systemStats').doc('main').onSnapshot((doc) => {
+                if (doc.exists) {
+                    updateSystemStats(doc.data());
+                }
+            });
+        }
+        
+        // Load recent users dynamically
+        async function loadRecentUsers() {
+            try {
+                const usersSnapshot = await db.collection('users')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                const recentUsersContainer = document.getElementById('recent-users');
+                if (recentUsersContainer) {
+                    recentUsersContainer.innerHTML = '';
+                    
+                    usersSnapshot.forEach(doc => {
+                        const userData = doc.data();
+                        const userCard = createUserCard(userData);
+                        recentUsersContainer.appendChild(userCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading recent users:', error);
+            }
+        }
+        
+        // Create user card for recent users
+        function createUserCard(userData) {
+            const card = document.createElement('div');
+            card.className = 'card mb-2';
+            
+            const roleColors = {
+                'system_admin': 'danger',
+                'headteacher': 'primary',
+                'bursar': 'success',
+                'teacher': 'info',
+                'student': 'secondary'
+            };
+            
+            const roleColor = roleColors[userData.role] || 'secondary';
+            
+            card.innerHTML = `
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm bg-${roleColor} text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                            ${userData.personalInfo?.fullName?.charAt(0) || 'U'}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">${userData.personalInfo?.fullName || 'Unknown User'}</h6>
+                            <small class="text-muted">${userData.role?.replace('_', ' ').toUpperCase() || 'Unknown Role'}</small>
+                        </div>
+                        <span class="badge bg-${roleColor}">${userData.role?.replace('_', ' ').toUpperCase() || 'Unknown'}</span>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Load recent announcements dynamically
+        async function loadRecentAnnouncements() {
+            try {
+                const announcementsSnapshot = await db.collection('announcements')
+                    .orderBy('createdAt', 'desc')
+                    .limit(3)
+                    .get();
+                
+                const announcementsContainer = document.getElementById('recent-announcements');
+                if (announcementsContainer) {
+                    announcementsContainer.innerHTML = '';
+                    
+                    announcementsSnapshot.forEach(doc => {
+                        const announcementData = doc.data();
+                        const announcementCard = createAnnouncementCard(announcementData);
+                        announcementsContainer.appendChild(announcementCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading recent announcements:', error);
+            }
+        }
+        
+        // Create announcement card
+        function createAnnouncementCard(announcementData) {
+            const card = document.createElement('div');
+            card.className = 'card mb-2';
+            
+            const priorityColors = {
+                'high': 'danger',
+                'medium': 'warning',
+                'low': 'info'
+            };
+            
+            const priorityColor = priorityColors[announcementData.priority] || 'info';
+            
+            card.innerHTML = `
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${announcementData.title}</h6>
+                        <span class="badge bg-${priorityColor}">${announcementData.priority?.toUpperCase() || 'INFO'}</span>
+                    </div>
+                    <p class="card-text small text-muted">${announcementData.content?.substring(0, 100)}...</p>
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> ${new Date(announcementData.createdAt?.toDate()).toLocaleDateString()}
+                    </small>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Update system stats with real-time data
+        function updateSystemStats(stats) {
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = stats.totalStudents || 0;
+                statsCards[1].textContent = stats.totalStaff || 0;
+                statsCards[2].textContent = stats.totalClasses || 0;
+                statsCards[3].textContent = stats.totalDepartments || 0;
+            }
+        }
+        
+        // Update user stats dynamically
+        async function updateUserStats() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                const totalUsers = usersSnapshot.size;
+                
+                const roleCounts = {};
+                usersSnapshot.forEach(doc => {
+                    const role = doc.data().role;
+                    roleCounts[role] = (roleCounts[role] || 0) + 1;
+                });
+                
+                // Update user statistics
+                const userStatsContainer = document.getElementById('user-stats');
+                if (userStatsContainer) {
+                    userStatsContainer.innerHTML = `
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h4 class="text-primary">${totalUsers}</h4>
+                                    <small class="text-muted">Total Users</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h4 class="text-success">${roleCounts.system_admin || 0}</h4>
+                                    <small class="text-muted">Admins</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error updating user stats:', error);
             }
         }
         

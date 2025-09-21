@@ -374,6 +374,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             loadAnnouncements();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -814,6 +815,113 @@
             `;
             document.body.insertBefore(alertDiv, document.body.firstChild);
             setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for announcement changes
+            db.collection('announcements').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+                loadAnnouncements();
+                updateAnnouncementStats();
+            });
+            
+            // Listen for user changes to update author names
+            db.collection('users').onSnapshot((snapshot) => {
+                updateAuthorNames();
+            });
+        }
+        
+        // Enhanced announcement loading with real-time updates
+        async function loadAnnouncements() {
+            try {
+                const announcementsSnapshot = await db.collection('announcements')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                announcements = [];
+                announcementsSnapshot.forEach(doc => {
+                    const announcementData = doc.data();
+                    announcements.push({
+                        id: doc.id,
+                        ...announcementData
+                    });
+                });
+                
+                displayAnnouncements(announcements);
+                updateAnnouncementStats();
+                
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                showError('Failed to load announcements. Please try again.');
+            }
+        }
+        
+        // Update announcement statistics
+        function updateAnnouncementStats() {
+            const totalAnnouncements = announcements.length;
+            const activeAnnouncements = announcements.filter(announcement => announcement.isActive !== false).length;
+            const highPriorityAnnouncements = announcements.filter(announcement => announcement.priority === 'high').length;
+            const todayAnnouncements = announcements.filter(announcement => {
+                const today = new Date();
+                const announcementDate = announcement.createdAt?.toDate();
+                return announcementDate && announcementDate.toDateString() === today.toDateString();
+            }).length;
+            
+            // Update stats cards if they exist
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalAnnouncements;
+                statsCards[1].textContent = activeAnnouncements;
+                statsCards[2].textContent = highPriorityAnnouncements;
+                statsCards[3].textContent = todayAnnouncements;
+            }
+        }
+        
+        // Update author names in announcements
+        async function updateAuthorNames() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                const usersMap = {};
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    usersMap[doc.id] = userData.personalInfo?.fullName || userData.email;
+                });
+                
+                // Update author names in displayed announcements
+                const authorElements = document.querySelectorAll('.announcement-author');
+                authorElements.forEach(element => {
+                    const userId = element.dataset.userId;
+                    if (usersMap[userId]) {
+                        element.textContent = usersMap[userId];
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error updating author names:', error);
+            }
+        }
+        
+        // Enhanced search with real-time filtering
+        function searchAnnouncements() {
+            const searchTerm = document.getElementById('search-announcements').value.toLowerCase();
+            const filteredAnnouncements = announcements.filter(announcement => 
+                announcement.title?.toLowerCase().includes(searchTerm) ||
+                announcement.content?.toLowerCase().includes(searchTerm) ||
+                announcement.priority?.toLowerCase().includes(searchTerm)
+            );
+            displayAnnouncements(filteredAnnouncements);
+        }
+        
+        // Enhanced filter with real-time updates
+        function filterByPriority() {
+            const priorityFilter = document.getElementById('priority-filter').value;
+            let filteredAnnouncements = announcements;
+            
+            if (priorityFilter !== 'all') {
+                filteredAnnouncements = announcements.filter(announcement => announcement.priority === priorityFilter);
+            }
+            
+            displayAnnouncements(filteredAnnouncements);
         }
         
         // Logout function
