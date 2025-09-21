@@ -193,11 +193,10 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>User ID</th>
-                                        <th>Username</th>
+                                        <th>User</th>
+                                        <th>Email</th>
                                         <th>Full Name</th>
                                         <th>Role</th>
-                                        <th>Email</th>
                                         <th>Last Login</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -827,6 +826,8 @@
                 displayUsers();
                 updateUserStats();
                 
+                console.log(`✅ Loaded ${allUsers.length} users from Firestore`);
+                
             } catch (error) {
                 console.error('Error loading users:', error);
                 showError('Failed to load users. Please try again.');
@@ -840,19 +841,35 @@
             
             tbody.innerHTML = '';
             
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                            No users found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             filteredUsers.forEach(user => {
                 const row = createUserRow(user);
                 tbody.appendChild(row);
             });
+            
+            console.log(`📊 Displayed ${filteredUsers.length} users`);
         }
         
         // Create user row
         function createUserRow(user) {
             const row = document.createElement('tr');
-            const fullName = user.personalInfo?.fullName || 'Unknown';
+            const fullName = user.personalInfo?.fullName || user.displayName || 'Unknown';
             const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
             const lastLogin = user.lastLogin ? new Date(user.lastLogin.seconds * 1000).toLocaleString() : 'Never';
             const createdAt = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+            const status = user.status || 'active';
+            const statusColor = status === 'active' ? 'success' : status === 'inactive' ? 'secondary' : 'danger';
             
             row.innerHTML = `
                 <td>
@@ -860,28 +877,30 @@
                         <div class="user-avatar me-2">${initials}</div>
                         <div>
                             <strong>${user.email}</strong><br>
-                            <small class="text-muted">${user.role}</small>
+                            <small class="text-muted">ID: ${user.id.substring(0, 8)}...</small>
                         </div>
                     </div>
                 </td>
+                <td>${user.email}</td>
                 <td>${fullName}</td>
                 <td><span class="badge bg-primary">${user.role.replace('_', ' ').toUpperCase()}</span></td>
                 <td>${lastLogin}</td>
-                <td>${createdAt}</td>
-                <td><span class="badge bg-success">Active</span></td>
+                <td><span class="badge bg-${statusColor}">${status.toUpperCase()}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="editUser('${user.id}')" title="Edit User">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="viewUserDetails('${user.id}')" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="resetUserPassword('${user.id}')" title="Reset Password">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${user.id}')" title="Delete User">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editUser('${user.id}')" title="Edit User">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewUserDetails('${user.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="resetUserPassword('${user.id}')" title="Reset Password">
+                            <i class="fas fa-key"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteUser('${user.id}')" title="Delete User">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             
@@ -917,6 +936,7 @@
         async function createUser() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
             const firstName = document.getElementById('first-name').value;
             const lastName = document.getElementById('last-name').value;
             const fullName = `${firstName} ${lastName}`.trim();
@@ -925,8 +945,18 @@
             const address = document.getElementById('address').value;
             const department = document.getElementById('department').value;
             
-            if (!email || !password || !fullName || !role) {
+            if (!email || !password || !confirmPassword || !fullName || !role) {
                 showError('Please fill in all required fields.');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('Passwords do not match.');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long.');
                 return;
             }
             
@@ -962,11 +992,18 @@
                 
                 showSuccess('User created successfully!');
                 document.getElementById('create-user-form').reset();
+                bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
                 loadAllUsers();
                 
             } catch (error) {
                 console.error('Error creating user:', error);
-                showError('Error creating user: ' + error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    showError('Email address is already in use.');
+                } else if (error.code === 'auth/weak-password') {
+                    showError('Password is too weak.');
+                } else {
+                    showError('Error creating user: ' + error.message);
+                }
             }
         }
         
@@ -1008,18 +1045,69 @@
             const user = allUsers.find(u => u.id === userId);
             if (!user) return;
             
+            const fullName = user.personalInfo?.fullName || user.displayName || 'Unknown';
+            const createdAt = user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : 'Unknown';
+            const lastLogin = user.lastLogin ? new Date(user.lastLogin.seconds * 1000).toLocaleString() : 'Never';
+            const updatedAt = user.updatedAt ? new Date(user.updatedAt.seconds * 1000).toLocaleString() : 'Unknown';
+            
             const details = `
-                <strong>User Details:</strong><br>
-                <strong>Name:</strong> ${user.personalInfo?.fullName || 'Unknown'}<br>
-                <strong>Email:</strong> ${user.email}<br>
-                <strong>Role:</strong> ${user.role}<br>
-                <strong>Phone:</strong> ${user.personalInfo?.phone || 'Not provided'}<br>
-                <strong>Address:</strong> ${user.personalInfo?.address || 'Not provided'}<br>
-                <strong>Created:</strong> ${user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleString() : 'Unknown'}<br>
-                <strong>Last Login:</strong> ${user.lastLogin ? new Date(user.lastLogin.seconds * 1000).toLocaleString() : 'Never'}
+                <div style="text-align: left; max-width: 500px;">
+                    <h4>User Details</h4>
+                    <hr>
+                    
+                    <h5>Personal Information</h5>
+                    <strong>Name:</strong> ${fullName}<br>
+                    <strong>Email:</strong> ${user.email}<br>
+                    <strong>Phone:</strong> ${user.personalInfo?.phone || 'Not provided'}<br>
+                    <strong>Address:</strong> ${user.personalInfo?.address || 'Not provided'}<br>
+                    <strong>Department:</strong> ${user.personalInfo?.department || 'Not specified'}<br><br>
+                    
+                    <h5>Account Information</h5>
+                    <strong>User ID:</strong> ${user.id}<br>
+                    <strong>Role:</strong> ${user.role.replace('_', ' ').toUpperCase()}<br>
+                    <strong>Status:</strong> ${user.status || 'active'}<br>
+                    <strong>Created:</strong> ${createdAt}<br>
+                    <strong>Last Updated:</strong> ${updatedAt}<br>
+                    <strong>Last Login:</strong> ${lastLogin}<br><br>
+                    
+                    <h5>System Information</h5>
+                    <strong>Created By:</strong> ${user.createdBy || 'System'}<br>
+                    <strong>Updated By:</strong> ${user.updatedBy || 'N/A'}
+                </div>
             `;
             
-            alert(details);
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'userDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">User Details - ${fullName}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="editUser('${userId}')">
+                                <i class="fas fa-edit"></i> Edit User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
         }
         
         // Reset user password
@@ -1061,18 +1149,47 @@
             filteredUsers = allUsers.filter(user => 
                 user.email.toLowerCase().includes(searchTerm) ||
                 (user.personalInfo?.fullName || '').toLowerCase().includes(searchTerm) ||
-                user.role.toLowerCase().includes(searchTerm)
+                (user.personalInfo?.firstName || '').toLowerCase().includes(searchTerm) ||
+                (user.personalInfo?.lastName || '').toLowerCase().includes(searchTerm) ||
+                user.role.toLowerCase().includes(searchTerm) ||
+                (user.personalInfo?.phone || '').includes(searchTerm) ||
+                (user.personalInfo?.department || '').toLowerCase().includes(searchTerm)
             );
             displayUsers();
         }
         
-        // Filter users by role
-        function filterByRole(role) {
-            if (role === 'all') {
-                filteredUsers = [...allUsers];
-            } else {
-                filteredUsers = allUsers.filter(user => user.role === role);
+        // Filter users by role and status
+        function filterUsers() {
+            const roleFilter = document.getElementById('role-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
+            
+            let filtered = allUsers;
+            
+            // Filter by role
+            if (roleFilter) {
+                filtered = filtered.filter(user => user.role === roleFilter);
             }
+            
+            // Filter by status
+            if (statusFilter) {
+                filtered = filtered.filter(user => (user.status || 'active') === statusFilter);
+            }
+            
+            // Filter by search term
+            if (searchTerm) {
+                filtered = filtered.filter(user => 
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    (user.personalInfo?.fullName || '').toLowerCase().includes(searchTerm) ||
+                    (user.personalInfo?.firstName || '').toLowerCase().includes(searchTerm) ||
+                    (user.personalInfo?.lastName || '').toLowerCase().includes(searchTerm) ||
+                    user.role.toLowerCase().includes(searchTerm) ||
+                    (user.personalInfo?.phone || '').includes(searchTerm) ||
+                    (user.personalInfo?.department || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            filteredUsers = filtered;
             displayUsers();
         }
         
@@ -1104,78 +1221,11 @@
         function setupRealTimeListeners() {
             // Listen for user changes
             db.collection('users').onSnapshot((snapshot) => {
+                console.log('👥 Users collection updated');
                 loadAllUsers();
-                updateUserStats();
-            });
-            
-            // Listen for role changes
-            db.collection('users').onSnapshot((snapshot) => {
-                updateUserStats();
             });
         }
         
-        // Enhanced user loading with real-time updates
-        async function loadAllUsers() {
-            try {
-                const usersSnapshot = await db.collection('users').get();
-                users = [];
-                usersSnapshot.forEach(doc => {
-                    const userData = doc.data();
-                    users.push({
-                        id: doc.id,
-                        ...userData
-                    });
-                });
-                
-                displayUsers(users);
-                updateUserStats();
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-                showError('Failed to load users. Please try again.');
-            }
-        }
-        
-        // Enhanced user stats with real-time data
-        function updateUserStats() {
-            const totalUsers = users.length;
-            const activeUsers = users.filter(user => user.isActive !== false).length;
-            const adminUsers = users.filter(user => user.role === 'system_admin').length;
-            const teacherUsers = users.filter(user => user.role === 'teacher').length;
-            
-            // Update stats cards if they exist
-            const statsCards = document.querySelectorAll('.stat-card .number');
-            if (statsCards.length >= 4) {
-                statsCards[0].textContent = totalUsers;
-                statsCards[1].textContent = activeUsers;
-                statsCards[2].textContent = adminUsers;
-                statsCards[3].textContent = teacherUsers;
-            }
-        }
-        
-        // Enhanced search with real-time filtering
-        function searchUsers() {
-            const searchTerm = document.getElementById('search-users').value.toLowerCase();
-            const filteredUsers = users.filter(user => 
-                user.personalInfo?.fullName?.toLowerCase().includes(searchTerm) ||
-                user.email?.toLowerCase().includes(searchTerm) ||
-                user.role?.toLowerCase().includes(searchTerm) ||
-                user.personalInfo?.phone?.includes(searchTerm)
-            );
-            displayUsers(filteredUsers);
-        }
-        
-        // Enhanced filter with real-time updates
-        function filterByRole() {
-            const roleFilter = document.getElementById('role-filter').value;
-            let filteredUsers = users;
-            
-            if (roleFilter !== 'all') {
-                filteredUsers = users.filter(user => user.role === roleFilter);
-            }
-            
-            displayUsers(filteredUsers);
-        }
         
         // Logout function
         function logout() {
@@ -1195,7 +1245,7 @@
         window.resetUserPassword = resetUserPassword;
         window.deleteUser = deleteUser;
         window.searchUsers = searchUsers;
-        window.filterByRole = filterByRole;
+        window.filterUsers = filterUsers;
         window.logout = logout;
     </script>
 </body>
