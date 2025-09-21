@@ -10,6 +10,30 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    <style>
+        .filter-status {
+            transition: all 0.3s ease;
+        }
+        .filter-status.text-info {
+            background-color: rgba(13, 202, 240, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #0dcaf0;
+        }
+        .search-input:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .filter-select:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .btn-clear-filters:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -104,16 +128,16 @@
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Search students..." onkeyup="searchStudents()">
+                            <input type="text" class="form-control search-input" id="searchInput" placeholder="Search students..." onkeyup="searchStudents()">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="classFilter" onchange="filterStudents()">
+                        <select class="form-select filter-select" id="classFilter" onchange="filterStudents()">
                             <option value="all">All Classes</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="statusFilter" onchange="filterStudents()">
+                        <select class="form-select filter-select" id="statusFilter" onchange="filterStudents()">
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -121,12 +145,12 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="yearFilter" onchange="filterStudents()">
+                        <select class="form-select filter-select" id="yearFilter" onchange="filterStudents()">
                             <option value="all">All Years</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <button class="btn btn-outline-secondary w-100 btn-clear-filters" onclick="clearFilters()">
                             <i class="fas fa-times"></i> Clear
                         </button>
                     </div>
@@ -174,8 +198,11 @@
 
                 <!-- Students Table -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Students</h5>
+                        <div class="filter-status">
+                            <small class="text-muted" id="filterStatus">Showing all students</small>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -693,6 +720,8 @@
                 filteredStudents = [...students];
                 displayStudents();
                 updateStudentStats();
+                updateFilterStatus(students.length, students.length);
+                populateFilterDropdowns();
                 
                 console.log(`✅ Loaded ${students.length} students from Firestore`);
                 
@@ -774,6 +803,35 @@
                     });
                 }
             });
+        }
+        
+        // Populate filter dropdowns with actual student data
+        function populateFilterDropdowns() {
+            // Get unique classes from students
+            const uniqueClasses = [...new Set(students.map(student => student.class).filter(Boolean))];
+            const classFilter = document.getElementById('classFilter');
+            if (classFilter) {
+                classFilter.innerHTML = '<option value="all">All Classes</option>';
+                uniqueClasses.sort().forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classFilter.appendChild(option);
+                });
+            }
+            
+            // Get unique academic years from students
+            const uniqueYears = [...new Set(students.map(student => student.academicYear).filter(Boolean))];
+            const yearFilter = document.getElementById('yearFilter');
+            if (yearFilter) {
+                yearFilter.innerHTML = '<option value="all">All Years</option>';
+                uniqueYears.sort((a, b) => b - a).forEach(year => { // Sort descending (newest first)
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearFilter.appendChild(option);
+                });
+            }
         }
         
         // Populate year selects
@@ -1300,48 +1358,18 @@
             alert(`View grades for ${student.firstName} ${student.lastName} - This feature will be implemented in the grades module.`);
         }
         
-        // Search students
-        function searchStudents() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            filteredStudents = students.filter(student => 
-                (student.firstName || '').toLowerCase().includes(searchTerm) ||
-                (student.lastName || '').toLowerCase().includes(searchTerm) ||
-                (student.email || '').toLowerCase().includes(searchTerm) ||
-                (student.studentId || '').toLowerCase().includes(searchTerm) ||
-                (student.paymentCode || '').toLowerCase().includes(searchTerm) ||
-                (student.admissionNumber || '').toLowerCase().includes(searchTerm) ||
-                (student.parent?.name || '').toLowerCase().includes(searchTerm) ||
-                (student.parent?.phone || '').includes(searchTerm) ||
-                (student.class || '').toLowerCase().includes(searchTerm) ||
-                (student.stream || '').toLowerCase().includes(searchTerm)
-            );
-            displayStudents();
-        }
-        
-        // Filter students
-        function filterStudents() {
-            const classFilter = document.getElementById('classFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            const yearFilter = document.getElementById('yearFilter').value;
-            
-            filteredStudents = students.filter(student => {
-                const classMatch = classFilter === 'all' || student.class === classFilter;
-                const statusMatch = statusFilter === 'all' || student.status === statusFilter;
-                const yearMatch = yearFilter === 'all' || student.academicYear === yearFilter;
-                return classMatch && statusMatch && yearMatch;
-            });
-            
-            displayStudents();
-        }
         
         // Clear filters
         function clearFilters() {
+            console.log('🧹 Clearing all filters');
             document.getElementById('searchInput').value = '';
             document.getElementById('classFilter').value = 'all';
             document.getElementById('statusFilter').value = 'all';
             document.getElementById('yearFilter').value = 'all';
             filteredStudents = [...students];
             displayStudents();
+            updateFilterStatus(students.length, students.length);
+            console.log(`📊 Reset to show all ${students.length} students`);
         }
         
         // Export students
@@ -1559,6 +1587,97 @@
             });
         }
         
+        // Combined search and filter function
+        function applyFiltersAndSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const classFilter = document.getElementById('classFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            
+            console.log('🔍 Applying filters and search:', { searchTerm, classFilter, statusFilter, yearFilter });
+            
+            // Start with all students
+            let results = [...students];
+            
+            // Apply filters first
+            if (classFilter !== 'all') {
+                results = results.filter(student => student.class === classFilter);
+            }
+            
+            if (statusFilter !== 'all') {
+                results = results.filter(student => student.status === statusFilter);
+            }
+            
+            if (yearFilter !== 'all') {
+                results = results.filter(student => student.academicYear === yearFilter);
+            }
+            
+            // Apply search filter
+            if (searchTerm !== '') {
+                results = results.filter(student => 
+                    (student.firstName || '').toLowerCase().includes(searchTerm) ||
+                    (student.lastName || '').toLowerCase().includes(searchTerm) ||
+                    (student.email || '').toLowerCase().includes(searchTerm) ||
+                    (student.studentId || '').toLowerCase().includes(searchTerm) ||
+                    (student.paymentCode || '').toLowerCase().includes(searchTerm) ||
+                    (student.admissionNumber || '').toLowerCase().includes(searchTerm) ||
+                    (student.parent?.name || '').toLowerCase().includes(searchTerm) ||
+                    (student.parent?.phone || '').includes(searchTerm) ||
+                    (student.class || '').toLowerCase().includes(searchTerm) ||
+                    (student.stream || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Update filtered students and display
+            filteredStudents = results;
+            displayStudents();
+            updateFilterStatus(results.length, students.length);
+            showActiveFilters();
+            
+            console.log(`📊 Applied filters: ${results.length} students from ${students.length} total`);
+        }
+        
+        // Update search function to use combined approach
+        function searchStudents() {
+            applyFiltersAndSearch();
+        }
+        
+        // Update filter function to use combined approach
+        function filterStudents() {
+            applyFiltersAndSearch();
+        }
+        
+        // Update filter status indicator
+        function updateFilterStatus(filteredCount, totalCount) {
+            const statusElement = document.getElementById('filterStatus');
+            if (statusElement) {
+                if (filteredCount === totalCount) {
+                    statusElement.textContent = `Showing all ${totalCount} students`;
+                    statusElement.className = 'text-muted';
+                } else {
+                    statusElement.textContent = `Showing ${filteredCount} of ${totalCount} students`;
+                    statusElement.className = 'text-info fw-bold';
+                }
+            }
+        }
+        
+        // Show active filter indicators
+        function showActiveFilters() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const classFilter = document.getElementById('classFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            
+            const activeFilters = [];
+            if (searchTerm) activeFilters.push(`Search: "${searchTerm}"`);
+            if (classFilter !== 'all') activeFilters.push(`Class: ${classFilter}`);
+            if (statusFilter !== 'all') activeFilters.push(`Status: ${statusFilter}`);
+            if (yearFilter !== 'all') activeFilters.push(`Year: ${yearFilter}`);
+            
+            console.log('🔍 Active filters:', activeFilters);
+            return activeFilters;
+        }
+
         // Make functions globally available
         window.addStudent = addStudent;
         window.editStudent = editStudent;
