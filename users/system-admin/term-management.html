@@ -130,6 +130,9 @@
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printTerms()">
                                 <i class="fas fa-print"></i> Print
                             </button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="createSampleTerms()">
+                                <i class="fas fa-plus-circle"></i> Sample Terms
+                            </button>
                     </div>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTermModal">
                             <i class="fas fa-plus"></i> Add Term
@@ -269,15 +272,22 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Term Name</label>
-                                    <input type="text" class="form-control" id="termName" placeholder="e.g., Term 1, First Term" required>
+                                    <select class="form-select" id="termName" required onchange="updateTermNameOptions()">
+                                        <option value="">Select Term</option>
+                                        <option value="Term 1">Term 1</option>
+                                        <option value="Term 2">Term 2</option>
+                                        <option value="Term 3">Term 3</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" id="academicYear" value="2024" required>
+                                    <select class="form-select" id="academicYear" required onchange="updateTermNameOptions()">
+                                        <option value="">Select Year</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
                     </div>
                         <div class="row">
                             <div class="col-md-6">
@@ -489,6 +499,7 @@
                 displayAcademicTerms();
                 updateTermStats();
                 populateYearFilter();
+                populateAcademicYearDropdown();
                 
                 console.log(`✅ Loaded ${academicTerms.length} academic terms`);
                 
@@ -683,12 +694,34 @@
             const currentTermCard = document.querySelector('.current-term-card');
             if (currentTermCard) {
                 if (currentTerm) {
+                    const progress = calculateTermProgress(currentTerm.startDate, currentTerm.endDate);
+                    const daysRemaining = calculateDaysRemaining(currentTerm.startDate, currentTerm.endDate);
+                    const weeks = calculateWeeksInTerm(currentTerm.startDate, currentTerm.endDate);
+                    
                     currentTermCard.innerHTML = `
                         <div class="card bg-primary text-white text-center">
                             <div class="card-body">
                                 <h3>${currentTerm.termName}</h3>
                                 <p class="mb-0">Current Term</p>
                                 <small>${currentTerm.academicYear}</small>
+                                <hr class="my-2">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small>Progress</small><br>
+                                        <strong>${progress}%</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Days Left</small><br>
+                                        <strong>${daysRemaining}</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>Weeks</small><br>
+                                        <strong>${weeks}</strong>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-light" style="width: ${progress}%"></div>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -698,6 +731,7 @@
                             <div class="card-body">
                                 <h3>No Active Term</h3>
                                 <p class="mb-0">No term is currently active</p>
+                                <small>Check term dates or create new terms</small>
                             </div>
                         </div>
                     `;
@@ -777,6 +811,61 @@
                     option.textContent = year;
                     yearFilter.appendChild(option);
                 });
+            }
+        }
+        
+        // Populate academic year dropdown for create term modal
+        function populateAcademicYearDropdown() {
+            const academicYearSelect = document.getElementById('academicYear');
+            if (academicYearSelect) {
+                academicYearSelect.innerHTML = '<option value="">Select Year</option>';
+                
+                const currentYear = new Date().getFullYear();
+                const nextYear = currentYear + 1;
+                
+                // Add current year and next year options
+                [currentYear, nextYear].forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year.toString();
+                    option.textContent = year.toString();
+                    academicYearSelect.appendChild(option);
+                });
+                
+                // Set current year as default
+                academicYearSelect.value = currentYear.toString();
+            }
+        }
+        
+        // Update term name options based on selected year
+        function updateTermNameOptions() {
+            const academicYear = document.getElementById('academicYear').value;
+            const termNameSelect = document.getElementById('termName');
+            
+            if (!academicYear) {
+                termNameSelect.innerHTML = '<option value="">Select Term</option>';
+                return;
+            }
+            
+            // Get existing terms for the selected year
+            const existingTerms = academicTerms.filter(term => term.academicYear === academicYear);
+            const existingTermNames = existingTerms.map(term => term.termName);
+            
+            // Available term options
+            const allTerms = ['Term 1', 'Term 2', 'Term 3'];
+            const availableTerms = allTerms.filter(term => !existingTermNames.includes(term));
+            
+            termNameSelect.innerHTML = '<option value="">Select Term</option>';
+            
+            availableTerms.forEach(term => {
+                const option = document.createElement('option');
+                option.value = term;
+                option.textContent = term;
+                termNameSelect.appendChild(option);
+            });
+            
+            // If no terms available, show message
+            if (availableTerms.length === 0) {
+                termNameSelect.innerHTML = '<option value="">All terms created for this year</option>';
             }
         }
         
@@ -1268,11 +1357,10 @@
         
         // Create sample academic terms for testing
         async function createSampleTerms() {
-            if (!confirm('This will create sample academic terms. Continue?')) return;
+            if (!confirm('This will create sample academic terms for the current year. Continue?')) return;
             
             try {
                 const currentYear = new Date().getFullYear();
-                const nextYear = currentYear + 1;
                 
                 const sampleTerms = [
                     {
@@ -1344,6 +1432,17 @@
             }
         }
         
+        // Add event listener for create term modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const createTermModal = document.getElementById('createTermModal');
+            if (createTermModal) {
+                createTermModal.addEventListener('show.bs.modal', function() {
+                    populateAcademicYearDropdown();
+                    updateTermNameOptions();
+                });
+            }
+        });
+        
         // Make functions globally available
         window.createAcademicTerm = createAcademicTerm;
         window.editTerm = editTerm;
@@ -1357,6 +1456,7 @@
         window.exportTerms = exportTerms;
         window.printTerms = printTerms;
         window.createSampleTerms = createSampleTerms;
+        window.updateTermNameOptions = updateTermNameOptions;
         window.logout = logout;
         
         // Delete academic term
