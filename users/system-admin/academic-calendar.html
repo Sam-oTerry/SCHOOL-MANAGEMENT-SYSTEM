@@ -10,7 +10,32 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.css" rel="stylesheet">
+    <style>
+        /* Override FullCalendar font issues */
+        .fc-icon {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+        
+        .fc-button {
+            font-family: inherit !important;
+        }
+        
+        /* Fix calendar styling */
+        .fc {
+            font-family: inherit !important;
+        }
+        
+        .fc-event {
+            border-radius: 4px !important;
+            padding: 2px 4px !important;
+        }
+        
+        .fc-daygrid-event {
+            margin: 1px 0 !important;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -286,7 +311,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -763,10 +788,11 @@
         
         // Update calendar with new events
         function updateCalendar() {
-            if (window.calendar) {
+            if (window.calendar && calendarEvents) {
                 try {
-                    // Clear existing events
-                    window.calendar.removeAllEvents();
+                    // Get all existing events and remove them
+                    const existingEvents = window.calendar.getEvents();
+                    existingEvents.forEach(event => event.remove());
                     
                     // Add new events
                     calendarEvents.forEach(event => {
@@ -790,7 +816,7 @@
                     console.error('Error updating calendar:', error);
                 }
             } else {
-                console.error('Calendar not initialized');
+                console.error('Calendar not initialized or no events available');
             }
         }
         
