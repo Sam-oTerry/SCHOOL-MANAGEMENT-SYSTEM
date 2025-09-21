@@ -10,6 +10,125 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    <style>
+        .announcement-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .announcement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .announcement-card .card-header {
+            border-bottom: 2px solid;
+            position: relative;
+        }
+        
+        .announcement-card .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+        }
+        
+        .announcement-meta {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--bs-primary);
+        }
+        
+        .announcement-actions .btn {
+            transition: all 0.2s ease;
+        }
+        
+        .announcement-actions .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .announcement-stats {
+            opacity: 0.7;
+        }
+        
+        .card-text {
+            line-height: 1.6;
+            max-height: 4.8rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .announcement-card.pinned {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .announcement-card.urgent {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .announcement-card.event {
+            border-left: 4px solid #198754;
+        }
+        
+        .announcement-card.academic {
+            border-left: 4px solid #0dcaf0;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.border-primary:hover {
+            border-color: var(--bs-primary) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.2);
+        }
+        
+        .stat-card.border-success:hover {
+            border-color: var(--bs-success) !important;
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.2);
+        }
+        
+        .stat-card.border-warning:hover {
+            border-color: var(--bs-warning) !important;
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.2);
+        }
+        
+        .stat-card.border-danger:hover {
+            border-color: var(--bs-danger) !important;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.2);
+        }
+        
+        .stat-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+        
+        .number {
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -132,38 +251,46 @@
                 <!-- Announcements Statistics -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <div class="card stat-card">
+                        <div class="card stat-card border-primary">
                             <div class="card-body text-center">
-                                <i class="fas fa-bullhorn text-primary mb-2"></i>
-                                <h4 class="number">0</h4>
-                                <p class="text-muted">Total Announcements</p>
+                                <div class="stat-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-bullhorn text-primary fa-2x"></i>
+                                </div>
+                                <h4 class="number text-primary mb-1">0</h4>
+                                <p class="text-muted mb-0 fw-semibold">Total Announcements</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card stat-card">
+                        <div class="card stat-card border-success">
                             <div class="card-body text-center">
-                                <i class="fas fa-eye text-success mb-2"></i>
-                                <h4 class="number">0</h4>
-                                <p class="text-muted">Active</p>
+                                <div class="stat-icon bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-check-circle text-success fa-2x"></i>
+                                </div>
+                                <h4 class="number text-success mb-1">0</h4>
+                                <p class="text-muted mb-0 fw-semibold">Active</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card stat-card">
+                        <div class="card stat-card border-warning">
                             <div class="card-body text-center">
-                                <i class="fas fa-clock text-warning mb-2"></i>
-                                <h4 class="number">0</h4>
-                                <p class="text-muted">Draft</p>
+                                <div class="stat-icon bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-edit text-warning fa-2x"></i>
+                                </div>
+                                <h4 class="number text-warning mb-1">0</h4>
+                                <p class="text-muted mb-0 fw-semibold">Draft</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card stat-card">
+                        <div class="card stat-card border-danger">
                             <div class="card-body text-center">
-                                <i class="fas fa-exclamation-triangle text-danger mb-2"></i>
-                                <h4 class="number">0</h4>
-                                <p class="text-muted">Urgent</p>
+                                <div class="stat-icon bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
+                                </div>
+                                <h4 class="number text-danger mb-1">0</h4>
+                                <p class="text-muted mb-0 fw-semibold">Urgent</p>
                             </div>
                         </div>
                     </div>
@@ -487,7 +614,7 @@
         // Create announcement card
         function createAnnouncementCard(announcement) {
             const card = document.createElement('div');
-            card.className = 'card mb-3';
+            card.className = `card mb-3 announcement-card ${announcement.type} ${announcement.pinned ? 'pinned' : ''}`;
             
             const typeColors = {
                 'general': 'primary',
@@ -502,60 +629,136 @@
                 'draft': 'warning'
             };
             
+            const typeIcons = {
+                'general': 'fas fa-bullhorn',
+                'academic': 'fas fa-graduation-cap',
+                'urgent': 'fas fa-exclamation-triangle',
+                'event': 'fas fa-calendar-alt'
+            };
+            
+            const statusIcons = {
+                'active': 'fas fa-check-circle',
+                'expired': 'fas fa-clock',
+                'draft': 'fas fa-edit'
+            };
+            
             const typeColor = typeColors[announcement.type] || 'primary';
             const statusColor = statusColors[announcement.status] || 'secondary';
+            const typeIcon = typeIcons[announcement.type] || 'fas fa-bullhorn';
+            const statusIcon = statusIcons[announcement.status] || 'fas fa-circle';
             
             const startDate = announcement.startDate ? new Date(announcement.startDate.seconds * 1000).toLocaleString() : 'Not set';
             const endDate = announcement.endDate ? new Date(announcement.endDate.seconds * 1000).toLocaleString() : 'No end date';
             const createdDate = announcement.createdAt ? new Date(announcement.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
             
+            // Calculate time ago
+            const timeAgo = announcement.createdAt ? 
+                getTimeAgo(new Date(announcement.createdAt.seconds * 1000)) : 'Unknown';
+            
             card.innerHTML = `
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-0">${announcement.title}</h6>
-                        <small class="text-muted">Created: ${createdDate}</small>
+                <div class="card-header d-flex justify-content-between align-items-center bg-${typeColor} bg-opacity-10 border-${typeColor} border-opacity-25">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="${typeIcon} text-${typeColor} fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1 text-dark fw-bold">${announcement.title}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>Created ${timeAgo}
+                            </small>
+                        </div>
                     </div>
-                    <div>
-                        <span class="badge bg-${typeColor} me-2">${announcement.type.toUpperCase()}</span>
-                        <span class="badge bg-${statusColor}">${announcement.status.toUpperCase()}</span>
-                        ${announcement.pinned ? '<span class="badge bg-warning ms-2">PINNED</span>' : ''}
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="mb-2">
+                            <span class="badge bg-${typeColor} me-2">
+                                <i class="${typeIcon} me-1"></i>${announcement.type.toUpperCase()}
+                            </span>
+                            <span class="badge bg-${statusColor}">
+                                <i class="${statusIcon} me-1"></i>${announcement.status.toUpperCase()}
+                            </span>
+                        </div>
+                        ${announcement.pinned ? '<span class="badge bg-warning"><i class="fas fa-thumbtack me-1"></i>PINNED</span>' : ''}
                     </div>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">${announcement.content}</p>
                     <div class="row">
-                        <div class="col-md-6">
-                            <small class="text-muted">
-                                <strong>Start:</strong> ${startDate}<br>
-                                <strong>End:</strong> ${endDate}
-                            </small>
+                        <div class="col-md-8">
+                            <p class="card-text text-dark">${announcement.content}</p>
                         </div>
-                        <div class="col-md-6">
-                            <small class="text-muted">
-                                <strong>Target:</strong> ${announcement.targetAudience ? announcement.targetAudience.join(', ') : 'All Users'}
-                            </small>
+                        <div class="col-md-4">
+                            <div class="announcement-meta">
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-start text-primary me-2"></i>
+                                        <strong>Start:</strong><br>
+                                        <span class="text-dark">${startDate}</span>
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-end text-secondary me-2"></i>
+                                        <strong>End:</strong><br>
+                                        <span class="text-dark">${endDate}</span>
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-users text-info me-2"></i>
+                                        <strong>Target:</strong><br>
+                                        <span class="text-dark">${announcement.targetAudience ? announcement.targetAudience.join(', ') : 'All Users'}</span>
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="editAnnouncement('${announcement.id}')" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-outline-info" onclick="viewAnnouncement('${announcement.id}')" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-outline-warning" onclick="toggleAnnouncementStatus('${announcement.id}')" title="Toggle Status">
-                            <i class="fas fa-toggle-${announcement.status === 'active' ? 'on' : 'off'}"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" onclick="deleteAnnouncement('${announcement.id}')" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="announcement-actions">
+                            <button class="btn btn-outline-primary btn-sm me-2" onclick="editAnnouncement('${announcement.id}')" title="Edit Announcement">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-outline-info btn-sm me-2" onclick="viewAnnouncement('${announcement.id}')" title="View Details">
+                                <i class="fas fa-eye me-1"></i>View
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm me-2" onclick="toggleAnnouncementStatus('${announcement.id}')" title="Toggle Status">
+                                <i class="fas fa-toggle-${announcement.status === 'active' ? 'on' : 'off'} me-1"></i>${announcement.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteAnnouncement('${announcement.id}')" title="Delete Announcement">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                        <div class="announcement-stats">
+                            <small class="text-muted">
+                                <i class="fas fa-eye me-1"></i>0 views
+                            </small>
+                        </div>
                     </div>
                 </div>
             `;
             
             return card;
+        }
+        
+        // Helper function to calculate time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 2592000) {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
         }
         
         // Update announcement statistics
