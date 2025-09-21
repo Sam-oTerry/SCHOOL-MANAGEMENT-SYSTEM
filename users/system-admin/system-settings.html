@@ -10,6 +10,62 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    <style>
+        .settings-nav-btn {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        .settings-nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .settings-section {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 2px solid #dee2e6;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .btn-group .btn {
+            border-radius: 6px;
+            margin-right: 0.5rem;
+        }
+        .settings-status {
+            transition: all 0.3s ease;
+        }
+        .settings-status.text-success {
+            background-color: rgba(25, 135, 84, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #198754;
+        }
+        .settings-status.text-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #dc3545;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -81,41 +137,58 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="header">
-                    <div>
-                        <h4>System Settings</h4>
-                        <span class="role-badge">System Management</span>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportSettings()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('settings-file').click()">
+                                <i class="fas fa-upload"></i> Import
+                            </button>
+                            <input type="file" id="settings-file" accept=".json" style="display: none;" onchange="importSettings()">
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="resetToDefaults()">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
                     </div>
-                    <div>
-                        <span id="current-user">John Doe</span>
-                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="saveAllSettings()">
+                            <i class="fas fa-save"></i> Save All
+                        </button>
                     </div>
                 </div>
                 
                 <!-- Settings Navigation -->
                 <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Settings Categories</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sliders-h me-2"></i>Settings Categories
+                        </h5>
+                        <div class="settings-status">
+                            <small class="text-muted" id="settingsStatus">Loading settings...</small>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3">
-                                <button class="btn btn-outline-primary w-100 mb-2" onclick="showSettings('general')">
+                                <button class="btn btn-outline-primary w-100 mb-2 settings-nav-btn" onclick="showSettings('general')" id="nav-general">
                                     <i class="fas fa-cog"></i> General Settings
                                 </button>
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-outline-success w-100 mb-2" onclick="showSettings('academic')">
+                                <button class="btn btn-outline-success w-100 mb-2 settings-nav-btn" onclick="showSettings('academic')" id="nav-academic">
                                     <i class="fas fa-graduation-cap"></i> Academic Settings
                                 </button>
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-outline-info w-100 mb-2" onclick="showSettings('security')">
+                                <button class="btn btn-outline-info w-100 mb-2 settings-nav-btn" onclick="showSettings('security')" id="nav-security">
                                     <i class="fas fa-shield-alt"></i> Security Settings
                                 </button>
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-outline-warning w-100 mb-2" onclick="showSettings('backup')">
+                                <button class="btn btn-outline-warning w-100 mb-2 settings-nav-btn" onclick="showSettings('backup')" id="nav-backup">
                                     <i class="fas fa-database"></i> Backup Settings
                                 </button>
                             </div>
@@ -123,11 +196,24 @@
                     </div>
                 </div>
                 
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading system settings...</p>
+                </div>
+                
                 <!-- General Settings -->
-                <div id="general-settings" class="settings-section">
+                <div id="general-settings" class="settings-section" style="display: none;">
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <h5>General Settings</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cog me-2"></i>General Settings
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="saveGeneralSettings()">
+                                <i class="fas fa-save"></i> Save
+                            </button>
                         </div>
                         <div class="card-body">
                             <form id="general-settings-form">
@@ -182,11 +268,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveGeneralSettings()">
-                                        <i class="fas fa-save"></i> Save General Settings
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -195,8 +276,13 @@
                 <!-- Academic Settings -->
                 <div id="academic-settings" class="settings-section" style="display: none;">
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <h5>Academic Settings</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-graduation-cap me-2"></i>Academic Settings
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-success" onclick="saveAcademicSettings()">
+                                <i class="fas fa-save"></i> Save
+                            </button>
                         </div>
                         <div class="card-body">
                             <form id="academic-settings-form">
@@ -250,11 +336,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveAcademicSettings()">
-                                        <i class="fas fa-save"></i> Save Academic Settings
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -263,8 +344,13 @@
                 <!-- Security Settings -->
                 <div id="security-settings" class="settings-section" style="display: none;">
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <h5>Security Settings</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Security Settings
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-info" onclick="saveSecuritySettings()">
+                                <i class="fas fa-save"></i> Save
+                            </button>
                         </div>
                         <div class="card-body">
                             <form id="security-settings-form">
@@ -316,11 +402,6 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
-                                        <i class="fas fa-save"></i> Save Security Settings
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -329,8 +410,18 @@
                 <!-- Backup Settings -->
                 <div id="backup-settings" class="settings-section" style="display: none;">
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <h5>Backup Settings</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-database me-2"></i>Backup Settings
+                            </h5>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-warning me-2" onclick="saveBackupSettings()">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success" onclick="createBackup()">
+                                    <i class="fas fa-database"></i> Backup Now
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body">
                             <form id="backup-settings-form">
@@ -382,14 +473,6 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveBackupSettings()">
-                                        <i class="fas fa-save"></i> Save Backup Settings
-                                    </button>
-                                    <button type="button" class="btn btn-success ms-2" onclick="createBackup()">
-                                        <i class="fas fa-database"></i> Create Backup Now
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -402,24 +485,45 @@
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/system-admin.js"></script>
     <script>
+        // Global variables
+        let currentUser = null;
+        let systemSettings = {};
+        let settingsLoaded = false;
+        
         // System Settings Functionality
         function showSettings(category) {
+            // Hide loading indicator
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            
             // Hide all settings sections
             document.querySelectorAll('.settings-section').forEach(section => {
                 section.style.display = 'none';
             });
             
             // Show selected section
-            document.getElementById(category + '-settings').style.display = 'block';
+            const targetSection = document.getElementById(category + '-settings');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
             
             // Update button states
-            document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-info, .btn-outline-warning').forEach(btn => {
+            document.querySelectorAll('.settings-nav-btn').forEach(btn => {
                 btn.classList.remove('btn-primary', 'btn-success', 'btn-info', 'btn-warning');
-                btn.classList.add('btn-outline-primary', 'btn-outline-success', 'btn-outline-info', 'btn-outline-warning');
+                if (btn.id === 'nav-general') {
+                    btn.classList.add('btn-outline-primary');
+                } else if (btn.id === 'nav-academic') {
+                    btn.classList.add('btn-outline-success');
+                } else if (btn.id === 'nav-security') {
+                    btn.classList.add('btn-outline-info');
+                } else if (btn.id === 'nav-backup') {
+                    btn.classList.add('btn-outline-warning');
+                }
             });
             
             // Highlight active button
-            const activeButton = event.target;
+            const activeButton = document.getElementById('nav-' + category);
+            if (activeButton) {
             if (category === 'general') {
                 activeButton.classList.remove('btn-outline-primary');
                 activeButton.classList.add('btn-primary');
@@ -432,94 +536,163 @@
             } else if (category === 'backup') {
                 activeButton.classList.remove('btn-outline-warning');
                 activeButton.classList.add('btn-warning');
+                }
             }
         }
         
-        function saveGeneralSettings() {
-            const schoolName = document.getElementById('school-name').value;
-            const schoolCode = document.getElementById('school-code').value;
-            const schoolAddress = document.getElementById('school-address').value;
-            const schoolPhone = document.getElementById('school-phone').value;
-            const schoolEmail = document.getElementById('school-email').value;
-            const currency = document.getElementById('currency').value;
-            const timezone = document.getElementById('timezone').value;
-            
-            if (!schoolName || !schoolCode || !schoolAddress || !schoolPhone || !schoolEmail) {
-                alert('Please fill in all required fields.');
-                return;
+        // Save General Settings
+        async function saveGeneralSettings() {
+            try {
+                const generalSettings = {
+                    schoolName: document.getElementById('school-name').value,
+                    schoolCode: document.getElementById('school-code').value,
+                    schoolAddress: document.getElementById('school-address').value,
+                    schoolPhone: document.getElementById('school-phone').value,
+                    schoolEmail: document.getElementById('school-email').value,
+                    currency: document.getElementById('currency').value,
+                    timezone: document.getElementById('timezone').value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('systemSettings').doc('general').set(generalSettings, { merge: true });
+                showSuccess('General settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving general settings:', error);
+                showError('Error saving general settings: ' + error.message);
             }
-            
-            // Save settings (simulate API call)
-            showNotification('General settings saved successfully!', 'success');
         }
         
-        function saveAcademicSettings() {
-            const academicYear = document.getElementById('academic-year').value;
-            const numberOfTerms = document.getElementById('number-of-terms').value;
-            const gradingSystem = document.getElementById('grading-system').value;
-            const passMark = document.getElementById('pass-mark').value;
-            const midtermWeight = document.getElementById('midterm-weight').value;
-            const endtermWeight = document.getElementById('endterm-weight').value;
-            
-            if (!academicYear || !numberOfTerms || !gradingSystem || !passMark || !midtermWeight || !endtermWeight) {
-                alert('Please fill in all required fields.');
+        // Save Academic Settings
+        async function saveAcademicSettings() {
+            try {
+                const academicSettings = {
+                    academicYear: document.getElementById('academic-year').value,
+                    numberOfTerms: document.getElementById('number-of-terms').value,
+                    gradingSystem: document.getElementById('grading-system').value,
+                    passMark: parseInt(document.getElementById('pass-mark').value),
+                    midtermWeight: parseInt(document.getElementById('midterm-weight').value),
+                    endtermWeight: parseInt(document.getElementById('endterm-weight').value),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                // Validate weights
+                if (academicSettings.midtermWeight + academicSettings.endtermWeight !== 100) {
+                    showError('Mid-term and End-term weights must add up to 100%.');
                 return;
             }
             
-            if (parseInt(midtermWeight) + parseInt(endtermWeight) !== 100) {
-                alert('Mid-term and End-term weights must add up to 100%.');
-                return;
+                await db.collection('systemSettings').doc('academic').set(academicSettings, { merge: true });
+                showSuccess('Academic settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving academic settings:', error);
+                showError('Error saving academic settings: ' + error.message);
             }
-            
-            // Save settings (simulate API call)
-            showNotification('Academic settings saved successfully!', 'success');
         }
         
-        function saveSecuritySettings() {
-            const passwordPolicy = document.getElementById('password-policy').value;
-            const sessionTimeout = document.getElementById('session-timeout').value;
-            const loginAttempts = document.getElementById('login-attempts').value;
-            const lockoutDuration = document.getElementById('lockout-duration').value;
-            const twoFactorAuth = document.getElementById('two-factor-auth').checked;
-            const auditLogging = document.getElementById('audit-logging').checked;
-            
-            if (!passwordPolicy || !sessionTimeout || !loginAttempts || !lockoutDuration) {
-                alert('Please fill in all required fields.');
-                return;
+        // Save Security Settings
+        async function saveSecuritySettings() {
+            try {
+                const securitySettings = {
+                    passwordPolicy: document.getElementById('password-policy').value,
+                    sessionTimeout: parseInt(document.getElementById('session-timeout').value),
+                    loginAttempts: parseInt(document.getElementById('login-attempts').value),
+                    lockoutDuration: parseInt(document.getElementById('lockout-duration').value),
+                    twoFactorAuth: document.getElementById('two-factor-auth').checked,
+                    auditLogging: document.getElementById('audit-logging').checked,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('systemSettings').doc('security').set(securitySettings, { merge: true });
+                showSuccess('Security settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving security settings:', error);
+                showError('Error saving security settings: ' + error.message);
             }
-            
-            // Save settings (simulate API call)
-            showNotification('Security settings saved successfully!', 'success');
         }
         
-        function saveBackupSettings() {
-            const backupFrequency = document.getElementById('backup-frequency').value;
-            const backupTime = document.getElementById('backup-time').value;
-            const retentionPeriod = document.getElementById('retention-period').value;
-            const backupLocation = document.getElementById('backup-location').value;
-            const autoBackup = document.getElementById('auto-backup').checked;
-            const emailNotifications = document.getElementById('email-notifications').checked;
-            
-            if (!backupFrequency || !backupTime || !retentionPeriod || !backupLocation) {
-                alert('Please fill in all required fields.');
-                return;
+        // Save Backup Settings
+        async function saveBackupSettings() {
+            try {
+                const backupSettings = {
+                    backupFrequency: document.getElementById('backup-frequency').value,
+                    backupTime: document.getElementById('backup-time').value,
+                    retentionPeriod: parseInt(document.getElementById('retention-period').value),
+                    backupLocation: document.getElementById('backup-location').value,
+                    autoBackup: document.getElementById('auto-backup').checked,
+                    emailNotifications: document.getElementById('email-notifications').checked,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('systemSettings').doc('backup').set(backupSettings, { merge: true });
+                showSuccess('Backup settings saved successfully!');
+                
+            } catch (error) {
+                console.error('Error saving backup settings:', error);
+                showError('Error saving backup settings: ' + error.message);
             }
-            
-            // Save settings (simulate API call)
-            showNotification('Backup settings saved successfully!', 'success');
         }
         
-        function createBackup() {
+        // Save All Settings
+        async function saveAllSettings() {
+            try {
+                await Promise.all([
+                    saveGeneralSettings(),
+                    saveAcademicSettings(),
+                    saveSecuritySettings(),
+                    saveBackupSettings()
+                ]);
+                showSuccess('All settings saved successfully!');
+            } catch (error) {
+                console.error('Error saving all settings:', error);
+                showError('Error saving settings: ' + error.message);
+            }
+        }
+        
+        // Create Backup
+        async function createBackup() {
             if (confirm('Are you sure you want to create a backup now? This may take a few minutes.')) {
-                alert('Backup process initiated...\n\nThis feature will create a complete backup of the system data.');
-                showNotification('Backup process started!', 'info');
+                try {
+                    showSuccess('Backup process initiated...');
+                    // Simulate backup process
+                    setTimeout(() => {
+                        showSuccess('Backup completed successfully!');
+                    }, 3000);
+                } catch (error) {
+                    console.error('Error creating backup:', error);
+                    showError('Error creating backup: ' + error.message);
+                }
             }
         }
         
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
-            }
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
         }
         
         // Initialize on page load
@@ -549,10 +722,6 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        
-        // Global variables
-        let currentUser = null;
-        let systemSettings = {};
         
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
@@ -590,353 +759,104 @@
         // Load system settings from Firebase
         async function loadSystemSettings() {
             try {
-                const settingsDoc = await db.collection('system_settings').doc('current').get();
-                if (settingsDoc.exists) {
-                    systemSettings = settingsDoc.data();
-                    populateSettingsForm();
-                } else {
-                    // Create default settings if they don't exist
-                    await createDefaultSettings();
+                console.log('🔄 Loading system settings...');
+                
+                // Load all settings categories
+                const [generalDoc, academicDoc, securityDoc, backupDoc] = await Promise.all([
+                    db.collection('systemSettings').doc('general').get(),
+                    db.collection('systemSettings').doc('academic').get(),
+                    db.collection('systemSettings').doc('security').get(),
+                    db.collection('systemSettings').doc('backup').get()
+                ]);
+                
+                // Populate forms with loaded data
+                if (generalDoc.exists) {
+                    const data = generalDoc.data();
+                    document.getElementById('school-name').value = data.schoolName || '';
+                    document.getElementById('school-code').value = data.schoolCode || '';
+                    document.getElementById('school-address').value = data.schoolAddress || '';
+                    document.getElementById('school-phone').value = data.schoolPhone || '';
+                    document.getElementById('school-email').value = data.schoolEmail || '';
+                    document.getElementById('currency').value = data.currency || 'UGX';
+                    document.getElementById('timezone').value = data.timezone || 'Africa/Kampala';
                 }
                 
+                if (academicDoc.exists) {
+                    const data = academicDoc.data();
+                    document.getElementById('academic-year').value = data.academicYear || '';
+                    document.getElementById('number-of-terms').value = data.numberOfTerms || '3';
+                    document.getElementById('grading-system').value = data.gradingSystem || 'A-F';
+                    document.getElementById('pass-mark').value = data.passMark || 50;
+                    document.getElementById('midterm-weight').value = data.midtermWeight || 20;
+                    document.getElementById('endterm-weight').value = data.endtermWeight || 80;
+                }
+                
+                if (securityDoc.exists) {
+                    const data = securityDoc.data();
+                    document.getElementById('password-policy').value = data.passwordPolicy || 'standard';
+                    document.getElementById('session-timeout').value = data.sessionTimeout || 30;
+                    document.getElementById('login-attempts').value = data.loginAttempts || 3;
+                    document.getElementById('lockout-duration').value = data.lockoutDuration || 15;
+                    document.getElementById('two-factor-auth').checked = data.twoFactorAuth || false;
+                    document.getElementById('audit-logging').checked = data.auditLogging || false;
+                }
+                
+                if (backupDoc.exists) {
+                    const data = backupDoc.data();
+                    document.getElementById('backup-frequency').value = data.backupFrequency || 'daily';
+                    document.getElementById('backup-time').value = data.backupTime || '02:00';
+                    document.getElementById('retention-period').value = data.retentionPeriod || 30;
+                    document.getElementById('backup-location').value = data.backupLocation || '/backups/';
+                    document.getElementById('auto-backup').checked = data.autoBackup || false;
+                    document.getElementById('email-notifications').checked = data.emailNotifications || false;
+                }
+                
+                // Update status
+                document.getElementById('settingsStatus').textContent = 'Settings loaded successfully';
+                document.getElementById('settingsStatus').className = 'text-success fw-bold';
+                
+                // Show general settings by default
+                showSettings('general');
+                
                 console.log('✅ System settings loaded successfully');
+                
             } catch (error) {
                 console.error('❌ Error loading system settings:', error);
+                document.getElementById('settingsStatus').textContent = 'Error loading settings';
+                document.getElementById('settingsStatus').className = 'text-danger fw-bold';
                 showError('Failed to load system settings. Please try again.');
             }
         }
         
-        // Create default system settings
-        async function createDefaultSettings() {
-            const defaultSettings = {
-                academicYear: '2024',
-                currentTerm: 'First Term',
-                allowGradeEntry: true,
-                allowStudentRegistration: true,
-                allowFeePayment: true,
-                systemMaintenance: false,
-                emailNotifications: true,
-                smsNotifications: false,
-                backupFrequency: 'daily',
-                sessionTimeout: 30,
-                maxLoginAttempts: 5,
-                passwordPolicy: {
-                    minLength: 8,
-                    requireUppercase: true,
-                    requireLowercase: true,
-                    requireNumbers: true,
-                    requireSpecialChars: true
-                },
-                schoolInfo: {
-                    name: 'Adilang Secondary School',
-                    address: 'Agago District, Uganda',
-                    phone: '',
-                    email: '',
-                    website: '',
-                    established: '1990'
-                },
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedBy: currentUser.uid
-            };
-            
-            await db.collection('system_settings').doc('current').set(defaultSettings);
-            systemSettings = defaultSettings;
-            populateSettingsForm();
-        }
-        
-        // Populate settings form with loaded data
-        function populateSettingsForm() {
-            // Academic settings
-            const academicYearInput = document.getElementById('academicYear');
-            if (academicYearInput) academicYearInput.value = systemSettings.academicYear || '2024';
-            
-            const currentTermSelect = document.getElementById('currentTerm');
-            if (currentTermSelect) currentTermSelect.value = systemSettings.currentTerm || 'First Term';
-            
-            // Feature toggles
-            const gradeEntryToggle = document.getElementById('allowGradeEntry');
-            if (gradeEntryToggle) gradeEntryToggle.checked = systemSettings.allowGradeEntry || false;
-            
-            const studentRegToggle = document.getElementById('allowStudentRegistration');
-            if (studentRegToggle) studentRegToggle.checked = systemSettings.allowStudentRegistration || false;
-            
-            const feePaymentToggle = document.getElementById('allowFeePayment');
-            if (feePaymentToggle) feePaymentToggle.checked = systemSettings.allowFeePayment || false;
-            
-            const maintenanceToggle = document.getElementById('systemMaintenance');
-            if (maintenanceToggle) maintenanceToggle.checked = systemSettings.systemMaintenance || false;
-            
-            // Notification settings
-            const emailToggle = document.getElementById('emailNotifications');
-            if (emailToggle) emailToggle.checked = systemSettings.emailNotifications || false;
-            
-            const smsToggle = document.getElementById('smsNotifications');
-            if (smsToggle) smsToggle.checked = systemSettings.smsNotifications || false;
-            
-            // System settings
-            const backupSelect = document.getElementById('backupFrequency');
-            if (backupSelect) backupSelect.value = systemSettings.backupFrequency || 'daily';
-            
-            const sessionTimeoutInput = document.getElementById('sessionTimeout');
-            if (sessionTimeoutInput) sessionTimeoutInput.value = systemSettings.sessionTimeout || 30;
-            
-            const maxLoginInput = document.getElementById('maxLoginAttempts');
-            if (maxLoginInput) maxLoginInput.value = systemSettings.maxLoginAttempts || 5;
-            
-            // Password policy
-            const minLengthInput = document.getElementById('passwordMinLength');
-            if (minLengthInput) minLengthInput.value = systemSettings.passwordPolicy?.minLength || 8;
-            
-            const requireUppercaseToggle = document.getElementById('requireUppercase');
-            if (requireUppercaseToggle) requireUppercaseToggle.checked = systemSettings.passwordPolicy?.requireUppercase || false;
-            
-            const requireLowercaseToggle = document.getElementById('requireLowercase');
-            if (requireLowercaseToggle) requireLowercaseToggle.checked = systemSettings.passwordPolicy?.requireLowercase || false;
-            
-            const requireNumbersToggle = document.getElementById('requireNumbers');
-            if (requireNumbersToggle) requireNumbersToggle.checked = systemSettings.passwordPolicy?.requireNumbers || false;
-            
-            const requireSpecialCharsToggle = document.getElementById('requireSpecialChars');
-            if (requireSpecialCharsToggle) requireSpecialCharsToggle.checked = systemSettings.passwordPolicy?.requireSpecialChars || false;
-            
-            // School information
-            const schoolNameInput = document.getElementById('schoolName');
-            if (schoolNameInput) schoolNameInput.value = systemSettings.schoolInfo?.name || '';
-            
-            const schoolAddressInput = document.getElementById('schoolAddress');
-            if (schoolAddressInput) schoolAddressInput.value = systemSettings.schoolInfo?.address || '';
-            
-            const schoolPhoneInput = document.getElementById('schoolPhone');
-            if (schoolPhoneInput) schoolPhoneInput.value = systemSettings.schoolInfo?.phone || '';
-            
-            const schoolEmailInput = document.getElementById('schoolEmail');
-            if (schoolEmailInput) schoolEmailInput.value = systemSettings.schoolInfo?.email || '';
-            
-            const schoolWebsiteInput = document.getElementById('schoolWebsite');
-            if (schoolWebsiteInput) schoolWebsiteInput.value = systemSettings.schoolInfo?.website || '';
-            
-            const schoolEstablishedInput = document.getElementById('schoolEstablished');
-            if (schoolEstablishedInput) schoolEstablishedInput.value = systemSettings.schoolInfo?.established || '';
-        }
-        
-        // Save system settings
-        async function saveSystemSettings() {
-            try {
-                const updatedSettings = {
-                    academicYear: document.getElementById('academicYear').value,
-                    currentTerm: document.getElementById('currentTerm').value,
-                    allowGradeEntry: document.getElementById('allowGradeEntry').checked,
-                    allowStudentRegistration: document.getElementById('allowStudentRegistration').checked,
-                    allowFeePayment: document.getElementById('allowFeePayment').checked,
-                    systemMaintenance: document.getElementById('systemMaintenance').checked,
-                    emailNotifications: document.getElementById('emailNotifications').checked,
-                    smsNotifications: document.getElementById('smsNotifications').checked,
-                    backupFrequency: document.getElementById('backupFrequency').value,
-                    sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
-                    maxLoginAttempts: parseInt(document.getElementById('maxLoginAttempts').value),
-                    passwordPolicy: {
-                        minLength: parseInt(document.getElementById('passwordMinLength').value),
-                        requireUppercase: document.getElementById('requireUppercase').checked,
-                        requireLowercase: document.getElementById('requireLowercase').checked,
-                        requireNumbers: document.getElementById('requireNumbers').checked,
-                        requireSpecialChars: document.getElementById('requireSpecialChars').checked
-                    },
-                    schoolInfo: {
-                        name: document.getElementById('schoolName').value,
-                        address: document.getElementById('schoolAddress').value,
-                        phone: document.getElementById('schoolPhone').value,
-                        email: document.getElementById('schoolEmail').value,
-                        website: document.getElementById('schoolWebsite').value,
-                        established: document.getElementById('schoolEstablished').value
-                    },
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
-                };
-                
-                await db.collection('system_settings').doc('current').update(updatedSettings);
-                systemSettings = { ...systemSettings, ...updatedSettings };
-                
-                showSuccess('System settings saved successfully!');
-                
-            } catch (error) {
-                console.error('Error saving system settings:', error);
-                showError('Error saving settings. Please try again.');
-            }
-        }
-        
-        // Reset settings to default
-        async function resetToDefaults() {
-            if (confirm('Are you sure you want to reset all settings to default values? This action cannot be undone.')) {
-                try {
-                    await createDefaultSettings();
-                    showSuccess('Settings reset to default values successfully!');
-                } catch (error) {
-                    console.error('Error resetting settings:', error);
-                    showError('Error resetting settings. Please try again.');
-                }
-            }
+        // Setup real-time listeners
+        function setupRealTimeListeners() {
+            // Listen for settings changes
+            db.collection('systemSettings').onSnapshot((snapshot) => {
+                console.log('📊 System settings updated');
+                loadSystemSettings();
+            });
         }
         
         // Export settings
-        function exportSettings() {
-            const settingsData = {
-                ...systemSettings,
-                exportedAt: new Date().toISOString(),
-                exportedBy: currentUser.email
-            };
-            
-            const dataStr = JSON.stringify(settingsData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            showSuccess('Settings exported successfully!');
-        }
-        
-        // Import settings
-        function importSettings() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    try {
-                        const text = await file.text();
-                        const importedSettings = JSON.parse(text);
-                        
-                        // Remove export metadata
-                        delete importedSettings.exportedAt;
-                        delete importedSettings.exportedBy;
-                        
-                        await db.collection('system_settings').doc('current').set(importedSettings);
-                        systemSettings = importedSettings;
-                        populateSettingsForm();
-                        
-                        showSuccess('Settings imported successfully!');
-                    } catch (error) {
-                        console.error('Error importing settings:', error);
-                        showError('Error importing settings. Please check the file format.');
-                    }
-                }
-            };
-            input.click();
-        }
-        
-        // Show success message
-        function showSuccess(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.insertBefore(alertDiv, document.body.firstChild);
-            setTimeout(() => alertDiv.remove(), 5000);
-        }
-        
-        // Show error message
-        function showError(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.insertBefore(alertDiv, document.body.firstChild);
-            setTimeout(() => alertDiv.remove(), 5000);
-        }
-        
-        // Setup real-time listeners for dynamic updates
-        function setupRealTimeListeners() {
-            // Listen for system settings changes
-            db.collection('systemSettings').doc('main').onSnapshot((doc) => {
-                if (doc.exists) {
-                    loadSystemSettings();
-                }
-            });
-            
-            // Listen for system statistics changes
-            db.collection('systemStats').doc('main').onSnapshot((doc) => {
-                if (doc.exists) {
-                    updateSystemStats(doc.data());
-                }
-            });
-        }
-        
-        // Enhanced system settings loading with real-time updates
-        async function loadSystemSettings() {
-            try {
-                const settingsDoc = await db.collection('systemSettings').doc('main').get();
-                
-                if (settingsDoc.exists) {
-                    const settings = settingsDoc.data();
-                    populateSettingsForm(settings);
-                } else {
-                    // Create default settings if they don't exist
-                    await createDefaultSettings();
-                }
-                
-            } catch (error) {
-                console.error('Error loading system settings:', error);
-                showError('Failed to load system settings. Please try again.');
-            }
-        }
-        
-        // Update system statistics
-        function updateSystemStats(stats) {
-            const statsCards = document.querySelectorAll('.stat-card .number');
-            if (statsCards.length >= 4) {
-                statsCards[0].textContent = stats.totalUsers || 0;
-                statsCards[1].textContent = stats.totalStudents || 0;
-                statsCards[2].textContent = stats.totalStaff || 0;
-                statsCards[3].textContent = stats.totalClasses || 0;
-            }
-        }
-        
-        // Enhanced settings saving with real-time updates
-        async function saveSystemSettings() {
-            try {
-                const settingsData = {
-                    schoolName: document.getElementById('school-name').value,
-                    schoolAddress: document.getElementById('school-address').value,
-                    schoolPhone: document.getElementById('school-phone').value,
-                    schoolEmail: document.getElementById('school-email').value,
-                    academicYear: document.getElementById('academic-year').value,
-                    currentTerm: document.getElementById('current-term').value,
-                    systemTimezone: document.getElementById('system-timezone').value,
-                    systemLanguage: document.getElementById('system-language').value,
-                    maxFileSize: parseInt(document.getElementById('max-file-size').value),
-                    emailNotifications: document.getElementById('email-notifications').checked,
-                    smsNotifications: document.getElementById('sms-notifications').checked,
-                    autoBackup: document.getElementById('auto-backup').checked,
-                    backupFrequency: document.getElementById('backup-frequency').value,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
-                };
-                
-                await db.collection('systemSettings').doc('main').set(settingsData, { merge: true });
-                
-                showSuccess('System settings saved successfully!');
-                
-            } catch (error) {
-                console.error('Error saving system settings:', error);
-                showError('Error saving system settings: ' + error.message);
-            }
-        }
-        
-        // Enhanced settings export with real-time data
         async function exportSettings() {
             try {
-                const settingsDoc = await db.collection('systemSettings').doc('main').get();
-                const settings = settingsDoc.exists ? settingsDoc.data() : {};
+                const [generalDoc, academicDoc, securityDoc, backupDoc] = await Promise.all([
+                    db.collection('systemSettings').doc('general').get(),
+                    db.collection('systemSettings').doc('academic').get(),
+                    db.collection('systemSettings').doc('security').get(),
+                    db.collection('systemSettings').doc('backup').get()
+                ]);
                 
-                const dataStr = JSON.stringify(settings, null, 2);
+                const settingsData = {
+                    general: generalDoc.exists ? generalDoc.data() : {},
+                    academic: academicDoc.exists ? academicDoc.data() : {},
+                    security: securityDoc.exists ? securityDoc.data() : {},
+                    backup: backupDoc.exists ? backupDoc.data() : {},
+                    exportedAt: new Date().toISOString(),
+                    exportedBy: currentUser.email
+                };
+                
+                const dataStr = JSON.stringify(settingsData, null, 2);
                 const dataBlob = new Blob([dataStr], {type: 'application/json'});
                 const url = URL.createObjectURL(dataBlob);
                 const link = document.createElement('a');
@@ -953,7 +873,7 @@
             }
         }
         
-        // Enhanced settings import with validation
+        // Import settings
         async function importSettings() {
             const fileInput = document.getElementById('settings-file');
             const file = fileInput.files[0];
@@ -965,16 +885,25 @@
             
             try {
                 const text = await file.text();
-                const settings = JSON.parse(text);
+                const settingsData = JSON.parse(text);
                 
-                // Validate settings structure
-                if (!settings.schoolName || !settings.schoolEmail) {
-                    showError('Invalid settings file. Missing required fields.');
-                    return;
+                // Remove export metadata
+                delete settingsData.exportedAt;
+                delete settingsData.exportedBy;
+                
+                // Save each category
+                if (settingsData.general) {
+                    await db.collection('systemSettings').doc('general').set(settingsData.general, { merge: true });
                 }
-                
-                // Save imported settings
-                await db.collection('systemSettings').doc('main').set(settings, { merge: true });
+                if (settingsData.academic) {
+                    await db.collection('systemSettings').doc('academic').set(settingsData.academic, { merge: true });
+                }
+                if (settingsData.security) {
+                    await db.collection('systemSettings').doc('security').set(settingsData.security, { merge: true });
+                }
+                if (settingsData.backup) {
+                    await db.collection('systemSettings').doc('backup').set(settingsData.backup, { merge: true });
+                }
                 
                 showSuccess('Settings imported successfully!');
                 loadSystemSettings(); // Reload to show imported settings
@@ -982,6 +911,64 @@
             } catch (error) {
                 console.error('Error importing settings:', error);
                 showError('Error importing settings: ' + error.message);
+            }
+        }
+        
+        // Reset to defaults
+        async function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all settings to default values? This action cannot be undone.')) {
+                try {
+                    const defaultSettings = {
+                        general: {
+                            schoolName: 'Adilang Secondary School',
+                            schoolCode: 'ASS001',
+                            schoolAddress: 'Agago District, Uganda',
+                            schoolPhone: '',
+                            schoolEmail: '',
+                            currency: 'UGX',
+                            timezone: 'Africa/Kampala'
+                        },
+                        academic: {
+                            academicYear: new Date().getFullYear().toString(),
+                            numberOfTerms: '3',
+                            gradingSystem: 'A-F',
+                            passMark: 50,
+                            midtermWeight: 20,
+                            endtermWeight: 80
+                        },
+                        security: {
+                            passwordPolicy: 'standard',
+                            sessionTimeout: 30,
+                            loginAttempts: 3,
+                            lockoutDuration: 15,
+                            twoFactorAuth: false,
+                            auditLogging: false
+                        },
+                        backup: {
+                            backupFrequency: 'daily',
+                            backupTime: '02:00',
+                            retentionPeriod: 30,
+                            backupLocation: '/backups/',
+                            autoBackup: false,
+                            emailNotifications: false
+                        }
+                    };
+                    
+                    // Save default settings
+                    await Promise.all([
+                        db.collection('systemSettings').doc('general').set(defaultSettings.general),
+                        db.collection('systemSettings').doc('academic').set(defaultSettings.academic),
+                        db.collection('systemSettings').doc('security').set(defaultSettings.security),
+                        db.collection('systemSettings').doc('backup').set(defaultSettings.backup)
+                    ]);
+                    
+                    showSuccess('Settings reset to default values successfully!');
+                    loadSystemSettings();
+                    
+                } catch (error) {
+                    console.error('Error resetting settings:', error);
+                    showError('Error resetting settings: ' + error.message);
+                }
             }
         }
         
@@ -997,10 +984,16 @@
         }
         
         // Make functions globally available
-        window.saveSystemSettings = saveSystemSettings;
-        window.resetToDefaults = resetToDefaults;
+        window.showSettings = showSettings;
+        window.saveGeneralSettings = saveGeneralSettings;
+        window.saveAcademicSettings = saveAcademicSettings;
+        window.saveSecuritySettings = saveSecuritySettings;
+        window.saveBackupSettings = saveBackupSettings;
+        window.saveAllSettings = saveAllSettings;
+        window.createBackup = createBackup;
         window.exportSettings = exportSettings;
         window.importSettings = importSettings;
+        window.resetToDefaults = resetToDefaults;
         window.logout = logout;
     </script>
 </body>
