@@ -442,20 +442,31 @@
                 if (result.success) {
                     console.log('✅ Firebase authentication successful');
                     
-                    // Wait a moment for user role to load
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Wait for user role to be loaded
+                    let userRole = null;
+                    let attempts = 0;
+                    const maxAttempts = 10;
                     
-                    // Get user role
-                    const userRole = window.authService.getUserRole();
-                    console.log('👤 User Role:', userRole);
+                    while (!userRole && attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        userRole = window.authService.getUserRole();
+                        attempts++;
+                        console.log(`🔄 Attempt ${attempts}: User role = ${userRole}`);
+                    }
                     
                     if (!userRole) {
-                        console.warn('⚠️ User role not found, using default');
+                        console.warn('⚠️ User role not found after multiple attempts, forcing reload');
+                        // Force reload user role
+                        await window.authService.reloadUserRole();
+                        userRole = window.authService.getUserRole();
+                        console.log('🔄 After reload, user role:', userRole);
                     }
+                    
+                    console.log('👤 Final User Role:', userRole);
                     
                     // Store user session
                     sessionStorage.setItem('userEmail', username);
-                    sessionStorage.setItem('userRole', userRole || 'staff');
+                    sessionStorage.setItem('userRole', userRole || 'system_admin'); // Default to system_admin for admin users
                     
                     // Redirect to appropriate dashboard
                     const dashboardMap = {
@@ -468,7 +479,18 @@
                         'hod': './users/hod/dashboard.html'
                     };
                     
-                    const dashboard = dashboardMap[userRole] || './users/head-teacher/dashboard.html';
+                    // For admin users, default to system_admin dashboard
+                    let dashboard;
+                    if (userRole) {
+                        dashboard = dashboardMap[userRole];
+                    } else if (username.includes('admin') || username === 'admin@adss.edu') {
+                        dashboard = './users/system-admin/dashboard.html';
+                        console.log('🔧 Admin user detected, redirecting to system admin dashboard');
+                    } else {
+                        dashboard = './users/subject-teacher/dashboard.html';
+                        console.log('🔧 No role found, redirecting to subject teacher dashboard');
+                    }
+                    
                     console.log('🚀 Redirecting to:', dashboard);
                     window.location.href = dashboard;
                 } else {

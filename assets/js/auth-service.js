@@ -27,12 +27,16 @@ class AuthService {
   // Load user role from Firestore
   async loadUserRole(uid) {
     try {
+      console.log('🔄 Loading user role for UID:', uid);
       const userDoc = await firebase.firestore().collection('users').doc(uid).get();
       if (userDoc.exists) {
         this.userRole = userDoc.data().role;
+        console.log('✅ User role loaded:', this.userRole);
+      } else {
+        console.warn('⚠️ User document not found in Firestore');
       }
     } catch (error) {
-      console.error('Error loading user role:', error);
+      console.error('❌ Error loading user role:', error);
     }
   }
 
@@ -99,6 +103,13 @@ class AuthService {
     return this.userRole;
   }
 
+  // Force reload user role
+  async reloadUserRole() {
+    if (this.currentUser) {
+      await this.loadUserRole(this.currentUser.uid);
+    }
+  }
+
   // Check if user has specific role
   hasRole(role) {
     return this.userRole === role;
@@ -137,10 +148,8 @@ class AuthService {
       'hod': './users/hod/dashboard.html'
     };
     
-    const dashboard = dashboardMap[role];
-    if (dashboard) {
-      window.location.href = dashboard;
-    }
+    const dashboard = dashboardMap[role] || './users/subject-teacher/dashboard.html';
+    window.location.href = dashboard;
   }
 }
 
