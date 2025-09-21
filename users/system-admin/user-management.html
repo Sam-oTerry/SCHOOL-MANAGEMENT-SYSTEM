@@ -1029,6 +1029,13 @@
                 return;
             }
             
+            // Check if email already exists in current users list
+            const existingUser = allUsers.find(user => user.email.toLowerCase() === email.toLowerCase());
+            if (existingUser) {
+                showError(`Email address ${email} is already in use by ${existingUser.personalInfo?.fullName || 'another user'}.`);
+                return;
+            }
+            
             // Show loading state
             const createButton = document.querySelector('#createUserModal .btn-primary');
             const originalText = createButton.innerHTML;
@@ -1095,7 +1102,7 @@
             } catch (error) {
                 console.error('Error creating user:', error);
                 if (error.code === 'auth/email-already-in-use') {
-                    showError('Email address is already in use.');
+                    showError(`Email address ${email} is already in use. Please use a different email address.`);
                 } else if (error.code === 'auth/weak-password') {
                     showError('Password is too weak.');
                 } else if (error.code === 'auth/network-request-failed') {
@@ -1446,6 +1453,22 @@
             console.log('📊 Detailed Statistics Display:', stats);
         }
         
+        // Clear form when modal is opened
+        function clearCreateUserForm() {
+            document.getElementById('create-user-form').reset();
+            // Clear any existing error messages
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+        }
+        
+        // Add event listener for modal show
+        document.addEventListener('DOMContentLoaded', function() {
+            const createUserModal = document.getElementById('createUserModal');
+            if (createUserModal) {
+                createUserModal.addEventListener('show.bs.modal', clearCreateUserForm);
+            }
+        });
+        
         // Make functions globally available
         window.createUser = createUser;
         window.editUser = editUser;
@@ -1455,6 +1478,7 @@
         window.searchUsers = searchUsers;
         window.filterUsers = filterUsers;
         window.displayDetailedStats = displayDetailedStats;
+        window.clearCreateUserForm = clearCreateUserForm;
         window.logout = logout;
     </script>
 </body>
