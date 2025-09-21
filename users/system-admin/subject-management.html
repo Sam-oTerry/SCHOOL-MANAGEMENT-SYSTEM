@@ -410,6 +410,7 @@
                             console.log('✅ System Administrator authenticated:', user.email);
                             currentUser = user;
                             initializeSubjects();
+                            setupRealTimeListeners();
                         } else {
                             console.log('❌ Access denied. Required role: system_admin');
                             alert('Access denied. You do not have system administrator privileges.');
@@ -753,6 +754,351 @@
             setTimeout(() => alertDiv.remove(), 5000);
         }
         
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            // Listen for subject changes
+            db.collection('subjects').onSnapshot((snapshot) => {
+                loadSubjects();
+                displaySubjectsByLevel();
+                updateSubjectStats();
+            });
+        }
+        
+        // Enhanced subject loading with real-time updates
+        async function loadSubjects() {
+            try {
+                const subjectsSnapshot = await db.collection('subjects').get();
+                subjects = [];
+                subjectsSnapshot.forEach(doc => {
+                    const subjectData = doc.data();
+                    subjects.push({
+                        id: doc.id,
+                        ...subjectData
+                    });
+                });
+                
+                filteredSubjects = [...subjects];
+                
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                showError('Failed to load subjects. Please try again.');
+            }
+        }
+        
+        // Enhanced search with real-time filtering
+        function searchSubjects() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredSubjects = subjects.filter(subject => 
+                subject.name.toLowerCase().includes(searchTerm) ||
+                subject.code.toLowerCase().includes(searchTerm) ||
+                (subject.description || '').toLowerCase().includes(searchTerm)
+            );
+            displaySubjectsByLevel();
+        }
+        
+        // Enhanced filter with real-time updates
+        function filterSubjects() {
+            const levelFilter = document.getElementById('levelFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            filteredSubjects = subjects.filter(subject => {
+                const levelMatch = levelFilter === 'all' || subject.level === levelFilter;
+                const typeMatch = typeFilter === 'all' || subject.type === typeFilter;
+                return levelMatch && typeMatch;
+            });
+            
+            displaySubjectsByLevel();
+        }
+        
+        // Enhanced subject creation with real-time updates
+        async function addSubject() {
+            const name = document.getElementById('subjectName').value;
+            const code = document.getElementById('subjectCode').value;
+            const level = document.getElementById('subjectLevel').value;
+            const type = document.getElementById('subjectType').value;
+            const description = document.getElementById('subjectDescription').value;
+            const credits = document.getElementById('subjectCredits').value;
+            const hours = document.getElementById('subjectHours').value;
+            
+            if (!name || !code || !level || !type) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Check if subject code already exists
+            const existingSubject = subjects.find(s => s.code.toLowerCase() === code.toLowerCase());
+            if (existingSubject) {
+                showError('Subject code already exists. Please use a different code.');
+                return;
+            }
+            
+            try {
+                const subjectData = {
+                    name: name,
+                    code: code,
+                    level: level,
+                    type: type,
+                    description: description || '',
+                    credits: credits ? parseInt(credits) : null,
+                    hoursPerWeek: hours ? parseInt(hours) : null,
+                    isActive: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentUser.uid
+                };
+                
+                await db.collection('subjects').add(subjectData);
+                
+                showSuccess('Subject added successfully!');
+                document.getElementById('addSubjectForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addSubjectModal')).hide();
+                
+            } catch (error) {
+                console.error('Error adding subject:', error);
+                showError('Error adding subject: ' + error.message);
+            }
+        }
+        
+        // Enhanced subject editing with real-time updates
+        async function editSubject(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            // Create edit modal dynamically
+            const editModal = document.createElement('div');
+            editModal.className = 'modal fade';
+            editModal.id = 'editSubjectModal';
+            editModal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Subject</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editSubjectForm">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="editSubjectName" class="form-label">Subject Name</label>
+                                            <input type="text" class="form-control" id="editSubjectName" value="${subject.name}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="editSubjectCode" class="form-label">Subject Code</label>
+                                            <input type="text" class="form-control" id="editSubjectCode" value="${subject.code}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editSubjectLevel" class="form-label">Level</label>
+                                            <select class="form-select" id="editSubjectLevel" required>
+                                                <option value="s1-s2" ${subject.level === 's1-s2' ? 'selected' : ''}>Senior 1-2</option>
+                                                <option value="s3-s4" ${subject.level === 's3-s4' ? 'selected' : ''}>Senior 3-4</option>
+                                                <option value="s5-s6" ${subject.level === 's5-s6' ? 'selected' : ''}>Senior 5-6</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editSubjectType" class="form-label">Type</label>
+                                            <select class="form-select" id="editSubjectType" required>
+                                                <option value="compulsory" ${subject.type === 'compulsory' ? 'selected' : ''}>Compulsory</option>
+                                                <option value="elective" ${subject.type === 'elective' ? 'selected' : ''}>Elective</option>
+                                                <option value="principal" ${subject.type === 'principal' ? 'selected' : ''}>Principal</option>
+                                                <option value="subsidiary" ${subject.type === 'subsidiary' ? 'selected' : ''}>Subsidiary</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editSubjectDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="editSubjectDescription" rows="3">${subject.description || ''}</textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editSubjectCredits" class="form-label">Credits</label>
+                                            <input type="number" class="form-control" id="editSubjectCredits" value="${subject.credits || ''}" min="1" max="10">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editSubjectHours" class="form-label">Hours per Week</label>
+                                            <input type="number" class="form-control" id="editSubjectHours" value="${subject.hoursPerWeek || ''}" min="1" max="20">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="updateSubject('${subjectId}')">Update Subject</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            const modal = new bootstrap.Modal(editModal);
+            modal.show();
+            
+            // Remove modal when hidden
+            editModal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(editModal);
+            });
+        }
+        
+        // Update subject function
+        async function updateSubject(subjectId) {
+            const name = document.getElementById('editSubjectName').value;
+            const code = document.getElementById('editSubjectCode').value;
+            const level = document.getElementById('editSubjectLevel').value;
+            const type = document.getElementById('editSubjectType').value;
+            const description = document.getElementById('editSubjectDescription').value;
+            const credits = document.getElementById('editSubjectCredits').value;
+            const hours = document.getElementById('editSubjectHours').value;
+            
+            if (!name || !code || !level || !type) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                const subjectData = {
+                    name: name,
+                    code: code,
+                    level: level,
+                    type: type,
+                    description: description || '',
+                    credits: credits ? parseInt(credits) : null,
+                    hoursPerWeek: hours ? parseInt(hours) : null,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                };
+                
+                await db.collection('subjects').doc(subjectId).update(subjectData);
+                
+                showSuccess('Subject updated successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('editSubjectModal')).hide();
+                
+            } catch (error) {
+                console.error('Error updating subject:', error);
+                showError('Error updating subject: ' + error.message);
+            }
+        }
+        
+        // Enhanced subject deletion with confirmation
+        async function deleteSubject(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            if (confirm(`Are you sure you want to delete "${subject.name}"? This action cannot be undone.`)) {
+                try {
+                    await db.collection('subjects').doc(subjectId).delete();
+                    showSuccess('Subject deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting subject:', error);
+                    showError('Error deleting subject: ' + error.message);
+                }
+            }
+        }
+        
+        // Enhanced export with real-time data
+        function exportSubjects() {
+            const subjectsData = subjects.map(subject => ({
+                name: subject.name,
+                code: subject.code,
+                level: subject.level,
+                type: subject.type,
+                credits: subject.credits,
+                hoursPerWeek: subject.hoursPerWeek,
+                description: subject.description,
+                isActive: subject.isActive,
+                createdAt: subject.createdAt?.toDate?.()?.toISOString() || 'N/A'
+            }));
+            
+            const dataStr = JSON.stringify(subjectsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `subjects-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Subjects exported successfully!');
+        }
+        
+        // Enhanced print functionality
+        function printSubjects() {
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <html>
+                    <head>
+                        <title>Subject Management Report</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; }
+                            .section { margin-bottom: 30px; }
+                            .subject-card { border: 1px solid #ddd; padding: 10px; margin: 5px 0; }
+                            .subject-title { font-weight: bold; }
+                            .subject-details { color: #666; font-size: 0.9em; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Subject Management Report</h1>
+                            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        ${generatePrintContent()}
+                    </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // Generate print content
+        function generatePrintContent() {
+            let content = '';
+            
+            // Group subjects by level and type
+            const groupedSubjects = {
+                's1s2-compulsory': subjects.filter(s => s.level === 's1-s2' && s.type === 'compulsory'),
+                's1s2-elective': subjects.filter(s => s.level === 's1-s2' && s.type === 'elective'),
+                's3s4': subjects.filter(s => s.level === 's3-s4'),
+                's5s6-principal': subjects.filter(s => s.level === 's5-s6' && s.type === 'principal'),
+                's5s6-subsidiary': subjects.filter(s => s.level === 's5-s6' && s.type === 'subsidiary')
+            };
+            
+            Object.keys(groupedSubjects).forEach(category => {
+                const categorySubjects = groupedSubjects[category];
+                if (categorySubjects.length > 0) {
+                    const categoryName = category.replace('-', ' ').replace(/([A-Z])/g, ' $1').trim();
+                    content += `<div class="section">
+                        <h2>${categoryName.toUpperCase()}</h2>
+                        ${categorySubjects.map(subject => `
+                            <div class="subject-card">
+                                <div class="subject-title">${subject.name}</div>
+                                <div class="subject-details">
+                                    Code: ${subject.code} | 
+                                    Credits: ${subject.credits || 'N/A'} | 
+                                    Hours: ${subject.hoursPerWeek || 'N/A'}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }
+            });
+            
+            return content;
+        }
+        
         // Logout function
         function logout() {
             auth.signOut().then(() => {
@@ -767,6 +1113,7 @@
         // Make functions globally available
         window.addSubject = addSubject;
         window.editSubject = editSubject;
+        window.updateSubject = updateSubject;
         window.deleteSubject = deleteSubject;
         window.searchSubjects = searchSubjects;
         window.filterSubjects = filterSubjects;
