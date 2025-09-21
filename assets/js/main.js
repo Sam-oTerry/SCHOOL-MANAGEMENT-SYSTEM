@@ -1,6 +1,32 @@
 // Main JavaScript file for School Management System
 // This file contains the core functionality for the application
 
+// Utility functions
+function formatNumber(number) {
+    if (typeof number !== 'number') {
+        number = parseFloat(number) || 0;
+    }
+    return new Intl.NumberFormat('en-US').format(number);
+}
+
+function formatDate(date) {
+    if (!date) return 'N/A';
+    
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
+    
+    if (date instanceof Date && !isNaN(date)) {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+    
+    return 'Invalid Date';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the application
     initializeApp();
