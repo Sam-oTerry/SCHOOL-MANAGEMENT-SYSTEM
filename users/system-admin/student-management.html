@@ -228,8 +228,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="studentEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="studentEmail" required>
+                                    <label for="studentEmail" class="form-label">Email (Optional)</label>
+                                    <input type="email" class="form-control" id="studentEmail">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -299,7 +299,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="studentPaymentCode" class="form-label">Student Payment Code</label>
-                                    <input type="text" class="form-control" id="studentPaymentCode" placeholder="Auto-generated if empty">
+                                    <input type="text" class="form-control" id="studentPaymentCode" required placeholder="Enter payment code">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -428,8 +428,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="editStudentEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="editStudentEmail" required>
+                                    <label for="editStudentEmail" class="form-label">Email (Optional)</label>
+                                    <input type="email" class="form-control" id="editStudentEmail">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -499,7 +499,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="editStudentPaymentCode" class="form-label">Student Payment Code</label>
-                                    <input type="text" class="form-control" id="editStudentPaymentCode">
+                                    <input type="text" class="form-control" id="editStudentPaymentCode" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -922,25 +922,24 @@
             const emergencyContactName = document.getElementById('emergencyContactName').value;
             const emergencyContactPhone = document.getElementById('emergencyContactPhone').value;
             
-            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender || !parentName || !parentRelationship || !parentPhone) {
+            if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
                 showError('Please fill in all required fields.');
                 return;
             }
             
             try {
-                // Generate student ID and payment code if not provided
+                // Generate student ID and admission number if not provided
                 const studentId = `STU${Date.now().toString().slice(-6)}`;
-                const finalPaymentCode = paymentCode || `PAY${Date.now().toString().slice(-8)}`;
                 const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
                 
                 const studentData = {
                     firstName: firstName,
                     lastName: lastName,
-                    email: email,
+                    email: email || '',
                     phone: phone || '',
                     studentId: studentId,
                     admissionNumber: finalAdmissionNumber,
-                    paymentCode: finalPaymentCode,
+                    paymentCode: paymentCode,
                     class: studentClass,
                     stream: studentStream || null,
                     academicYear: academicYear,
@@ -1073,7 +1072,7 @@
             const emergencyContactPhone = document.getElementById('editEmergencyContactPhone').value;
             const status = document.getElementById('editStudentStatus').value;
             
-            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender || !parentName || !parentRelationship || !parentPhone) {
+            if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
                 showError('Please fill in all required fields.');
                 return;
             }
@@ -1082,7 +1081,7 @@
                 await db.collection('students').doc(studentId).update({
                     firstName: firstName,
                     lastName: lastName,
-                    email: email,
+                    email: email || '',
                     phone: phone || '',
                     class: studentClass,
                     stream: studentStream || null,
@@ -1090,7 +1089,7 @@
                     dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
                     gender: gender,
                     address: address || '',
-                    paymentCode: paymentCode || '',
+                    paymentCode: paymentCode,
                     admissionNumber: admissionNumber || '',
                     parent: {
                         name: parentName,
