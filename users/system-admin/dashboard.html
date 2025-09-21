@@ -610,12 +610,22 @@
         // Load system statistics
         async function loadSystemStats() {
             try {
+                // Initialize systemStats if not already initialized
+                if (!systemStats) {
+                    systemStats = {
+                        totalStudents: 0,
+                        totalStaff: 0,
+                        totalClasses: 0,
+                        totalDepartments: 0
+                    };
+                }
+                
                 // Get student count
-                const studentsSnapshot = await db.collection('students').get();
+                const studentsSnapshot = await db.collection('users').where('role', '==', 'student').get();
                 systemStats.totalStudents = studentsSnapshot.size;
                 
                 // Get staff count
-                const staffSnapshot = await db.collection('users').where('role', 'in', ['head_teacher', 'class_teacher', 'subject_teacher', 'bursar', 'dos', 'hod']).get();
+                const staffSnapshot = await db.collection('users').where('role', 'in', ['headteacher', 'teacher', 'bursar', 'system_admin']).get();
                 systemStats.totalStaff = staffSnapshot.size;
                 
                 // Get classes count (assuming classes are stored in a collection)
@@ -626,19 +636,21 @@
                 const departmentsSnapshot = await db.collection('departments').get();
                 systemStats.totalDepartments = departmentsSnapshot.size;
                 
-                // Update UI
-                updateSystemStats();
+                // Update the system stats document in Firebase
+                await db.collection('systemStats').doc('main').set(systemStats, { merge: true });
+                
+                // Update the UI
+                updateSystemStats(systemStats);
                 
             } catch (error) {
                 console.error('Error loading system stats:', error);
-                // Set default values if collections don't exist
-                systemStats = {
+                // Use default stats on error
+                updateSystemStats({
                     totalStudents: 0,
                     totalStaff: 0,
                     totalClasses: 0,
                     totalDepartments: 0
-                };
-                updateSystemStats();
+                });
             }
         }
         
@@ -840,6 +852,14 @@
             db.collection('systemStats').doc('main').onSnapshot((doc) => {
                 if (doc.exists) {
                     updateSystemStats(doc.data());
+                } else {
+                    // Document doesn't exist, use defaults
+                    updateSystemStats({
+                        totalStudents: 0,
+                        totalStaff: 0,
+                        totalClasses: 0,
+                        totalDepartments: 0
+                    });
                 }
             });
         }
@@ -954,6 +974,16 @@
         
         // Update system stats with real-time data
         function updateSystemStats(stats) {
+            if (!stats) {
+                console.log('No system stats available, using defaults');
+                stats = {
+                    totalStudents: 0,
+                    totalStaff: 0,
+                    totalClasses: 0,
+                    totalDepartments: 0
+                };
+            }
+            
             const statsCards = document.querySelectorAll('.stat-card .number');
             if (statsCards.length >= 4) {
                 statsCards[0].textContent = stats.totalStudents || 0;
