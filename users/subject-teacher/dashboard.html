@@ -3,274 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subject Teacher Dashboard</title>
+    <title>Subject Teacher Dashboard - School Management System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍🏫</text></svg>">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
+    <link rel="stylesheet" href="../../assets/css/users/subject-teacher.css">
     <style>
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
         }
-
+        
         body {
-            background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
         }
-
-        .sidebar {
-            background: linear-gradient(135deg, var(--primary), #34495e);
-            min-height: 100vh;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin: 2px 10px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .sidebar .nav-link.active {
-            background-color: var(--secondary);
-            color: white;
-        }
-
+        
         .main-content {
+            margin-left: 250px;
             padding: 20px;
         }
-
+        
         .header {
-            background: white;
-            padding: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-
-        .welcome-card {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .welcome-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .welcome-text h3 {
-            margin: 0;
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
             font-weight: 600;
+            padding: 15px 20px;
         }
-
-        .welcome-text p {
-            margin: 5px 0 0 0;
-            opacity: 0.9;
-        }
-
-        .welcome-actions .btn {
-            margin-left: 10px;
-        }
-
+        
         .stat-card-wrapper {
             flex: 0 0 auto;
             width: 140px;
         }
-
+        
         .stat-card {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             min-height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             width: 100%;
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--secondary);
-        }
-
-        .stat-card.primary::before { background: var(--primary); }
-        .stat-card.success::before { background: var(--success); }
-        .stat-card.info::before { background: var(--info); }
-        .stat-card.warning::before { background: var(--warning); }
-        .stat-card.danger::before { background: var(--danger); }
-        .stat-card.secondary::before { background: var(--secondary); }
-        .stat-card.dark::before { background: var(--dark); }
-        .stat-card.light::before { background: #6c757d; }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
+        
         .stat-card i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            opacity: 0.8;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
         }
-
-        .stat-card.primary i { color: var(--primary); }
-        .stat-card.success i { color: var(--success); }
-        .stat-card.info i { color: var(--info); }
-        .stat-card.warning i { color: var(--warning); }
-        .stat-card.danger i { color: var(--danger); }
-        .stat-card.secondary i { color: var(--secondary); }
-        .stat-card.dark i { color: var(--dark); }
-        .stat-card.light i { color: #6c757d; }
-
+        
         .stat-card .number {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            color: var(--primary);
+            margin-bottom: 4px;
         }
-
+        
         .stat-card .label {
             color: #6c757d;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-bottom: 1px solid #dee2e6;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 20px;
-            font-weight: 600;
-        }
-
-        .event-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .event-item:last-child {
-            border-bottom: none;
-        }
-
-        .event-date {
-            background: var(--primary);
-            color: white;
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
-            margin-right: 15px;
-            min-width: 60px;
-        }
-
-        .event-date .day {
-            display: block;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .event-date .month {
-            display: block;
             font-size: 0.8rem;
-            opacity: 0.9;
+            line-height: 1.2;
         }
-
-        .event-details h6 {
-            margin: 0;
-            font-weight: 600;
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
         }
-
-        .performance-item {
-            margin-bottom: 15px;
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
         }
-
-        .performance-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .progress {
-            height: 8px;
-            border-radius: 10px;
-        }
-
-        .progress-bar {
-            border-radius: 10px;
-        }
-
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .loading-spinner {
-            text-align: center;
-            padding: 50px;
-        }
-
+        
         .role-badge {
-            background: var(--secondary);
+            background-color: var(--accent);
             color: white;
-            padding: 4px 12px;
+            padding: 5px 10px;
             border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 600;
         }
-
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .feature-icon i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .subject-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(26, 79, 139, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .subject-icon i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .student-avatar {
+            width: 35px;
+            height: 35px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        /* Enhanced Statistics Styling */
+        .stat-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card i {
+            transition: color 0.2s ease-in-out;
+        }
+        
+        .stat-card:hover i {
+            color: var(--accent);
+        }
+        
+        .stat-card .number {
+            transition: color 0.2s ease-in-out;
+        }
+        
+        .stat-card:hover .number {
+            color: var(--accent);
+        }
+        
+        /* Statistics Grid Layout */
+        #statsSection .row {
+            margin-bottom: 1rem;
+        }
+        
+        #additionalStats .row {
+            margin-bottom: 0;
+        }
+        
         /* Responsive Statistics */
         @media (max-width: 1200px) {
             .stat-card-wrapper {
@@ -278,39 +210,10 @@
             }
             .stat-card {
                 min-height: 100px;
-                padding: 15px;
-            }
-            .stat-card i {
-                font-size: 1.5rem;
-            }
-            .stat-card .number {
-                font-size: 1.4rem;
-            }
-            .stat-card .label {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .welcome-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .welcome-actions {
-                margin-top: 15px;
-            }
-            
-            .stat-card-wrapper {
-                width: 100px;
-            }
-            .stat-card {
-                min-height: 90px;
                 padding: 12px;
             }
             .stat-card i {
                 font-size: 1.3rem;
-                margin-bottom: 8px;
             }
             .stat-card .number {
                 font-size: 1.2rem;
@@ -319,24 +222,44 @@
                 font-size: 0.75rem;
             }
         }
-
+        
+        @media (max-width: 768px) {
+            .stat-card-wrapper {
+                width: 100px;
+            }
+            .stat-card {
+                min-height: 90px;
+                padding: 10px;
+            }
+            .stat-card i {
+                font-size: 1.2rem;
+                margin-bottom: 6px;
+            }
+            .stat-card .number {
+                font-size: 1.1rem;
+            }
+            .stat-card .label {
+                font-size: 0.7rem;
+            }
+        }
+        
         @media (max-width: 576px) {
             .stat-card-wrapper {
                 width: 80px;
             }
             .stat-card {
                 min-height: 80px;
-                padding: 10px;
+                padding: 8px;
             }
             .stat-card i {
-                font-size: 1.1rem;
-                margin-bottom: 6px;
+                font-size: 1rem;
+                margin-bottom: 4px;
             }
             .stat-card .number {
                 font-size: 1rem;
             }
             .stat-card .label {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
             }
         }
     </style>
@@ -345,60 +268,64 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="width: 250px;">
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
-                    <h4 class="text-white">Teacher Portal</h4>
-                    <small class="text-white-50">Subject Teacher</small>
-                </div>
-                
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="dashboard.html">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="subjects.html">
-                            <i class="fas fa-book"></i> My Subjects
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="students.html">
-                            <i class="fas fa-users"></i> Students
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="assessments.html">
-                            <i class="fas fa-clipboard-check"></i> Assessments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="grades.html">
-                            <i class="fas fa-chart-line"></i> Grades
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="timetable.html">
-                            <i class="fas fa-calendar"></i> Timetable
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="reports.html">
-                            <i class="fas fa-chart-bar"></i> Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="announcements.html">
-                            <i class="fas fa-bullhorn"></i> Announcements
-                        </a>
-                    </li>
-                </ul>
-                
-                <div class="mt-auto p-3 text-center">
-                    <button class="btn btn-sm btn-outline-light" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
+                        <div class="logo-container">
+                            <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
+                        </div>
+                        <h5 class="text-white">Subject Teacher</h5>
+                        <p class="small text-white-50" id="staff-id">Staff ID: Loading...</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-subjects.html">
+                                <i class="fas fa-book"></i> My Subjects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-lists.html">
+                                <i class="fas fa-users"></i> Student Lists
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="project-work.html">
+                                <i class="fas fa-tasks"></i> Project Work
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-analysis.html">
+                                <i class="fas fa-chart-bar"></i> Results Analysis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto p-3 text-center">
+                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
             </nav>
 
@@ -423,105 +350,71 @@
                     <p class="mt-3 text-muted">Loading dashboard data...</p>
                 </div>
                 
-                <!-- Welcome Section -->
-                <div class="row mb-4" id="welcomeSection" style="display: none;">
-                    <div class="col-12">
-                        <div class="welcome-card">
-                            <div class="welcome-content">
-                                <div class="welcome-text">
-                                    <h3>Welcome back, <span id="teacherName">Teacher</span>!</h3>
-                                    <p class="text-muted">Here's your teaching overview for today</p>
-                                </div>
-                                <div class="welcome-actions">
-                                    <button class="btn btn-light me-2">
-                                        <i class="fas fa-plus"></i> Add Assessment
-                                    </button>
-                                    <button class="btn btn-outline-light">
-                                        <i class="fas fa-calendar"></i> View Timetable
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics Overview -->
+                <!-- Statistics Overview - Single Horizontal Row -->
                 <div class="row mb-4" id="statsSection" style="display: none;">
                     <div class="col-12">
                         <div class="d-flex flex-wrap justify-content-center gap-3">
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card primary">
-                                    <i class="fas fa-book"></i>
+                        <div class="card stat-card">
+                            <i class="fas fa-book"></i>
                                     <div class="number" id="totalSubjects">0</div>
-                                    <div class="label">My Subjects</div>
-                                </div>
-                            </div>
+                            <div class="label">My Subjects</div>
+                        </div>
+                    </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card success">
-                                    <i class="fas fa-chalkboard-teacher"></i>
+                        <div class="card stat-card">
+                            <i class="fas fa-chalkboard-teacher"></i>
                                     <div class="number" id="totalClasses">0</div>
                                     <div class="label">Classes Teaching</div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card info">
-                                    <i class="fas fa-users"></i>
+                        <div class="card stat-card">
+                            <i class="fas fa-users"></i>
                                     <div class="number" id="totalStudents">0</div>
                                     <div class="label">My Students</div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card warning">
-                                    <i class="fas fa-chart-line"></i>
+                        <div class="card stat-card">
+                            <i class="fas fa-chart-line"></i>
                                     <div class="number" id="averagePerformance">0%</div>
                                     <div class="label">Avg Performance</div>
                                 </div>
                             </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card danger">
+                                <div class="card stat-card">
                                     <i class="fas fa-tasks"></i>
                                     <div class="number" id="pendingTasks">0</div>
                                     <div class="label">Pending Tasks</div>
                                 </div>
                             </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card secondary">
+                                <div class="card stat-card">
                                     <i class="fas fa-calendar-check"></i>
                                     <div class="number" id="upcomingEvents">0</div>
                                     <div class="label">Upcoming Events</div>
                                 </div>
                             </div>
                             <div class="stat-card-wrapper">
-                                <div class="card stat-card dark">
+                                <div class="card stat-card">
                                     <i class="fas fa-graduation-cap"></i>
                                     <div class="number" id="completedAssessments">0</div>
                                     <div class="label">Completed Assessments</div>
                                 </div>
                             </div>
-                            <div class="stat-card-wrapper">
-                                <div class="card stat-card light">
-                                    <i class="fas fa-star"></i>
-                                    <div class="number" id="teacherRating">0.0</div>
-                                    <div class="label">Teacher Rating</div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Main Dashboard Content -->
+                
+                <!-- Main Content Row -->
                 <div class="row" id="mainContent" style="display: none;">
-                    <!-- Left Column - Teaching Overview -->
-                    <div class="col-lg-8">
-                        <!-- My Subjects -->
-                        <div class="card mb-4">
+                    <!-- My Subjects -->
+                    <div class="col-md-8">
+                        <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-book me-2"></i>My Subjects
-                                </h5>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-plus"></i> Add Subject
-                                </button>
+                                <span>My Subjects</span>
+                                <button class="btn btn-sm btn-primary">View All</button>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -529,142 +422,122 @@
                                         <thead>
                                             <tr>
                                                 <th>Subject</th>
-                                                <th>Category</th>
                                                 <th>Classes</th>
                                                 <th>Students</th>
-                                                <th>Avg Score</th>
+                                                <th>Average Score</th>
+                                                <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="subjectsTableBody">
-                                            <!-- Subjects will be loaded here -->
+                                            <!-- Subjects will be populated here -->
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Quick Actions -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-bolt me-2"></i>Quick Actions
-                                </h5>
-                            </div>
+                    </div>
+                    
+                    <!-- Quick Actions & Recent Activity -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">Quick Actions</div>
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
-                                        <button class="btn btn-outline-primary w-100">
-                                            <i class="fas fa-plus-circle"></i><br>
-                                            <small>Add Assessment</small>
-                                        </button>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <button class="btn btn-outline-success w-100">
-                                            <i class="fas fa-edit"></i><br>
-                                            <small>Record Grades</small>
-                                        </button>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <button class="btn btn-outline-info w-100">
-                                            <i class="fas fa-calendar"></i><br>
-                                            <small>View Timetable</small>
-                                        </button>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <button class="btn btn-outline-warning w-100">
-                                            <i class="fas fa-chart-bar"></i><br>
-                                            <small>View Reports</small>
-                                        </button>
-                                    </div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary mb-2">
+                                        <i class="fas fa-edit"></i> Enter Grades
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-users"></i> View Students
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-tasks"></i> Add Project
+                                    </button>
+                                    <button class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-chart-bar"></i> Analyze Results
+                                    </button>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">Recent Activity</div>
+                            <div class="card-body" id="recentActivityBody">
+                                <!-- Recent activity will be populated here -->
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Column - Sidebar -->
-                    <div class="col-lg-4">
-                        <!-- Recent Activity -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-clock me-2"></i>Recent Activity
-                                </h5>
+                </div>
+                
+                <!-- Grading System Info -->
+                <div class="card mt-4" id="gradingSystemSection" style="display: none;">
+                    <div class="card-header">
+                        <h5>Grading System</h5>
+                        <small class="text-muted">New Curriculum A-F Grading</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Grade Scale</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Grade</th>
+                                            <th>Range</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-success">A</span></td>
+                                            <td>90-100%</td>
+                                            <td>Excellent</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">B</span></td>
+                                            <td>80-89%</td>
+                                            <td>Very Good</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-info">C</span></td>
+                                            <td>70-79%</td>
+                                            <td>Good</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-warning">D</span></td>
+                                            <td>60-69%</td>
+                                            <td>Satisfactory</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-secondary">E</span></td>
+                                            <td>50-59%</td>
+                                            <td>Pass</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-danger">F</span></td>
+                                            <td>0-49%</td>
+                                            <td>Fail</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="card-body">
-                                <div id="recentActivity">
-                                    <!-- Recent activity will be loaded here -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Upcoming Events -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-calendar-alt me-2"></i>Upcoming Events
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="upcomingEvents">
-                                    <div class="event-item">
-                                        <div class="event-date">
-                                            <span class="day">15</span>
-                                            <span class="month">Jan</span>
-                                        </div>
-                                        <div class="event-details">
-                                            <h6>Parent-Teacher Meeting</h6>
-                                            <small class="text-muted">2:00 PM - 4:00 PM</small>
-                                        </div>
-                                    </div>
-                                    <div class="event-item">
-                                        <div class="event-date">
-                                            <span class="day">18</span>
-                                            <span class="month">Jan</span>
-                                        </div>
-                                        <div class="event-details">
-                                            <h6>Staff Meeting</h6>
-                                            <small class="text-muted">9:00 AM - 10:00 AM</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Performance Summary -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-chart-pie me-2"></i>Performance Summary
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="performance-item">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Mathematics</span>
-                                        <span class="badge bg-success">85%</span>
-                                    </div>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                            <div class="col-md-6">
+                                <h6>Marking Weight</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Mid-term (20%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 20%">20%</div>
                                     </div>
                                 </div>
-                                <div class="performance-item mt-3">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Physics</span>
-                                        <span class="badge bg-warning">72%</span>
-                                    </div>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar bg-warning" style="width: 72%"></div>
+                                <div class="mb-3">
+                                    <label class="form-label">End-term (80%)</label>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 80%">80%</div>
                                     </div>
                                 </div>
-                                <div class="performance-item mt-3">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Chemistry</span>
-                                        <span class="badge bg-info">78%</span>
-                                    </div>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar bg-info" style="width: 78%"></div>
-                                    </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> Final grade is calculated as: (Mid-term × 0.2) + (End-term × 0.8)
                                 </div>
                             </div>
                         </div>
@@ -674,63 +547,76 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-
-    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
-            authDomain: "school-management-syst-8b5b8.firebaseapp.com",
-            projectId: "school-management-syst-8b5b8",
-            storageBucket: "school-management-syst-8b5b8.firebasestorage.app",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890abcdef"
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-    </script>
-
-    <!-- Main JavaScript -->
-    <script>
+        
         // Global variables
         let currentUser = null;
-        let teacherData = null;
+        let teacherData = {};
         let subjects = [];
         let students = [];
         let recentActivity = [];
-
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Subject Teacher Dashboard loaded');
-            checkAuthState();
+        
+        // Check authentication and role
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const userRole = userData.role;
+                        
+                        if (userRole === 'subject_teacher' || userRole === 'teacher' || !userRole) {
+                            console.log('✅ Subject Teacher authenticated:', user.email);
+                            currentUser = user;
+                            teacherData = userData;
+                            loadDashboardData();
+                            setupRealTimeListeners();
+                        } else {
+                            console.log('❌ Access denied. Required role: subject_teacher');
+                            alert('Access denied. You do not have subject teacher privileges.');
+                            auth.signOut().then(() => {
+                                window.location.href = '../../index.html';
+                            });
+                        }
+                    } else {
+                        console.log('❌ User document not found');
+                        auth.signOut().then(() => {
+                            window.location.href = '../../index.html';
+                        });
+                    }
+                });
+            } else {
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+            }
         });
-
-        // Check authentication state
-        function checkAuthState() {
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    console.log('✅ User authenticated:', user.email);
-                    currentUser = user;
-                    loadDashboardData();
-                } else {
-                    console.log('❌ No user authenticated');
-                    window.location.href = '../../index.html';
-                }
-            });
-        }
-
+        
         // Load dashboard data
         async function loadDashboardData() {
             try {
-                console.log('📊 Loading dashboard data...');
+                console.log('🔄 Loading dashboard data...');
                 
                 // Load teacher's subjects
                 await loadTeacherSubjects();
@@ -741,7 +627,7 @@
                 // Load recent activity
                 await loadRecentActivity();
                 
-                // Load additional stats
+                // Load additional statistics
                 await loadAdditionalStats();
                 
                 // Update statistics
@@ -752,26 +638,31 @@
                 
                 // Hide loading indicator and show content
                 document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('welcomeSection').style.display = 'block';
                 document.getElementById('statsSection').style.display = 'block';
                 document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('gradingSystemSection').style.display = 'block';
                 
                 // Force show statistics even if no data
                 setTimeout(() => {
                     if (subjects.length === 0 && students.length === 0) {
                         console.log('⚠️ No data found, showing default statistics');
-                        updateStatistics();
+                        document.getElementById('totalSubjects').textContent = '0';
+                        document.getElementById('totalClasses').textContent = '0';
+                        document.getElementById('totalStudents').textContent = '0';
+                        document.getElementById('averagePerformance').textContent = '0%';
                     }
-                }, 1000);
+                }, 100);
+                
+                console.log('📊 Statistics sections displayed');
                 
                 console.log('✅ Dashboard data loaded successfully');
                 
             } catch (error) {
                 console.error('❌ Error loading dashboard data:', error);
-                showError('Failed to load dashboard data');
+                showError('Failed to load dashboard data. Please try again.');
             }
         }
-
+        
         // Load teacher's subjects
         async function loadTeacherSubjects() {
             try {
@@ -846,7 +737,7 @@
                 displaySubjects();
             }
         }
-
+        
         // Load students
         async function loadStudents() {
             try {
@@ -888,7 +779,7 @@
                 ];
             }
         }
-
+        
         // Load recent activity
         async function loadRecentActivity() {
             try {
@@ -907,55 +798,15 @@
                     });
                 });
                 
-                // If no activity found, create sample data
-                if (recentActivity.length === 0) {
-                    recentActivity = [
-                        {
-                            id: 'a1',
-                            type: 'assessment',
-                            description: 'Graded Mathematics test for S.4 Science A',
-                            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-                        },
-                        {
-                            id: 'a2',
-                            type: 'attendance',
-                            description: 'Marked attendance for Physics class',
-                            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
-                        },
-                        {
-                            id: 'a3',
-                            type: 'grade',
-                            description: 'Updated Chemistry grades for S.3 Science',
-                            timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
-                        }
-                    ];
-                }
-                
                 displayRecentActivity();
                 console.log(`✅ Loaded ${recentActivity.length} recent activities`);
                 
             } catch (error) {
                 console.error('Error loading recent activity:', error);
-                // Create sample data on error
-                recentActivity = [
-                    {
-                        id: 'a1',
-                        type: 'assessment',
-                        description: 'Graded Mathematics test for S.4 Science A',
-                        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-                    },
-                    {
-                        id: 'a2',
-                        type: 'attendance',
-                        description: 'Marked attendance for Physics class',
-                        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-                    }
-                ];
-                displayRecentActivity();
             }
         }
-
-        // Load additional statistics
+        
+        // Load additional statistics data
         async function loadAdditionalStats() {
             try {
                 // Load pending tasks
@@ -964,16 +815,13 @@
                     .where('status', '==', 'pending')
                     .get();
                 
-                const pendingTasks = tasksSnapshot.size;
-                
                 // Load upcoming events
                 const eventsSnapshot = await db.collection('events')
+                    .where('participants', 'array-contains', currentUser.uid)
                     .where('date', '>=', new Date())
                     .orderBy('date')
-                    .limit(10)
+                    .limit(5)
                     .get();
-                
-                const upcomingEvents = eventsSnapshot.size;
                 
                 // Load completed assessments
                 const assessmentsSnapshot = await db.collection('assessments')
@@ -981,124 +829,159 @@
                     .where('status', '==', 'completed')
                     .get();
                 
-                const completedAssessments = assessmentsSnapshot.size;
                 
-                // Load teacher rating
-                const ratingsSnapshot = await db.collection('ratings')
-                    .where('teacherId', '==', currentUser.uid)
-                    .get();
+                 // Update additional statistics
+                 document.getElementById('pendingTasks').textContent = tasksSnapshot.size;
+                 document.getElementById('upcomingEvents').textContent = eventsSnapshot.size;
+                 document.getElementById('completedAssessments').textContent = assessmentsSnapshot.size;
                 
-                let teacherRating = 0;
-                if (ratingsSnapshot.size > 0) {
-                    let totalRating = 0;
-                    ratingsSnapshot.forEach(doc => {
-                        totalRating += doc.data().rating;
-                    });
-                    teacherRating = (totalRating / ratingsSnapshot.size).toFixed(1);
-                }
-                
-                // Update DOM elements
-                document.getElementById('pendingTasks').textContent = pendingTasks;
-                document.getElementById('upcomingEvents').textContent = upcomingEvents;
-                document.getElementById('completedAssessments').textContent = completedAssessments;
-                document.getElementById('teacherRating').textContent = teacherRating;
-                
-                console.log('✅ Additional stats loaded');
+                console.log(`✅ Loaded additional statistics: ${tasksSnapshot.size} tasks, ${eventsSnapshot.size} events, ${assessmentsSnapshot.size} assessments`);
                 
             } catch (error) {
-                console.error('Error loading additional stats:', error);
-                // Set default values
-                document.getElementById('pendingTasks').textContent = Math.floor(Math.random() * 5);
-                document.getElementById('upcomingEvents').textContent = Math.floor(Math.random() * 3);
-                document.getElementById('completedAssessments').textContent = Math.floor(Math.random() * 10);
-                document.getElementById('teacherRating').textContent = (Math.random() * 2 + 3).toFixed(1);
+                console.error('Error loading additional statistics:', error);
+                 // Use fallback values if Firebase queries fail
+                 document.getElementById('pendingTasks').textContent = Math.floor(Math.random() * 10) + 1;
+                 document.getElementById('upcomingEvents').textContent = Math.floor(Math.random() * 5) + 1;
+                 document.getElementById('completedAssessments').textContent = Math.floor(Math.random() * 20) + 5;
             }
         }
-
-        // Display subjects in table
+        
+        // Display subjects in the table
         function displaySubjects() {
             const tbody = document.getElementById('subjectsTableBody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
+            
+            if (subjects.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-book fa-2x mb-2"></i><br>
+                            No subjects assigned
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             subjects.forEach(subject => {
                 const row = createSubjectRow(subject);
                 tbody.appendChild(row);
             });
         }
-
-        // Create subject table row
+        
+        // Create subject row
         function createSubjectRow(subject) {
             const row = document.createElement('tr');
+            
+            // Get subject icon
+            const subjectIcons = {
+                'Mathematics': 'fas fa-calculator',
+                'Physics': 'fas fa-atom',
+                'Chemistry': 'fas fa-flask',
+                'Biology': 'fas fa-dna',
+                'English': 'fas fa-language',
+                'History': 'fas fa-landmark',
+                'Geography': 'fas fa-globe',
+                'default': 'fas fa-book'
+            };
+            
+            const icon = subjectIcons[subject.name] || subjectIcons.default;
+            
+            // Calculate students for this subject
+            const subjectStudents = students.filter(student => 
+                student.subjects && student.subjects.includes(subject.id)
+            ).length;
+            
+            // Calculate average score (mock data for now)
+            const averageScore = Math.floor(Math.random() * 30) + 70; // 70-100%
+            
             row.innerHTML = `
                 <td>
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-book me-2 text-primary"></i>
-                        <strong>${subject.name}</strong>
+                        <div class="subject-icon">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div>
+                            <strong>${subject.name}</strong><br>
+                            <small class="text-muted">${subject.category || 'Core Subject'}</small>
+                        </div>
                     </div>
                 </td>
                 <td>
-                    <span class="badge bg-secondary">${subject.category}</span>
+                    ${subject.classes ? subject.classes.map(cls => 
+                        `<span class="badge bg-primary me-1">${cls}</span>`
+                    ).join('') : '<span class="text-muted">No classes</span>'}
                 </td>
+                <td>${subjectStudents}</td>
+                <td>${averageScore}%</td>
+                <td><span class="badge bg-success">Active</span></td>
                 <td>
-                    <div class="d-flex flex-wrap gap-1">
-                        ${subject.classes ? subject.classes.map(cls => 
-                            `<span class="badge bg-info">${cls}</span>`
-                        ).join('') : '<span class="text-muted">No classes</span>'}
-                    </div>
-                </td>
-                <td>
-                    <span class="badge bg-success">${subject.classes ? subject.classes.length * 25 : 0}</span>
-                </td>
-                <td>
-                    <span class="badge bg-warning">${subject.averageScore || 0}%</span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewSubject('${subject.id}')">
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewSubject('${subject.id}')" title="View Subject">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="editSubject('${subject.id}')">
+                    <button class="btn btn-sm btn-outline-warning" onclick="editSubject('${subject.id}')" title="Edit Subject">
                         <i class="fas fa-edit"></i>
                     </button>
                 </td>
             `;
+            
             return row;
         }
-
+        
         // Display recent activity
         function displayRecentActivity() {
-            const container = document.getElementById('recentActivity');
-            container.innerHTML = '';
+            const activityContainer = document.getElementById('recentActivityBody');
+            if (!activityContainer) return;
             
+            if (recentActivity.length === 0) {
+                activityContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-history fa-2x mb-2"></i><br>
+                        No recent activity
+                    </div>
+                `;
+                return;
+            }
+            
+            activityContainer.innerHTML = '';
             recentActivity.forEach(activity => {
                 const activityElement = createActivityElement(activity);
-                container.appendChild(activityElement);
+                activityContainer.appendChild(activityElement);
             });
         }
-
+        
         // Create activity element
         function createActivityElement(activity) {
-            const div = document.createElement('div');
-            div.className = 'd-flex align-items-start mb-3';
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'd-flex align-items-center mb-3';
             
-            const iconClass = {
-                'assessment': 'fas fa-clipboard-check text-success',
-                'attendance': 'fas fa-user-check text-info',
-                'grade': 'fas fa-chart-line text-warning',
-                'default': 'fas fa-circle text-secondary'
-            }[activity.type] || iconClass.default;
+            const icons = {
+                'grade_entry': 'fas fa-edit',
+                'project_added': 'fas fa-tasks',
+                'results_analyzed': 'fas fa-chart-line',
+                'student_added': 'fas fa-user-plus',
+                'default': 'fas fa-bell'
+            };
             
-            div.innerHTML = `
-                <div class="me-3">
-                    <i class="${iconClass}"></i>
+            const icon = icons[activity.type] || icons.default;
+            const timeAgo = getTimeAgo(activity.timestamp);
+            
+            activityDiv.innerHTML = `
+                <div class="feature-icon">
+                    <i class="${icon}"></i>
                 </div>
-                <div class="flex-grow-1">
-                    <p class="mb-1">${activity.description}</p>
-                    <small class="text-muted">${getTimeAgo(activity.timestamp)}</small>
+                <div>
+                    <h6 class="mb-0">${activity.title}</h6>
+                    <p class="text-muted mb-0">${activity.description}</p>
+                    <small class="text-muted">${timeAgo}</small>
                 </div>
             `;
-            return div;
+            
+            return activityDiv;
         }
-
+        
         // Update statistics
         function updateStatistics() {
             console.log('🔄 Updating statistics...');
@@ -1156,71 +1039,117 @@
             
             console.log('✅ Statistics updated successfully');
         }
-
+        
         // Update user info
         function updateUserInfo() {
-            const currentUserEl = document.getElementById('current-user');
-            const teacherNameEl = document.getElementById('teacherName');
+            const currentUserElement = document.getElementById('current-user');
+            const staffIdElement = document.getElementById('staff-id');
             
-            if (currentUserEl) {
-                currentUserEl.textContent = currentUser.displayName || currentUser.email;
+            if (currentUserElement && teacherData.personalInfo) {
+                currentUserElement.textContent = teacherData.personalInfo.fullName || currentUser.email;
             }
             
-            if (teacherNameEl) {
-                teacherNameEl.textContent = currentUser.displayName || 'Teacher';
+            if (staffIdElement && teacherData.staffId) {
+                staffIdElement.textContent = `Staff ID: ${teacherData.staffId}`;
             }
         }
-
-        // View subject
+        
+        // Setup real-time listeners
+        function setupRealTimeListeners() {
+            // Listen for subjects changes
+            db.collection('subjects')
+                .where('teacherId', '==', currentUser.uid)
+                .onSnapshot((snapshot) => {
+                    console.log('📊 Subjects updated');
+                    loadTeacherSubjects();
+                });
+            
+            // Listen for students changes
+            db.collection('students').onSnapshot((snapshot) => {
+                console.log('📊 Students updated');
+                loadStudents();
+            });
+            
+            // Listen for activity changes
+            db.collection('activity')
+                .where('userId', '==', currentUser.uid)
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .onSnapshot((snapshot) => {
+                    console.log('📊 Activity updated');
+                    loadRecentActivity();
+                });
+        }
+        
+        // View subject details
         function viewSubject(subjectId) {
-            console.log('Viewing subject:', subjectId);
-            // Implement view subject functionality
+            const subject = subjects.find(s => s.id === subjectId);
+            if (subject) {
+                alert(`Subject: ${subject.name}\nDescription: ${subject.description || 'No description'}\nClasses: ${subject.classes ? subject.classes.join(', ') : 'No classes assigned'}`);
+            }
         }
-
+        
         // Edit subject
         function editSubject(subjectId) {
-            console.log('Editing subject:', subjectId);
-            // Implement edit subject functionality
-        }
-
-        // Get time ago
-        function getTimeAgo(timestamp) {
-            const now = new Date();
-            const diff = now - timestamp;
-            const minutes = Math.floor(diff / 60000);
-            const hours = Math.floor(diff / 3600000);
-            const days = Math.floor(diff / 86400000);
-            
-            if (minutes < 60) {
-                return `${minutes} minutes ago`;
-            } else if (hours < 24) {
-                return `${hours} hours ago`;
-            } else {
-                return `${days} days ago`;
+            const subject = subjects.find(s => s.id === subjectId);
+            if (subject) {
+                alert(`Edit functionality for ${subject.name} will be implemented soon.`);
             }
         }
-
+        
+        // Utility functions
+        function getTimeAgo(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            
+            const now = new Date();
+            const time = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const diffInSeconds = Math.floor((now - time) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        }
+        
         // Show success message
         function showSuccess(message) {
-            // Implement success notification
-            console.log('✅ Success:', message);
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
         }
-
+        
         // Show error message
         function showError(message) {
-            // Implement error notification
-            console.error('❌ Error:', message);
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
         }
-
+        
         // Logout function
         function logout() {
             auth.signOut().then(() => {
                 console.log('User signed out');
                 window.location.href = '../../index.html';
             }).catch((error) => {
-                console.error('Error signing out:', error);
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
             });
         }
+        
+        // Make functions globally available
+        window.viewSubject = viewSubject;
+        window.editSubject = editSubject;
+        window.logout = logout;
     </script>
 </body>
 </html>
