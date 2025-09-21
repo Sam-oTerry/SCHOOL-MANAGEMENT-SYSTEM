@@ -240,15 +240,33 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="studentClass" class="form-label">Class</label>
-                                    <select class="form-select" id="studentClass" required>
+                                    <select class="form-select" id="studentClass" required onchange="updateStreamOptions()">
                                         <option value="">Select Class</option>
+                                        <option value="S.1">Senior 1 (S.1)</option>
+                                        <option value="S.2">Senior 2 (S.2)</option>
+                                        <option value="S.3">Senior 3 (S.3)</option>
+                                        <option value="S.4">Senior 4 (S.4)</option>
+                                        <option value="S.5">Senior 5 (S.5)</option>
+                                        <option value="S.6">Senior 6 (S.6)</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="studentStream" class="form-label">Stream (Optional)</label>
+                                    <select class="form-select" id="studentStream">
+                                        <option value="">No Stream</option>
+                                        <option value="Science">Science</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Technical">Technical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="studentYear" class="form-label">Academic Year</label>
                                     <input type="text" class="form-control" id="studentYear" value="2024" required>
@@ -277,21 +295,98 @@
                             <label for="studentAddress" class="form-label">Address</label>
                             <textarea class="form-control" id="studentAddress" rows="3"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="studentGuardianName" class="form-label">Guardian Name</label>
-                            <input type="text" class="form-control" id="studentGuardianName">
-                        </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="studentGuardianPhone" class="form-label">Guardian Phone</label>
-                                    <input type="tel" class="form-control" id="studentGuardianPhone">
+                                    <label for="studentPaymentCode" class="form-label">Student Payment Code</label>
+                                    <input type="text" class="form-control" id="studentPaymentCode" placeholder="Auto-generated if empty">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="studentGuardianEmail" class="form-label">Guardian Email</label>
-                                    <input type="email" class="form-control" id="studentGuardianEmail">
+                                    <label for="studentAdmissionNumber" class="form-label">Admission Number</label>
+                                    <input type="text" class="form-control" id="studentAdmissionNumber" placeholder="Auto-generated if empty">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Parent/Guardian Information -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Parent/Guardian Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentName" class="form-label">Parent/Guardian Name</label>
+                                            <input type="text" class="form-control" id="parentName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentRelationship" class="form-label">Relationship</label>
+                                            <select class="form-select" id="parentRelationship" required>
+                                                <option value="">Select Relationship</option>
+                                                <option value="Father">Father</option>
+                                                <option value="Mother">Mother</option>
+                                                <option value="Guardian">Guardian</option>
+                                                <option value="Uncle">Uncle</option>
+                                                <option value="Aunt">Aunt</option>
+                                                <option value="Grandfather">Grandfather</option>
+                                                <option value="Grandmother">Grandmother</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentPhone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="parentPhone" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="parentEmail">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentOccupation" class="form-label">Occupation</label>
+                                            <input type="text" class="form-control" id="parentOccupation">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentWorkplace" class="form-label">Workplace</label>
+                                            <input type="text" class="form-control" id="parentWorkplace">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="parentAddress" class="form-label">Parent/Guardian Address</label>
+                                    <textarea class="form-control" id="parentAddress" rows="2"></textarea>
+                                </div>
+                                
+                                <!-- Emergency Contact -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
+                                            <input type="text" class="form-control" id="emergencyContactName">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                            <input type="tel" class="form-control" id="emergencyContactPhone">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -345,15 +440,33 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="editStudentClass" class="form-label">Class</label>
-                                    <select class="form-select" id="editStudentClass" required>
+                                    <select class="form-select" id="editStudentClass" required onchange="updateEditStreamOptions()">
                                         <option value="">Select Class</option>
+                                        <option value="S.1">Senior 1 (S.1)</option>
+                                        <option value="S.2">Senior 2 (S.2)</option>
+                                        <option value="S.3">Senior 3 (S.3)</option>
+                                        <option value="S.4">Senior 4 (S.4)</option>
+                                        <option value="S.5">Senior 5 (S.5)</option>
+                                        <option value="S.6">Senior 6 (S.6)</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editStudentStream" class="form-label">Stream (Optional)</label>
+                                    <select class="form-select" id="editStudentStream">
+                                        <option value="">No Stream</option>
+                                        <option value="Science">Science</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Technical">Technical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="editStudentYear" class="form-label">Academic Year</label>
                                     <input type="text" class="form-control" id="editStudentYear" required>
@@ -382,21 +495,98 @@
                             <label for="editStudentAddress" class="form-label">Address</label>
                             <textarea class="form-control" id="editStudentAddress" rows="3"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="editStudentGuardianName" class="form-label">Guardian Name</label>
-                            <input type="text" class="form-control" id="editStudentGuardianName">
-                        </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="editStudentGuardianPhone" class="form-label">Guardian Phone</label>
-                                    <input type="tel" class="form-control" id="editStudentGuardianPhone">
+                                    <label for="editStudentPaymentCode" class="form-label">Student Payment Code</label>
+                                    <input type="text" class="form-control" id="editStudentPaymentCode">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="editStudentGuardianEmail" class="form-label">Guardian Email</label>
-                                    <input type="email" class="form-control" id="editStudentGuardianEmail">
+                                    <label for="editStudentAdmissionNumber" class="form-label">Admission Number</label>
+                                    <input type="text" class="form-control" id="editStudentAdmissionNumber">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Parent/Guardian Information -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Parent/Guardian Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentName" class="form-label">Parent/Guardian Name</label>
+                                            <input type="text" class="form-control" id="editParentName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentRelationship" class="form-label">Relationship</label>
+                                            <select class="form-select" id="editParentRelationship" required>
+                                                <option value="">Select Relationship</option>
+                                                <option value="Father">Father</option>
+                                                <option value="Mother">Mother</option>
+                                                <option value="Guardian">Guardian</option>
+                                                <option value="Uncle">Uncle</option>
+                                                <option value="Aunt">Aunt</option>
+                                                <option value="Grandfather">Grandfather</option>
+                                                <option value="Grandmother">Grandmother</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentPhone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="editParentPhone" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="editParentEmail">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentOccupation" class="form-label">Occupation</label>
+                                            <input type="text" class="form-control" id="editParentOccupation">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentWorkplace" class="form-label">Workplace</label>
+                                            <input type="text" class="form-control" id="editParentWorkplace">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editParentAddress" class="form-label">Parent/Guardian Address</label>
+                                    <textarea class="form-control" id="editParentAddress" rows="2"></textarea>
+                                </div>
+                                
+                                <!-- Emergency Contact -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editEmergencyContactName" class="form-label">Emergency Contact Name</label>
+                                            <input type="text" class="form-control" id="editEmergencyContactName">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editEmergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                            <input type="tel" class="form-control" id="editEmergencyContactPhone">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -675,6 +865,37 @@
             }
         }
         
+        // Update stream options based on class selection
+        function updateStreamOptions() {
+            const classSelect = document.getElementById('studentClass');
+            const streamSelect = document.getElementById('studentStream');
+            
+            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+                // A-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+                // O-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else {
+                // S.1 and S.2 - no streams typically
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                `;
+            }
+        }
+        
         // Add new student
         async function addStudent() {
             const firstName = document.getElementById('studentFirstName').value;
@@ -682,22 +903,35 @@
             const email = document.getElementById('studentEmail').value;
             const phone = document.getElementById('studentPhone').value;
             const studentClass = document.getElementById('studentClass').value;
+            const studentStream = document.getElementById('studentStream').value;
             const academicYear = document.getElementById('studentYear').value;
             const dateOfBirth = document.getElementById('studentDateOfBirth').value;
             const gender = document.getElementById('studentGender').value;
             const address = document.getElementById('studentAddress').value;
-            const guardianName = document.getElementById('studentGuardianName').value;
-            const guardianPhone = document.getElementById('studentGuardianPhone').value;
-            const guardianEmail = document.getElementById('studentGuardianEmail').value;
+            const paymentCode = document.getElementById('studentPaymentCode').value;
+            const admissionNumber = document.getElementById('studentAdmissionNumber').value;
             
-            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender) {
+            // Parent/Guardian information
+            const parentName = document.getElementById('parentName').value;
+            const parentRelationship = document.getElementById('parentRelationship').value;
+            const parentPhone = document.getElementById('parentPhone').value;
+            const parentEmail = document.getElementById('parentEmail').value;
+            const parentOccupation = document.getElementById('parentOccupation').value;
+            const parentWorkplace = document.getElementById('parentWorkplace').value;
+            const parentAddress = document.getElementById('parentAddress').value;
+            const emergencyContactName = document.getElementById('emergencyContactName').value;
+            const emergencyContactPhone = document.getElementById('emergencyContactPhone').value;
+            
+            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender || !parentName || !parentRelationship || !parentPhone) {
                 showError('Please fill in all required fields.');
                 return;
             }
             
             try {
-                // Generate student ID
+                // Generate student ID and payment code if not provided
                 const studentId = `STU${Date.now().toString().slice(-6)}`;
+                const finalPaymentCode = paymentCode || `PAY${Date.now().toString().slice(-8)}`;
+                const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
                 
                 const studentData = {
                     firstName: firstName,
@@ -705,15 +939,26 @@
                     email: email,
                     phone: phone || '',
                     studentId: studentId,
+                    admissionNumber: finalAdmissionNumber,
+                    paymentCode: finalPaymentCode,
                     class: studentClass,
+                    stream: studentStream || null,
                     academicYear: academicYear,
                     dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
                     gender: gender,
                     address: address || '',
-                    guardian: {
-                        name: guardianName || '',
-                        phone: guardianPhone || '',
-                        email: guardianEmail || ''
+                    parent: {
+                        name: parentName,
+                        relationship: parentRelationship,
+                        phone: parentPhone,
+                        email: parentEmail || '',
+                        occupation: parentOccupation || '',
+                        workplace: parentWorkplace || '',
+                        address: parentAddress || ''
+                    },
+                    emergencyContact: {
+                        name: emergencyContactName || '',
+                        phone: emergencyContactPhone || ''
                     },
                     status: 'active',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -733,6 +978,37 @@
             }
         }
         
+        // Update edit stream options based on class selection
+        function updateEditStreamOptions() {
+            const classSelect = document.getElementById('editStudentClass');
+            const streamSelect = document.getElementById('editStudentStream');
+            
+            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+                // A-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+                // O-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else {
+                // S.1 and S.2 - no streams typically
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                `;
+            }
+        }
+        
         // Edit student
         function editStudent(studentId) {
             const student = students.find(s => s.id === studentId);
@@ -744,14 +1020,26 @@
             document.getElementById('editStudentEmail').value = student.email || '';
             document.getElementById('editStudentPhone').value = student.phone || '';
             document.getElementById('editStudentClass').value = student.class || '';
+            document.getElementById('editStudentStream').value = student.stream || '';
             document.getElementById('editStudentYear').value = student.academicYear || '';
             document.getElementById('editStudentDateOfBirth').value = student.dateOfBirth ? 
                 new Date(student.dateOfBirth.seconds * 1000).toISOString().split('T')[0] : '';
             document.getElementById('editStudentGender').value = student.gender || '';
             document.getElementById('editStudentAddress').value = student.address || '';
-            document.getElementById('editStudentGuardianName').value = student.guardian?.name || '';
-            document.getElementById('editStudentGuardianPhone').value = student.guardian?.phone || '';
-            document.getElementById('editStudentGuardianEmail').value = student.guardian?.email || '';
+            document.getElementById('editStudentPaymentCode').value = student.paymentCode || '';
+            document.getElementById('editStudentAdmissionNumber').value = student.admissionNumber || '';
+            
+            // Parent/Guardian information
+            document.getElementById('editParentName').value = student.parent?.name || '';
+            document.getElementById('editParentRelationship').value = student.parent?.relationship || '';
+            document.getElementById('editParentPhone').value = student.parent?.phone || '';
+            document.getElementById('editParentEmail').value = student.parent?.email || '';
+            document.getElementById('editParentOccupation').value = student.parent?.occupation || '';
+            document.getElementById('editParentWorkplace').value = student.parent?.workplace || '';
+            document.getElementById('editParentAddress').value = student.parent?.address || '';
+            document.getElementById('editEmergencyContactName').value = student.emergencyContact?.name || '';
+            document.getElementById('editEmergencyContactPhone').value = student.emergencyContact?.phone || '';
+            
             document.getElementById('editStudentStatus').value = student.status || 'active';
             
             new bootstrap.Modal(document.getElementById('editStudentModal')).show();
@@ -765,16 +1053,27 @@
             const email = document.getElementById('editStudentEmail').value;
             const phone = document.getElementById('editStudentPhone').value;
             const studentClass = document.getElementById('editStudentClass').value;
+            const studentStream = document.getElementById('editStudentStream').value;
             const academicYear = document.getElementById('editStudentYear').value;
             const dateOfBirth = document.getElementById('editStudentDateOfBirth').value;
             const gender = document.getElementById('editStudentGender').value;
             const address = document.getElementById('editStudentAddress').value;
-            const guardianName = document.getElementById('editStudentGuardianName').value;
-            const guardianPhone = document.getElementById('editStudentGuardianPhone').value;
-            const guardianEmail = document.getElementById('editStudentGuardianEmail').value;
+            const paymentCode = document.getElementById('editStudentPaymentCode').value;
+            const admissionNumber = document.getElementById('editStudentAdmissionNumber').value;
+            
+            // Parent/Guardian information
+            const parentName = document.getElementById('editParentName').value;
+            const parentRelationship = document.getElementById('editParentRelationship').value;
+            const parentPhone = document.getElementById('editParentPhone').value;
+            const parentEmail = document.getElementById('editParentEmail').value;
+            const parentOccupation = document.getElementById('editParentOccupation').value;
+            const parentWorkplace = document.getElementById('editParentWorkplace').value;
+            const parentAddress = document.getElementById('editParentAddress').value;
+            const emergencyContactName = document.getElementById('editEmergencyContactName').value;
+            const emergencyContactPhone = document.getElementById('editEmergencyContactPhone').value;
             const status = document.getElementById('editStudentStatus').value;
             
-            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender) {
+            if (!firstName || !lastName || !email || !studentClass || !academicYear || !dateOfBirth || !gender || !parentName || !parentRelationship || !parentPhone) {
                 showError('Please fill in all required fields.');
                 return;
             }
@@ -786,14 +1085,25 @@
                     email: email,
                     phone: phone || '',
                     class: studentClass,
+                    stream: studentStream || null,
                     academicYear: academicYear,
                     dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
                     gender: gender,
                     address: address || '',
-                    guardian: {
-                        name: guardianName || '',
-                        phone: guardianPhone || '',
-                        email: guardianEmail || ''
+                    paymentCode: paymentCode || '',
+                    admissionNumber: admissionNumber || '',
+                    parent: {
+                        name: parentName,
+                        relationship: parentRelationship,
+                        phone: parentPhone,
+                        email: parentEmail || '',
+                        occupation: parentOccupation || '',
+                        workplace: parentWorkplace || '',
+                        address: parentAddress || ''
+                    },
+                    emergencyContact: {
+                        name: emergencyContactName || '',
+                        phone: emergencyContactPhone || ''
                     },
                     status: status,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1149,6 +1459,8 @@
         window.clearFilters = clearFilters;
         window.exportStudents = exportStudents;
         window.printStudents = printStudents;
+        window.updateStreamOptions = updateStreamOptions;
+        window.updateEditStreamOptions = updateEditStreamOptions;
         window.logout = logout;
     </script>
 </body>
