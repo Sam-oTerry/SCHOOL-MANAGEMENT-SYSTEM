@@ -337,8 +337,8 @@
                                     <select class="form-select" id="academicYear" required onchange="updateTermNameOptions()">
                                         <option value="">Select Year</option>
                                     </select>
-                                </div>
                             </div>
+                        </div>
                     </div>
                         <div class="row">
                             <div class="col-md-6">
@@ -626,7 +626,7 @@
         
         // Create term row
         function createTermRow(term) {
-            const row = document.createElement('tr');
+                const row = document.createElement('tr');
             const startDate = term.startDate ? new Date(term.startDate.seconds * 1000).toLocaleDateString() : 'Not set';
             const endDate = term.endDate ? new Date(term.endDate.seconds * 1000).toLocaleDateString() : 'Not set';
             
@@ -666,11 +666,11 @@
                 duration = `${diffDays} days (${weeks} weeks)`;
             }
             
-            row.innerHTML = `
+                row.innerHTML = `
                 <td>
                     <strong>${term.termName || 'N/A'}</strong>
                     ${status === 'Active' ? '<br><small class="text-success"><i class="fas fa-circle"></i> Current Term</small>' : ''}
-                </td>
+                    </td>
                 <td>${term.academicYear || 'N/A'}</td>
                 <td>${startDate}</td>
                 <td>${endDate}</td>
@@ -699,8 +699,8 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                </td>
-            `;
+                    </td>
+                `;
             
             return row;
         }
