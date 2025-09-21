@@ -54,6 +54,11 @@
             padding: 15px 20px;
         }
         
+        .stat-card-wrapper {
+            flex: 0 0 auto;
+            width: 140px;
+        }
+        
         .stat-card {
             text-align: center;
             padding: 15px;
@@ -61,6 +66,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            width: 100%;
         }
         
         .stat-card i {
@@ -199,6 +205,9 @@
         
         /* Responsive Statistics */
         @media (max-width: 1200px) {
+            .stat-card-wrapper {
+                width: 120px;
+            }
             .stat-card {
                 min-height: 100px;
                 padding: 12px;
@@ -215,8 +224,10 @@
         }
         
         @media (max-width: 768px) {
+            .stat-card-wrapper {
+                width: 100px;
+            }
             .stat-card {
-                margin-bottom: 1rem;
                 min-height: 90px;
                 padding: 10px;
             }
@@ -233,6 +244,9 @@
         }
         
         @media (max-width: 576px) {
+            .stat-card-wrapper {
+                width: 80px;
+            }
             .stat-card {
                 min-height: 80px;
                 padding: 8px;
@@ -338,60 +352,64 @@
                 
                 <!-- Statistics Overview - Single Horizontal Row -->
                 <div class="row mb-4" id="statsSection" style="display: none;">
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-book"></i>
-                            <div class="number" id="totalSubjects">0</div>
-                            <div class="label">My Subjects</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <div class="number" id="totalClasses">0</div>
-                            <div class="label">Classes Teaching</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-users"></i>
-                            <div class="number" id="totalStudents">0</div>
-                            <div class="label">My Students</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-chart-line"></i>
-                            <div class="number" id="averagePerformance">0%</div>
-                            <div class="label">Avg Performance</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-tasks"></i>
-                            <div class="number" id="pendingTasks">0</div>
-                            <div class="label">Pending Tasks</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-calendar-check"></i>
-                            <div class="number" id="upcomingEvents">0</div>
-                            <div class="label">Upcoming Events</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-graduation-cap"></i>
-                            <div class="number" id="completedAssessments">0</div>
-                            <div class="label">Completed Assessments</div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 col-md-3 col-sm-6 mb-3">
-                        <div class="card stat-card">
-                            <i class="fas fa-star"></i>
-                            <div class="number" id="teacherRating">0.0</div>
-                            <div class="label">Teacher Rating</div>
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap justify-content-center gap-3">
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-book"></i>
+                                    <div class="number" id="totalSubjects">0</div>
+                                    <div class="label">My Subjects</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                    <div class="number" id="totalClasses">0</div>
+                                    <div class="label">Classes Teaching</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-users"></i>
+                                    <div class="number" id="totalStudents">0</div>
+                                    <div class="label">My Students</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-chart-line"></i>
+                                    <div class="number" id="averagePerformance">0%</div>
+                                    <div class="label">Avg Performance</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-tasks"></i>
+                                    <div class="number" id="pendingTasks">0</div>
+                                    <div class="label">Pending Tasks</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <div class="number" id="upcomingEvents">0</div>
+                                    <div class="label">Upcoming Events</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <div class="number" id="completedAssessments">0</div>
+                                    <div class="label">Completed Assessments</div>
+                                </div>
+                            </div>
+                            <div class="stat-card-wrapper">
+                                <div class="card stat-card">
+                                    <i class="fas fa-star"></i>
+                                    <div class="number" id="teacherRating">0.0</div>
+                                    <div class="label">Teacher Rating</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
