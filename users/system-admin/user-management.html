@@ -216,147 +216,167 @@
 
     <!-- Create User Modal -->
     <div class="modal fade" id="createUserModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New User</h5>
+                    <h5 class="modal-title">Add New User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="create-user-form">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first-name" required>
-                                </div>
+                        <!-- Personal Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Personal Information</h6>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last-name" required>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="first-name" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="first-name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="last-name" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="last-name" required>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Username</label>
-                                    <input type="text" class="form-control" id="username" required>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" id="phone" placeholder="+256 700 123 456">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="confirm-password" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Role</label>
-                                    <select class="form-select" id="user-role" required>
-                                        <option value="">Select Role</option>
-                                        <option value="head-teacher">Head Teacher</option>
-                                        <option value="system-admin">System Administrator</option>
-                                        <option value="dos">Director of Studies</option>
-                                        <option value="bursar">Bursar</option>
-                                        <option value="class-teacher">Class Teacher</option>
-                                        <option value="subject-teacher">Subject Teacher</option>
-                                        <option value="hod">Head of Department</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" id="phone" placeholder="+256 700 123 456">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" rows="2" placeholder="Enter address"></textarea>
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <textarea class="form-control" id="address" rows="2" placeholder="Enter address"></textarea>
+
+                        <!-- Account Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Account Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="password" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="confirm-password" class="form-label">Confirm Password</label>
+                                            <input type="password" class="form-control" id="confirm-password" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="user-role" class="form-label">Role</label>
+                                            <select class="form-select" id="user-role" required>
+                                                <option value="">Select Role</option>
+                                                <option value="system_admin">System Administrator</option>
+                                                <option value="head_teacher">Head Teacher</option>
+                                                <option value="bursar">Bursar</option>
+                                                <option value="class_teacher">Class Teacher</option>
+                                                <option value="subject_teacher">Subject Teacher</option>
+                                                <option value="hod">Head of Department</option>
+                                                <option value="dos">Director of Studies</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="department" class="form-label">Department</label>
+                                            <select class="form-select" id="department">
+                                                                <option value="">Select Department</option>
+                                                <!-- Compulsory Subjects (Senior 1–Senior 2) -->
+                                                <optgroup label="Compulsory Subjects (S1-S2)">
+                                                    <option value="english">English Language</option>
+                                                    <option value="mathematics">Mathematics</option>
+                                                    <option value="history">History & Political Education</option>
+                                                    <option value="physics">Physics</option>
+                                                    <option value="chemistry">Chemistry</option>
+                                                    <option value="biology">Biology</option>
+                                                    <option value="geography">Geography</option>
+                                                    <option value="kiswahili">Kiswahili</option>
+                                                    <option value="pe">Physical Education</option>
+                                                    <option value="re">Religious Education</option>
+                                                    <option value="general_science">General Science</option>
+                                                </optgroup>
+                                                <!-- Elective Subjects (S1-S2) -->
+                                                <optgroup label="Elective Subjects (S1-S2)">
+                                                    <option value="literature">Literature in English</option>
+                                                    <option value="luganda">Luganda</option>
+                                                    <option value="french">French</option>
+                                                    <option value="fine_art">Fine Art</option>
+                                                    <option value="entrepreneurship">Entrepreneurship Education</option>
+                                                    <option value="performing_arts">Performing Arts</option>
+                                                    <option value="agriculture">Agriculture</option>
+                                                    <option value="ict">Information and Computer Technology (ICT)</option>
+                                                    <option value="business">Business Studies/Commerce</option>
+                                                    <option value="home_economics">Home Economics</option>
+                                                    <option value="woodwork">Woodwork</option>
+                                                    <option value="metal_fabrication">Metal Fabrication</option>
+                                                </optgroup>
+                                                <!-- Upper Secondary Principal Subjects (S5-S6) -->
+                                                <optgroup label="Upper Secondary Principal Subjects (S5-S6)">
+                                                    <option value="biology_al">Biology (A-Level)</option>
+                                                    <option value="chemistry_al">Chemistry (A-Level)</option>
+                                                    <option value="physics_al">Physics (A-Level)</option>
+                                                    <option value="mathematics_al">Mathematics (A-Level)</option>
+                                                    <option value="geography_al">Geography (A-Level)</option>
+                                                    <option value="economics">Economics</option>
+                                                    <option value="history_al">History (A-Level)</option>
+                                                    <option value="literature_al">Literature in English (A-Level)</option>
+                                                    <option value="divinity">Divinity (Religious Studies)</option>
+                                                    <option value="fine_art_al">Fine Art (A-Level)</option>
+                                                    <option value="business_al">Business Studies (A-Level)</option>
+                                                    <option value="entrepreneurship_al">Entrepreneurship (A-Level)</option>
+                                                    <option value="accountancy">Accountancy</option>
+                                                </optgroup>
+                                                <!-- Compulsory Subsidiary Subjects (S5-S6) -->
+                                                <optgroup label="Compulsory Subsidiary Subjects (S5-S6)">
+                                                    <option value="general_paper">General Paper</option>
+                                                    <option value="subsidiary_math">Subsidiary Mathematics</option>
+                                                    <option value="subsidiary_ict">Subsidiary ICT</option>
+                                                </optgroup>
+                                                <!-- Administration -->
+                                                <optgroup label="Administration">
+                                                    <option value="administration">Administration</option>
+                                                    <option value="support">Support Staff</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Department</label>
-                            <select class="form-select" id="department">
-                                <option value="">Select Department</option>
-                                
-                                <!-- Administration -->
-                                <option value="administration">Administration</option>
-                                <option value="support">Support Staff</option>
-                                
-                                <!-- Compulsory Subjects (Senior 1-2) -->
-                                <optgroup label="Compulsory Subjects (S1-S2)">
-                                    <option value="english-language">English Language</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="history-political-education">History & Political Education</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="biology">Biology</option>
-                                    <option value="geography">Geography</option>
-                                    <option value="kiswahili">Kiswahili</option>
-                                    <option value="physical-education">Physical Education</option>
-                                    <option value="religious-education">Religious Education</option>
-                                    <option value="general-science">General Science</option>
-                                </optgroup>
-                                
-                                <!-- Elective Subjects (S1-S2) -->
-                                <optgroup label="Elective Subjects (S1-S2)">
-                                    <option value="literature-english">Literature in English</option>
-                                    <option value="luganda">Luganda (or other local languages)</option>
-                                    <option value="french">French</option>
-                                    <option value="fine-art">Fine Art</option>
-                                    <option value="entrepreneurship-education">Entrepreneurship Education</option>
-                                    <option value="performing-arts">Performing Arts</option>
-                                    <option value="agriculture">Agriculture</option>
-                                    <option value="ict">Information and Computer Technology (ICT)</option>
-                                    <option value="business-studies">Business Studies/Commerce</option>
-                                    <option value="home-economics">Home Economics</option>
-                                    <option value="woodwork">Woodwork</option>
-                                    <option value="metal-fabrication">Metal Fabrication</option>
-                                </optgroup>
-                                
-                                <!-- Upper Secondary (S5-S6) Principal Subjects -->
-                                <optgroup label="Upper Secondary Principal Subjects (S5-S6)">
-                                    <option value="biology-advanced">Biology (A-Level)</option>
-                                    <option value="chemistry-advanced">Chemistry (A-Level)</option>
-                                    <option value="physics-advanced">Physics (A-Level)</option>
-                                    <option value="mathematics-advanced">Mathematics (A-Level)</option>
-                                    <option value="geography-advanced">Geography (A-Level)</option>
-                                    <option value="economics">Economics</option>
-                                    <option value="history-advanced">History (A-Level)</option>
-                                    <option value="literature-english-advanced">Literature in English (A-Level)</option>
-                                    <option value="divinity">Divinity (Religious Studies)</option>
-                                    <option value="fine-art-advanced">Fine Art (A-Level)</option>
-                                    <option value="business-studies-advanced">Business Studies (A-Level)</option>
-                                    <option value="entrepreneurship-advanced">Entrepreneurship (A-Level)</option>
-                                    <option value="accountancy">Accountancy</option>
-                                </optgroup>
-                                
-                                <!-- Compulsory Subsidiary Subjects -->
-                                <optgroup label="Compulsory Subsidiary Subjects (S5-S6)">
-                                    <option value="general-paper">General Paper</option>
-                                    <option value="subsidiary-mathematics">Subsidiary Mathematics</option>
-                                    <option value="subsidiary-ict">Subsidiary ICT</option>
-                                </optgroup>
-                            </select>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
@@ -778,6 +798,12 @@
         
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
+            // Skip auth state change if we're creating a user
+            if (window.isCreatingUser) {
+                console.log('🔄 Skipping auth state change during user creation');
+                return;
+            }
+            
             if (user) {
                 db.collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
@@ -1076,6 +1102,9 @@
                 let retryCount = 0;
                 const maxRetries = 3;
                 
+                // Set a flag to prevent auth state change from logging out user
+                window.isCreatingUser = true;
+                
                 while (retryCount < maxRetries) {
                     try {
                         userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -1094,7 +1123,7 @@
                 }
                 
                 const user = userCredential.user;
-                console.log('👤 User object:', user);
+                console.log('👤 New user created:', user.uid);
                 
                 // Update user profile (optional - continue even if this fails)
                 console.log('👤 Updating user profile...');
@@ -1166,6 +1195,9 @@
                 bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
                 loadAllUsers();
                 
+                // Clear the flag after successful creation
+                window.isCreatingUser = false;
+                
             } catch (error) {
                 console.error('Error creating user:', error);
                 if (error.code === 'auth/email-already-in-use') {
@@ -1187,6 +1219,9 @@
                 // Restore button state
                 createButton.innerHTML = originalText;
                 createButton.disabled = false;
+                
+                // Clear the flag in case of error
+                window.isCreatingUser = false;
             }
         }
         
