@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements - System Administrator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
+    <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                        <h6 class="text-muted">System Administrator</h6>
+                        <small class="text-muted">Staff ID: SYS1234</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-dashboard.html">
+                                <i class="fas fa-tachometer-alt"></i> System Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="user-management.html">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="academic-calendar.html">
+                                <i class="fas fa-calendar-alt"></i> Academic Calendar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="term-management.html">
+                                <i class="fas fa-calendar-check"></i> Term Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="system-settings.html">
+                                <i class="fas fa-cog"></i> System Settings
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <hr>
+                    <div class="text-center">
+                        <button class="btn btn-outline-danger btn-sm" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Announcements</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportAnnouncements()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printAnnouncements()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addAnnouncementModal">
+                            <i class="fas fa-plus"></i> New Announcement
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search announcements..." onkeyup="searchAnnouncements()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter" onchange="filterAnnouncements()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="typeFilter" onchange="filterAnnouncements()">
+                            <option value="all">All Types</option>
+                            <option value="general">General</option>
+                            <option value="academic">Academic</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="event">Event</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Announcements Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bullhorn text-primary mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Total Announcements</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-eye text-success mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Active</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock text-warning mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Draft</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle text-danger mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Urgent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Announcements</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="announcementsList">
+                            <!-- Announcements will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Announcement Modal -->
+    <div class="modal fade" id="addAnnouncementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAnnouncementForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="announcementTitle" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="announcementTitle" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="announcementType" class="form-label">Type</label>
+                                    <select class="form-select" id="announcementType" required>
+                                        <option value="general">General</option>
+                                        <option value="academic">Academic</option>
+                                        <option value="urgent">Urgent</option>
+                                        <option value="event">Event</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="announcementContent" class="form-label">Content</label>
+                            <textarea class="form-control" id="announcementContent" rows="6" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="announcementStartDate" class="form-label">Start Date</label>
+                                    <input type="datetime-local" class="form-control" id="announcementStartDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="announcementEndDate" class="form-label">End Date</label>
+                                    <input type="datetime-local" class="form-control" id="announcementEndDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="announcementTarget" class="form-label">Target Audience</label>
+                            <select class="form-select" id="announcementTarget" multiple>
+                                <option value="all">All Users</option>
+                                <option value="students">Students</option>
+                                <option value="staff">Staff</option>
+                                <option value="parents">Parents</option>
+                                <option value="admin">Administrators</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="announcementPinned">
+                                <label class="form-check-label" for="announcementPinned">
+                                    Pin to top
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addAnnouncement()">Publish</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="saveDraft()">Save as Draft</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Announcement Modal -->
+    <div class="modal fade" id="editAnnouncementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editAnnouncementForm">
+                        <input type="hidden" id="editAnnouncementId">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="editAnnouncementTitle" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="editAnnouncementTitle" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editAnnouncementType" class="form-label">Type</label>
+                                    <select class="form-select" id="editAnnouncementType" required>
+                                        <option value="general">General</option>
+                                        <option value="academic">Academic</option>
+                                        <option value="urgent">Urgent</option>
+                                        <option value="event">Event</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAnnouncementContent" class="form-label">Content</label>
+                            <textarea class="form-control" id="editAnnouncementContent" rows="6" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editAnnouncementStartDate" class="form-label">Start Date</label>
+                                    <input type="datetime-local" class="form-control" id="editAnnouncementStartDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editAnnouncementEndDate" class="form-label">End Date</label>
+                                    <input type="datetime-local" class="form-control" id="editAnnouncementEndDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAnnouncementTarget" class="form-label">Target Audience</label>
+                            <select class="form-select" id="editAnnouncementTarget" multiple>
+                                <option value="all">All Users</option>
+                                <option value="students">Students</option>
+                                <option value="staff">Staff</option>
+                                <option value="parents">Parents</option>
+                                <option value="admin">Administrators</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editAnnouncementPinned">
+                                <label class="form-check-label" for="editAnnouncementPinned">
+                                    Pin to top
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateAnnouncement()">Update</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteAnnouncement()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentUser = null;
+        let announcements = [];
+        let filteredAnnouncements = [];
+        
+        // Check authentication and role
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        const userRole = userData.role;
+                        
+                        if (userRole === 'system_admin') {
+                            console.log('✅ System Administrator authenticated:', user.email);
+                            currentUser = user;
+                            loadAnnouncements();
+                        } else {
+                            console.log('❌ Access denied. Required role: system_admin');
+                            alert('Access denied. You do not have system administrator privileges.');
+                            auth.signOut().then(() => {
+                                window.location.href = '../../index.html';
+                            });
+                        }
+                    } else {
+                        console.log('❌ User document not found');
+                        auth.signOut().then(() => {
+                            window.location.href = '../../index.html';
+                        });
+                    }
+                });
+            } else {
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+            }
+        });
+        
+        // Load announcements from Firebase
+        async function loadAnnouncements() {
+            try {
+                const announcementsSnapshot = await db.collection('announcements')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                announcements = [];
+                announcementsSnapshot.forEach(doc => {
+                    const announcementData = doc.data();
+                    announcements.push({
+                        id: doc.id,
+                        ...announcementData
+                    });
+                });
+                
+                filteredAnnouncements = [...announcements];
+                displayAnnouncements();
+                updateAnnouncementStats();
+                
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                showError('Failed to load announcements. Please try again.');
+            }
+        }
+        
+        // Display announcements
+        function displayAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (filteredAnnouncements.length === 0) {
+                container.innerHTML = '<div class="text-center py-4"><p class="text-muted">No announcements found.</p></div>';
+                return;
+            }
+            
+            filteredAnnouncements.forEach(announcement => {
+                const announcementCard = createAnnouncementCard(announcement);
+                container.appendChild(announcementCard);
+            });
+        }
+        
+        // Create announcement card
+        function createAnnouncementCard(announcement) {
+            const card = document.createElement('div');
+            card.className = 'card mb-3';
+            
+            const typeColors = {
+                'general': 'primary',
+                'academic': 'info',
+                'urgent': 'danger',
+                'event': 'success'
+            };
+            
+            const statusColors = {
+                'active': 'success',
+                'expired': 'secondary',
+                'draft': 'warning'
+            };
+            
+            const typeColor = typeColors[announcement.type] || 'primary';
+            const statusColor = statusColors[announcement.status] || 'secondary';
+            
+            const startDate = announcement.startDate ? new Date(announcement.startDate.seconds * 1000).toLocaleString() : 'Not set';
+            const endDate = announcement.endDate ? new Date(announcement.endDate.seconds * 1000).toLocaleString() : 'No end date';
+            const createdDate = announcement.createdAt ? new Date(announcement.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+            
+            card.innerHTML = `
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">${announcement.title}</h6>
+                        <small class="text-muted">Created: ${createdDate}</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-${typeColor} me-2">${announcement.type.toUpperCase()}</span>
+                        <span class="badge bg-${statusColor}">${announcement.status.toUpperCase()}</span>
+                        ${announcement.pinned ? '<span class="badge bg-warning ms-2">PINNED</span>' : ''}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">${announcement.content}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Start:</strong> ${startDate}<br>
+                                <strong>End:</strong> ${endDate}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Target:</strong> ${announcement.targetAudience ? announcement.targetAudience.join(', ') : 'All Users'}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editAnnouncement('${announcement.id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewAnnouncement('${announcement.id}')" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="toggleAnnouncementStatus('${announcement.id}')" title="Toggle Status">
+                            <i class="fas fa-toggle-${announcement.status === 'active' ? 'on' : 'off'}"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteAnnouncement('${announcement.id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // Update announcement statistics
+        function updateAnnouncementStats() {
+            const totalAnnouncements = announcements.length;
+            const activeAnnouncements = announcements.filter(a => a.status === 'active').length;
+            const draftAnnouncements = announcements.filter(a => a.status === 'draft').length;
+            const urgentAnnouncements = announcements.filter(a => a.type === 'urgent').length;
+            
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalAnnouncements;
+                statsCards[1].textContent = activeAnnouncements;
+                statsCards[2].textContent = draftAnnouncements;
+                statsCards[3].textContent = urgentAnnouncements;
+            }
+        }
+        
+        // Add new announcement
+        async function addAnnouncement() {
+            const title = document.getElementById('announcementTitle').value;
+            const type = document.getElementById('announcementType').value;
+            const content = document.getElementById('announcementContent').value;
+            const startDate = document.getElementById('announcementStartDate').value;
+            const endDate = document.getElementById('announcementEndDate').value;
+            const targetAudience = Array.from(document.getElementById('announcementTarget').selectedOptions).map(option => option.value);
+            const pinned = document.getElementById('announcementPinned').checked;
+            
+            if (!title || !content || !startDate) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                const announcementData = {
+                    title: title,
+                    type: type,
+                    content: content,
+                    startDate: firebase.firestore.Timestamp.fromDate(new Date(startDate)),
+                    endDate: endDate ? firebase.firestore.Timestamp.fromDate(new Date(endDate)) : null,
+                    targetAudience: targetAudience,
+                    pinned: pinned,
+                    status: 'active',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentUser.uid
+                };
+                
+                await db.collection('announcements').add(announcementData);
+                
+                showSuccess('Announcement published successfully!');
+                document.getElementById('addAnnouncementForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addAnnouncementModal')).hide();
+                loadAnnouncements();
+                
+            } catch (error) {
+                console.error('Error adding announcement:', error);
+                showError('Error adding announcement: ' + error.message);
+            }
+        }
+        
+        // Save as draft
+        async function saveDraft() {
+            const title = document.getElementById('announcementTitle').value;
+            const type = document.getElementById('announcementType').value;
+            const content = document.getElementById('announcementContent').value;
+            const startDate = document.getElementById('announcementStartDate').value;
+            const endDate = document.getElementById('announcementEndDate').value;
+            const targetAudience = Array.from(document.getElementById('announcementTarget').selectedOptions).map(option => option.value);
+            const pinned = document.getElementById('announcementPinned').checked;
+            
+            if (!title || !content) {
+                showError('Please fill in title and content.');
+                return;
+            }
+            
+            try {
+                const announcementData = {
+                    title: title,
+                    type: type,
+                    content: content,
+                    startDate: startDate ? firebase.firestore.Timestamp.fromDate(new Date(startDate)) : null,
+                    endDate: endDate ? firebase.firestore.Timestamp.fromDate(new Date(endDate)) : null,
+                    targetAudience: targetAudience,
+                    pinned: pinned,
+                    status: 'draft',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentUser.uid
+                };
+                
+                await db.collection('announcements').add(announcementData);
+                
+                showSuccess('Announcement saved as draft!');
+                document.getElementById('addAnnouncementForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addAnnouncementModal')).hide();
+                loadAnnouncements();
+                
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                showError('Error saving draft: ' + error.message);
+            }
+        }
+        
+        // Edit announcement
+        function editAnnouncement(announcementId) {
+            const announcement = announcements.find(a => a.id === announcementId);
+            if (!announcement) return;
+            
+            document.getElementById('editAnnouncementId').value = announcement.id;
+            document.getElementById('editAnnouncementTitle').value = announcement.title;
+            document.getElementById('editAnnouncementType').value = announcement.type;
+            document.getElementById('editAnnouncementContent').value = announcement.content;
+            document.getElementById('editAnnouncementStartDate').value = announcement.startDate ? 
+                new Date(announcement.startDate.seconds * 1000).toISOString().slice(0, 16) : '';
+            document.getElementById('editAnnouncementEndDate').value = announcement.endDate ? 
+                new Date(announcement.endDate.seconds * 1000).toISOString().slice(0, 16) : '';
+            document.getElementById('editAnnouncementPinned').checked = announcement.pinned || false;
+            
+            // Set target audience
+            const targetSelect = document.getElementById('editAnnouncementTarget');
+            Array.from(targetSelect.options).forEach(option => {
+                option.selected = announcement.targetAudience && announcement.targetAudience.includes(option.value);
+            });
+            
+            new bootstrap.Modal(document.getElementById('editAnnouncementModal')).show();
+        }
+        
+        // Update announcement
+        async function updateAnnouncement() {
+            const announcementId = document.getElementById('editAnnouncementId').value;
+            const title = document.getElementById('editAnnouncementTitle').value;
+            const type = document.getElementById('editAnnouncementType').value;
+            const content = document.getElementById('editAnnouncementContent').value;
+            const startDate = document.getElementById('editAnnouncementStartDate').value;
+            const endDate = document.getElementById('editAnnouncementEndDate').value;
+            const targetAudience = Array.from(document.getElementById('editAnnouncementTarget').selectedOptions).map(option => option.value);
+            const pinned = document.getElementById('editAnnouncementPinned').checked;
+            
+            if (!title || !content) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                await db.collection('announcements').doc(announcementId).update({
+                    title: title,
+                    type: type,
+                    content: content,
+                    startDate: startDate ? firebase.firestore.Timestamp.fromDate(new Date(startDate)) : null,
+                    endDate: endDate ? firebase.firestore.Timestamp.fromDate(new Date(endDate)) : null,
+                    targetAudience: targetAudience,
+                    pinned: pinned,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                });
+                
+                showSuccess('Announcement updated successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('editAnnouncementModal')).hide();
+                loadAnnouncements();
+                
+            } catch (error) {
+                console.error('Error updating announcement:', error);
+                showError('Error updating announcement: ' + error.message);
+            }
+        }
+        
+        // Delete announcement
+        async function deleteAnnouncement(announcementId) {
+            if (confirm('Are you sure you want to delete this announcement?')) {
+                try {
+                    await db.collection('announcements').doc(announcementId).delete();
+                    showSuccess('Announcement deleted successfully!');
+                    loadAnnouncements();
+                } catch (error) {
+                    console.error('Error deleting announcement:', error);
+                    showError('Error deleting announcement: ' + error.message);
+                }
+            }
+        }
+        
+        // View announcement details
+        function viewAnnouncement(announcementId) {
+            const announcement = announcements.find(a => a.id === announcementId);
+            if (!announcement) return;
+            
+            const startDate = announcement.startDate ? new Date(announcement.startDate.seconds * 1000).toLocaleString() : 'Not set';
+            const endDate = announcement.endDate ? new Date(announcement.endDate.seconds * 1000).toLocaleString() : 'No end date';
+            const createdDate = announcement.createdAt ? new Date(announcement.createdAt.seconds * 1000).toLocaleString() : 'Unknown';
+            
+            const details = `
+                <strong>Announcement Details:</strong><br><br>
+                <strong>Title:</strong> ${announcement.title}<br>
+                <strong>Type:</strong> ${announcement.type}<br>
+                <strong>Status:</strong> ${announcement.status}<br>
+                <strong>Content:</strong><br>${announcement.content}<br><br>
+                <strong>Start Date:</strong> ${startDate}<br>
+                <strong>End Date:</strong> ${endDate}<br>
+                <strong>Target Audience:</strong> ${announcement.targetAudience ? announcement.targetAudience.join(', ') : 'All Users'}<br>
+                <strong>Pinned:</strong> ${announcement.pinned ? 'Yes' : 'No'}<br>
+                <strong>Created:</strong> ${createdDate}
+            `;
+            
+            alert(details);
+        }
+        
+        // Toggle announcement status
+        async function toggleAnnouncementStatus(announcementId) {
+            const announcement = announcements.find(a => a.id === announcementId);
+            if (!announcement) return;
+            
+            const newStatus = announcement.status === 'active' ? 'draft' : 'active';
+            
+            try {
+                await db.collection('announcements').doc(announcementId).update({
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                });
+                
+                showSuccess(`Announcement ${newStatus === 'active' ? 'published' : 'saved as draft'}!`);
+                loadAnnouncements();
+                
+            } catch (error) {
+                console.error('Error toggling announcement status:', error);
+                showError('Error updating announcement status. Please try again.');
+            }
+        }
+        
+        // Search announcements
+        function searchAnnouncements() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredAnnouncements = announcements.filter(announcement => 
+                announcement.title.toLowerCase().includes(searchTerm) ||
+                announcement.content.toLowerCase().includes(searchTerm) ||
+                announcement.type.toLowerCase().includes(searchTerm)
+            );
+            displayAnnouncements();
+        }
+        
+        // Filter announcements
+        function filterAnnouncements() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            filteredAnnouncements = announcements.filter(announcement => {
+                const statusMatch = statusFilter === 'all' || announcement.status === statusFilter;
+                const typeMatch = typeFilter === 'all' || announcement.type === typeFilter;
+                return statusMatch && typeMatch;
+            });
+            
+            displayAnnouncements();
+        }
+        
+        // Export announcements
+        function exportAnnouncements() {
+            const announcementsData = announcements.map(announcement => ({
+                title: announcement.title,
+                type: announcement.type,
+                content: announcement.content,
+                status: announcement.status,
+                startDate: announcement.startDate ? new Date(announcement.startDate.seconds * 1000).toISOString() : null,
+                endDate: announcement.endDate ? new Date(announcement.endDate.seconds * 1000).toISOString() : null,
+                targetAudience: announcement.targetAudience,
+                pinned: announcement.pinned
+            }));
+            
+            const dataStr = JSON.stringify(announcementsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `announcements-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Announcements exported successfully!');
+        }
+        
+        // Print announcements
+        function printAnnouncements() {
+            window.print();
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make functions globally available
+        window.addAnnouncement = addAnnouncement;
+        window.saveDraft = saveDraft;
+        window.editAnnouncement = editAnnouncement;
+        window.updateAnnouncement = updateAnnouncement;
+        window.deleteAnnouncement = deleteAnnouncement;
+        window.viewAnnouncement = viewAnnouncement;
+        window.toggleAnnouncementStatus = toggleAnnouncementStatus;
+        window.searchAnnouncements = searchAnnouncements;
+        window.filterAnnouncements = filterAnnouncements;
+        window.exportAnnouncements = exportAnnouncements;
+        window.printAnnouncements = printAnnouncements;
+        window.logout = logout;
+    </script>
+</body>
+</html>
