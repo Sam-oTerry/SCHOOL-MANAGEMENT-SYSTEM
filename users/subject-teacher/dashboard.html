@@ -764,6 +764,15 @@
                     });
                 }
 
+                // Optional filter: if teacher belongs to multiple departments, include subjects whose academicInfo.departments overlaps
+                if (loaded.length === 0 && Array.isArray(teacherData?.academicInfo?.departments)) {
+                    const depts = teacherData.academicInfo.departments;
+                    const byDeptSnaps = await Promise.all(
+                        depts.map(dep => db.collection('subjects').where('academicInfo.departments', 'array-contains', dep).limit(100).get())
+                    );
+                    byDeptSnaps.forEach(snap => snap.docs.forEach(doc => loaded.push({ id: doc.id, ...doc.data() })));
+                }
+
                 // Normalize to display shape
                 subjects = loaded.map(s => ({
                     id: s.id || s.subjectId || 'unknown',
@@ -984,7 +993,7 @@
             
             const icon = subjectIcons[subject.name] || subjectIcons.default;
             
-            // Calculate students for this subject: by explicit subject link or by class membership
+                // Calculate students for this subject: by explicit subject link or by class membership
             const subjectStudents = students.filter(student => {
                 const bySubjectId = Array.isArray(student.subjects) && student.subjects.includes(subject.id);
                 const byClass = Array.isArray(subject.classes) && subject.classes.includes(student.class);

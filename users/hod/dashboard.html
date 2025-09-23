@@ -434,18 +434,33 @@
                 // Update badge if present
                 try { document.querySelector('.role-badge').textContent = `${dept} Department`; } catch (e) {}
 
-                // 1) Teachers in department
-                const teachersSnap = await db.collection('users')
-                    .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
-                    .where('academicInfo.department', '==', dept)
-                    .get();
-                const teachers = teachersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // 1) Teachers in department (support single or multiple departments)
+                const [teachersByDept, teachersByDepts] = await Promise.all([
+                    db.collection('users')
+                        .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
+                        .where('academicInfo.department', '==', dept)
+                        .get(),
+                    db.collection('users')
+                        .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
+                        .where('academicInfo.departments', 'array-contains', dept)
+                        .get()
+                ]);
+                const teachersMap = new Map();
+                teachersByDept.docs.concat(teachersByDepts.docs).forEach(d => teachersMap.set(d.id, { id: d.id, ...d.data() }));
+                const teachers = Array.from(teachersMap.values());
 
-                // 2) Subjects in department
-                const subjectsSnap = await db.collection('subjects')
-                    .where('academicInfo.department', '==', dept)
-                    .get();
-                const subjects = subjectsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // 2) Subjects in department (support multi-department subjects)
+                const [subjectsByDept, subjectsByDepts] = await Promise.all([
+                    db.collection('subjects')
+                        .where('academicInfo.department', '==', dept)
+                        .get(),
+                    db.collection('subjects')
+                        .where('academicInfo.departments', 'array-contains', dept)
+                        .get()
+                ]);
+                const subjMap = new Map();
+                subjectsByDept.docs.concat(subjectsByDepts.docs).forEach(d => subjMap.set(d.id, { id: d.id, ...d.data() }));
+                const subjects = Array.from(subjMap.values());
 
                 // 3) Classes and Students
                 const classesSnap = await db.collection('classes').get();
