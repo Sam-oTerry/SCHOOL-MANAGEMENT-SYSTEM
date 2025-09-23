@@ -489,8 +489,8 @@
                      <div class="col-12 col-lg-8 mb-4 mb-lg-0">
                          <div class="card">
                              <div class="card-header d-flex justify-content-between align-items-center">
-                                 <span>My Subjects</span>
-                                 <button class="btn btn-sm btn-primary">View All</button>
+                                <span>My Subjects</span>
+                                <button class="btn btn-sm btn-primary" onclick="window.location.href='my-subjects.html'">View All</button>
                              </div>
                              <div class="card-body">
                                  <div class="table-responsive">
@@ -520,16 +520,16 @@
                              <div class="card-header">Quick Actions</div>
                              <div class="card-body">
                                  <div class="d-grid gap-2">
-                                     <button class="btn btn-primary mb-2">
+                                    <button class="btn btn-primary mb-2" onclick="quickEnterGrades()">
                                          <i class="fas fa-edit"></i> Enter Grades
                                      </button>
-                                     <button class="btn btn-outline-primary mb-2">
+                                    <button class="btn btn-outline-primary mb-2" onclick="quickViewStudents()">
                                          <i class="fas fa-users"></i> View Students
                                      </button>
-                                     <button class="btn btn-outline-primary mb-2">
+                                    <button class="btn btn-outline-primary mb-2" onclick="quickAddProject()">
                                          <i class="fas fa-tasks"></i> Add Project
                                      </button>
-                                     <button class="btn btn-outline-primary mb-2">
+                                    <button class="btn btn-outline-primary mb-2" onclick="quickAnalyzeResults()">
                                          <i class="fas fa-chart-bar"></i> Analyze Results
                                      </button>
                                  </div>
@@ -629,24 +629,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
-            authDomain: "ass-sms.firebaseapp.com",
-            projectId: "ass-sms",
-            storageBucket: "ass-sms.firebasestorage.app",
-            messagingSenderId: "515388722489",
-            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Use shared Firebase instances from init script
+        const auth = window.auth;
+        const db = window.db;
         
         // Global variables
         let currentUser = null;
@@ -1048,14 +1038,39 @@
                 <div class="feature-icon">
                     <i class="${icon}"></i>
                 </div>
-                <div>
+                <div class="flex-grow-1">
                     <h6 class="mb-0">${activity.title}</h6>
                     <p class="text-muted mb-0">${activity.description}</p>
-                    <small class="text-muted">${timeAgo}</small>
+                    <small class="text-muted d-block mb-1">${timeAgo}</small>
+                    <button class="btn btn-sm btn-outline-primary" type="button">Open</button>
                 </div>
             `;
+
+            const button = activityDiv.querySelector('button');
+            if (button) {
+                button.addEventListener('click', () => navigateActivity(activity));
+            }
             
             return activityDiv;
+        }
+
+        function navigateActivity(activity) {
+            // Optionally persist context if present
+            if (activity.subjectId) {
+                const subject = subjects.find(s => s.id === activity.subjectId);
+                try {
+                    localStorage.setItem('selectedSubjectId', activity.subjectId);
+                    if (subject) localStorage.setItem('selectedSubject', JSON.stringify(subject));
+                } catch (e) {}
+            }
+            const typeToPage = {
+                grade_entry: 'grade-entry.html',
+                project_added: 'project-work.html',
+                results_analyzed: 'results-analysis.html',
+                student_added: 'student-lists.html'
+            };
+            const page = typeToPage[activity.type] || 'dashboard.html';
+            window.location.href = page;
         }
         
         // Update statistics
@@ -1161,7 +1176,11 @@
         function viewSubject(subjectId) {
             const subject = subjects.find(s => s.id === subjectId);
             if (subject) {
-                alert(`Subject: ${subject.name}\nDescription: ${subject.description || 'No description'}\nClasses: ${subject.classes ? subject.classes.join(', ') : 'No classes assigned'}`);
+                try {
+                    localStorage.setItem('selectedSubjectId', subjectId);
+                    localStorage.setItem('selectedSubject', JSON.stringify(subject));
+                } catch (e) {}
+                window.location.href = 'my-subjects.html';
             }
         }
         
@@ -1169,7 +1188,11 @@
         function editSubject(subjectId) {
             const subject = subjects.find(s => s.id === subjectId);
             if (subject) {
-                alert(`Edit functionality for ${subject.name} will be implemented soon.`);
+                try {
+                    localStorage.setItem('selectedSubjectId', subjectId);
+                    localStorage.setItem('selectedSubject', JSON.stringify(subject));
+                } catch (e) {}
+                window.location.href = 'grade-entry.html';
             }
         }
         
@@ -1222,10 +1245,49 @@
             });
         }
         
+        // Quick Actions handlers
+        function quickEnterGrades() {
+            const subjectId = subjects[0]?.id;
+            if (subjectId) {
+                try {
+                    localStorage.setItem('selectedSubjectId', subjectId);
+                    localStorage.setItem('selectedSubject', JSON.stringify(subjects[0]));
+                } catch (e) {}
+            }
+            window.location.href = 'grade-entry.html';
+        }
+        function quickViewStudents() {
+            window.location.href = 'student-lists.html';
+        }
+        function quickAddProject() {
+            const subjectId = subjects[0]?.id;
+            if (subjectId) {
+                try {
+                    localStorage.setItem('selectedSubjectId', subjectId);
+                    localStorage.setItem('selectedSubject', JSON.stringify(subjects[0]));
+                } catch (e) {}
+            }
+            window.location.href = 'project-work.html';
+        }
+        function quickAnalyzeResults() {
+            const subjectId = subjects[0]?.id;
+            if (subjectId) {
+                try {
+                    localStorage.setItem('selectedSubjectId', subjectId);
+                    localStorage.setItem('selectedSubject', JSON.stringify(subjects[0]));
+                } catch (e) {}
+            }
+            window.location.href = 'results-analysis.html';
+        }
+
         // Make functions globally available
         window.viewSubject = viewSubject;
         window.editSubject = editSubject;
         window.logout = logout;
+        window.quickEnterGrades = quickEnterGrades;
+        window.quickViewStudents = quickViewStudents;
+        window.quickAddProject = quickAddProject;
+        window.quickAnalyzeResults = quickAnalyzeResults;
     </script>
 </body>
 </html>
