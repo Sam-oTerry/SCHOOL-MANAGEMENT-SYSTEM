@@ -434,14 +434,17 @@
                                     <button class="btn btn-primary mb-2" onclick="createUserAccount()">
                                         <i class="fas fa-user-plus"></i> Create Account
                                     </button>
-                                    <button class="btn btn-outline-primary mb-2">
-                                        <i class="fas fa-cog"></i> System Settings
+                                    <button class="btn btn-outline-primary mb-2" onclick="openDepartmentsManager()">
+                                        <i class="fas fa-sitemap"></i> Manage Departments
                                     </button>
                                     <button class="btn btn-outline-primary mb-2">
                                         <i class="fas fa-database"></i> Backup Database
                                     </button>
                                     <button class="btn btn-outline-primary mb-2">
                                         <i class="fas fa-calendar"></i> Manage Terms
+                                    </button>
+                                    <button class="btn btn-outline-warning" onclick="clusterLanguageSubjects()">
+                                        <i class="fas fa-layer-group"></i> Cluster Language Subjects
                                     </button>
                                 </div>
                             </div>
@@ -814,9 +817,272 @@
             }
         }
         
-        // Edit user
-        function editUser(userId) {
-            alert('Edit user functionality will be implemented in the user management page.');
+        // Departments helpers
+        async function loadDepartments() {
+            const snap = await db.collection('departments').orderBy('name').get();
+            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+
+        async function ensureDepartment(name) {
+            const byName = await db.collection('departments').where('name', '==', name).limit(1).get();
+            if (!byName.empty) return byName.docs[0].id;
+            const ref = await db.collection('departments').add({ name, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            return ref.id;
+        }
+
+        // Edit user via modal
+        async function editUser(userId) {
+            try {
+                const [userDoc, depts] = await Promise.all([
+                    db.collection('users').doc(userId).get(),
+                    loadDepartments()
+                ]);
+                if (!userDoc.exists) {
+                    alert('User not found');
+                    return;
+                }
+                const data = userDoc.data();
+                const fullName = data.personalInfo?.fullName || '';
+                const email = data.email || '';
+                const role = data.role || '';
+                const currentDept = (data.academicInfo && data.academicInfo.department) || (data.roleInfo && data.roleInfo.department) || '';
+
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit User</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input id="edit-fullname" type="text" class="form-control" value="${fullName}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input id="edit-email" type="email" class="form-control" value="${email}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Role</label>
+                                    <select id="edit-role" class="form-select">
+                                        ${['system_admin','head_teacher','class_teacher','subject_teacher','bursar','dos','hod','teacher','student'].map(r => `<option value="${r}" ${r===role?'selected':''}>${r.replace('_',' ')}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Departments</label>
+                                    <select id="edit-dept" class="form-select" multiple>
+                                        ${depts.map(d => {
+                                            const sel = Array.isArray(currentDept) ? currentDept.includes(d.name) : (d.name===currentDept);
+                                            return `<option value="${d.name}" ${sel?'selected':''}>${d.name}</option>`;
+                                        }).join('')}
+                                    </select>
+                                    <small class="text-muted">Hold Ctrl/Cmd to select multiple departments</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="edit-active" ${data.accountStatus !== 'disabled' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="edit-active">Active</label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="edit-save-btn">Save</button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                modal.querySelector('#edit-save-btn').addEventListener('click', async () => {
+                    try {
+                        const newName = modal.querySelector('#edit-fullname').value.trim();
+                        const newRole = modal.querySelector('#edit-role').value;
+                        const deptSelect = modal.querySelector('#edit-dept');
+                        const newDepts = Array.from(deptSelect.selectedOptions).map(o => o.value).filter(Boolean);
+                        const isActive = modal.querySelector('#edit-active').checked;
+
+                        const updates = {
+                            role: newRole,
+                            accountStatus: isActive ? 'active' : 'disabled',
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        };
+                        if (newName) {
+                            updates['personalInfo'] = { ...(data.personalInfo||{}), fullName: newName };
+                        }
+                        // Department placement: academic roles -> academicInfo.department, else roleInfo.department
+                        const isAcademic = ['teacher','subject_teacher','hod','head_teacher','class_teacher','dos'].includes(newRole);
+                        if (newDepts.length > 0) {
+                            if (isAcademic) {
+                                updates['academicInfo'] = { ...(data.academicInfo||{}),
+                                    department: newDepts[0],
+                                    departments: newDepts
+                                };
+                            } else {
+                                updates['roleInfo'] = { ...(data.roleInfo||{}),
+                                    department: newDepts[0],
+                                    departments: newDepts
+                                };
+                            }
+                            for (const depName of newDepts) {
+                                await ensureDepartment(depName);
+                            }
+                        }
+
+                        await db.collection('users').doc(userId).set(updates, { merge: true });
+                        bsModal.hide();
+                        modal.remove();
+                        loadUserAccounts();
+                        alert('User updated');
+                    } catch (e) {
+                        console.error('Error saving user:', e);
+                        alert('Failed to save user');
+                    }
+                });
+
+                modal.addEventListener('hidden.bs.modal', () => modal.remove());
+            } catch (e) {
+                console.error('editUser error', e);
+                alert('Could not load user for edit');
+            }
+        }
+
+        // Simple departments manager (create new)
+        async function openDepartmentsManager() {
+            try {
+                const [depts, subjects] = await Promise.all([
+                    loadDepartments(),
+                    getAllSubjects()
+                ]);
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Departments</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Select Department</label>
+                                        <select id="dept-select" class="form-select">
+                                            ${depts.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">New Department Name</label>
+                                        <div class="input-group">
+                                            <input id="new-dept-name" type="text" class="form-control" placeholder="Add department">
+                                            <button class="btn btn-primary" id="add-dept-btn">Add</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Assign Subjects (multi-select)</label>
+                                        <select id="dept-subjects-select" class="form-select" multiple size="10">
+                                            ${subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                        </select>
+                                        <small class="text-muted">Hold Ctrl/Cmd to select multiple subjects</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" id="refresh-dept-btn">Refresh</button>
+                                <button type="button" class="btn btn-primary" id="save-dept-btn">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                async function populateSubjectsSelection() {
+                    const deptId = modal.querySelector('#dept-select').value;
+                    if (!deptId) return;
+                    const ddoc = await db.collection('departments').doc(deptId).get();
+                    const assigned = (ddoc.exists && Array.isArray(ddoc.data().subjects)) ? ddoc.data().subjects : [];
+                    const select = modal.querySelector('#dept-subjects-select');
+                    Array.from(select.options).forEach(opt => { opt.selected = assigned.includes(opt.value); });
+                }
+
+                // Initial selection
+                await populateSubjectsSelection();
+
+                modal.querySelector('#dept-select').addEventListener('change', populateSubjectsSelection);
+
+                modal.querySelector('#add-dept-btn').addEventListener('click', async () => {
+                    const name = modal.querySelector('#new-dept-name').value.trim();
+                    if (!name) return;
+                    const id = await ensureDepartment(name);
+                    const updated = await loadDepartments();
+                    const select = modal.querySelector('#dept-select');
+                    select.innerHTML = updated.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                    select.value = id;
+                    modal.querySelector('#new-dept-name').value = '';
+                    await populateSubjectsSelection();
+                });
+
+                modal.querySelector('#refresh-dept-btn').addEventListener('click', populateSubjectsSelection);
+
+                modal.querySelector('#save-dept-btn').addEventListener('click', async () => {
+                    try {
+                        const deptId = modal.querySelector('#dept-select').value;
+                        if (!deptId) return;
+                        const deptDoc = await db.collection('departments').doc(deptId).get();
+                        const deptName = deptDoc.exists ? (deptDoc.data().name || '') : '';
+                        const select = modal.querySelector('#dept-subjects-select');
+                        const subjectIds = Array.from(select.selectedOptions).map(o => o.value);
+                        // Save to department
+                        await db.collection('departments').doc(deptId).set({ subjects: subjectIds, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                        // Update subjects to include department assignment
+                        const batch = db.batch();
+                        subjectIds.forEach(id => {
+                            const ref = db.collection('subjects').doc(id);
+                            batch.set(ref, { academicInfo: { departments: firebase.firestore.FieldValue.arrayUnion(deptName), department: deptName } }, { merge: true });
+                        });
+                        await batch.commit();
+                        alert('Department subjects updated');
+                    } catch (e) {
+                        console.error('Save department subjects failed:', e);
+                        alert('Failed to save department subjects');
+                    }
+                });
+
+                modal.addEventListener('hidden.bs.modal', () => modal.remove());
+            } catch (e) {
+                console.error('openDepartmentsManager error', e);
+            }
+        }
+
+        async function getAllSubjects() {
+            const snap = await db.collection('subjects').get();
+            return snap.docs.map(d => ({ id: d.id, name: d.data().subjectName || d.data().name || 'Unnamed Subject' }));
+        }
+
+        // Cluster language subjects under Languages department
+        async function clusterLanguageSubjects() {
+            try {
+                const languagesDeptName = 'Languages';
+                await ensureDepartment(languagesDeptName);
+                const langNames = ['English','Luganda','French'];
+                const snap = await db.collection('subjects').where('subjectName', 'in', langNames).get();
+                const batch = db.batch();
+                snap.docs.forEach(doc => {
+                    batch.set(doc.ref, { academicInfo: { ...(doc.data().academicInfo||{}), department: languagesDeptName } }, { merge: true });
+                });
+                await batch.commit();
+                alert('Language subjects clustered under Languages department');
+            } catch (e) {
+                console.error('clusterLanguageSubjects error', e);
+                alert('Failed to cluster language subjects');
+            }
         }
         
         // Delete user
@@ -1048,6 +1314,8 @@
         window.saveSystemSettings = saveSystemSettings;
         window.editUser = editUser;
         window.deleteUser = deleteUser;
+        window.openDepartmentsManager = openDepartmentsManager;
+        window.clusterLanguageSubjects = clusterLanguageSubjects;
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
