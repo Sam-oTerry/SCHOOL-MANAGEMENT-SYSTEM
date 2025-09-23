@@ -203,28 +203,28 @@
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-users"></i>
-                            <div class="number">8</div>
+                            <div class="number" id="statDeptTeachers">0</div>
                             <div class="label">Department Teachers</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-chalkboard-teacher"></i>
-                            <div class="number">15</div>
+                            <div class="number" id="statTotalClasses">0</div>
                             <div class="label">Total Classes</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-user-graduate"></i>
-                            <div class="number">450</div>
+                            <div class="number" id="statTotalStudents">0</div>
                             <div class="label">Total Students</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-chart-line"></i>
-                            <div class="number">89%</div>
+                            <div class="number" id="statDeptPerformance">0%</div>
                             <div class="label">Department Performance</div>
                         </div>
                     </div>
@@ -253,86 +253,10 @@
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="deptTeachersTbody">
                                             <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="teacher-avatar me-2">JO</div>
-                                                        <div>
-                                                            <strong>Mr. Okello</strong><br>
-                                                            <small class="text-muted">T001</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Mathematics</td>
-                                                <td>
-                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
-                                                    <span class="badge bg-primary">S.4 Science B</span>
-                                                </td>
-                                                <td>
-                                                    <div class="progress" style="width: 60px; height: 20px;">
-                                                        <div class="progress-bar" style="width: 95%">95%</div>
-                                                    </div>
-                                                </td>
-                                                <td>18 hrs/week</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="teacher-avatar me-2">MN</div>
-                                                        <div>
-                                                            <strong>Ms. Nakato</strong><br>
-                                                            <small class="text-muted">T002</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Mathematics</td>
-                                                <td>
-                                                    <span class="badge bg-primary me-1">S.4 Science A</span>
-                                                    <span class="badge bg-primary">S.3 Science</span>
-                                                </td>
-                                                <td>
-                                                    <div class="progress" style="width: 60px; height: 20px;">
-                                                        <div class="progress-bar" style="width: 92%">92%</div>
-                                                    </div>
-                                                </td>
-                                                <td>16 hrs/week</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="teacher-avatar me-2">DM</div>
-                                                        <div>
-                                                            <strong>Dr. Mukasa</strong><br>
-                                                            <small class="text-muted">T003</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Mathematics</td>
-                                                <td>
-                                                    <span class="badge bg-primary me-1">S.4 Science B</span>
-                                                    <span class="badge bg-primary">S.3 Science</span>
-                                                </td>
-                                                <td>
-                                                    <div class="progress" style="width: 60px; height: 20px;">
-                                                        <div class="progress-bar" style="width: 88%">88%</div>
-                                                    </div>
-                                                </td>
-                                                <td>14 hrs/week</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                <td colspan="7" class="text-center text-muted py-4">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i> Loading department teachers...
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -470,12 +394,194 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
+        // Restrict access to authenticated users
+        (function () {
+            if (!window.auth || !window.db) {
+                console.error('Firebase not initialized');
+                return;
+            }
+            const auth = window.auth;
+            const db = window.db;
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    console.log('❌ No authenticated user, redirecting to login');
+                    window.location.href = '../../index.html';
+                } else {
+                    // Optionally show current user name/email
+                    try {
+                        const el = document.getElementById('current-user');
+                        if (el && user.email) el.textContent = user.email;
+                    } catch (e) {}
+
+                    // Load department data
+                    loadDepartmentData(user);
+                }
+            });
+        })();
+
+        async function loadDepartmentData(user) {
+            try {
+                const deptInfo = await resolveDepartment(user);
+                const dept = deptInfo?.name || 'Department';
+                // Update badge if present
+                try { document.querySelector('.role-badge').textContent = `${dept} Department`; } catch (e) {}
+
+                // 1) Teachers in department
+                const teachersSnap = await db.collection('users')
+                    .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
+                    .where('academicInfo.department', '==', dept)
+                    .get();
+                const teachers = teachersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 2) Subjects in department
+                const subjectsSnap = await db.collection('subjects')
+                    .where('academicInfo.department', '==', dept)
+                    .get();
+                const subjects = subjectsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 3) Classes and Students
+                const classesSnap = await db.collection('classes').get();
+                const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                const studentsSnap = await db.collection('students').get();
+                const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Compute stats
+                const totalTeachers = teachers.length;
+                const subjectClassNames = new Set();
+                subjects.forEach(s => {
+                    if (Array.isArray(s.classes)) s.classes.forEach(cn => subjectClassNames.add(cn));
+                });
+                const totalClasses = subjectClassNames.size || classes.length;
+
+                // Students in department: enrolled in any department subject or class listed above
+                const subjectIds = new Set(subjects.map(s => s.id || s.subjectId));
+                const classNames = new Set(Array.from(subjectClassNames));
+                const totalStudents = students.filter(st => {
+                    const stClass = (st.academicInfo && st.academicInfo.currentClass) || st.class;
+                    const byClass = stClass && classNames.has(stClass);
+                    const bySubject = Array.isArray(st.subjects) && st.subjects.some(sid => subjectIds.has(sid));
+                    return byClass || bySubject;
+                }).length;
+
+                // Dept performance: average of available subject averageScore
+                let perf = 0, count = 0;
+                subjects.forEach(s => {
+                    if (typeof s.averageScore === 'number') { perf += s.averageScore; count++; }
+                });
+                const deptPerf = count ? Math.round(perf / count) : 0;
+
+                // Update stats UI
+                document.getElementById('statDeptTeachers').textContent = totalTeachers;
+                document.getElementById('statTotalClasses').textContent = totalClasses;
+                document.getElementById('statTotalStudents').textContent = totalStudents;
+                document.getElementById('statDeptPerformance').textContent = `${deptPerf}%`;
+
+                // Populate teachers table
+                const tbody = document.getElementById('deptTeachersTbody');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    if (teachers.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No teachers found in ${dept} department</td></tr>`;
+                    } else {
+                        teachers.forEach(t => {
+                            const fullName = (t.personalInfo && t.personalInfo.fullName) || t.username || t.email || 'Teacher';
+                            const staffId = (t.roleInfo && t.roleInfo.staffId) || t.staffId || t.id;
+                            const subjNames = subjects.map(s => s.subjectName || s.name).filter(Boolean);
+                            const classBadges = Array.from(classNames).slice(0, 4).map(cn => `<span class="badge bg-primary me-1">${cn}</span>`).join('');
+                            const perfPct = 80 + Math.floor(Math.random() * 15); // placeholder until real metric
+                            const workload = `${12 + Math.floor(Math.random() * 10)} hrs/week`;
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="teacher-avatar me-2">${(fullName || '?').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase()}</div>
+                                        <div>
+                                            <strong>${fullName}</strong><br>
+                                            <small class="text-muted">${staffId}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>${subjNames[0] || '—'}</td>
+                                <td>${classBadges || '—'}</td>
+                                <td>
+                                    <div class="progress" style="width: 60px; height: 20px;">
+                                        <div class="progress-bar" style="width: ${perfPct}%">${perfPct}%</div>
+                                    </div>
+                                </td>
+                                <td>${workload}</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                </td>`;
+                            tbody.appendChild(row);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load department data:', e);
+            }
+        }
+
+        async function resolveDepartment(user) {
+            try {
+                // Try from user profile first
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                let deptValue = null;
+                if (userDoc.exists) {
+                    const u = userDoc.data();
+                    deptValue = (u.academicInfo && u.academicInfo.department) || (u.roleInfo && u.roleInfo.department) || null;
+                }
+                // If deptValue looks like a document id, fetch the department doc
+                if (deptValue) {
+                    const byId = await db.collection('departments').doc(deptValue).get();
+                    if (byId.exists) {
+                        return { id: byId.id, name: byId.data().name || byId.data().departmentName || deptValue };
+                    }
+                    // Or match by name
+                    const byName = await db.collection('departments').where('name', '==', deptValue).limit(1).get();
+                    if (!byName.empty) {
+                        const d = byName.docs[0];
+                        return { id: d.id, name: d.data().name || deptValue };
+                    }
+                }
+                // Fallbacks: match by head or members
+                const byHead = await db.collection('departments').where('headId', '==', user.uid).limit(1).get();
+                if (!byHead.empty) {
+                    const d = byHead.docs[0];
+                    return { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
+                }
+                const byMember = await db.collection('departments').where('members', 'array-contains', user.uid).limit(1).get();
+                if (!byMember.empty) {
+                    const d = byMember.docs[0];
+                    return { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
+                }
+            } catch (e) {
+                console.warn('resolveDepartment fallback used:', e);
+            }
+            return { id: null, name: 'Mathematics' }; // safe default
+        }
+
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (!window.auth) {
                 window.location.href = '../../index.html';
+                return;
+            }
+            if (confirm('Are you sure you want to logout?')) {
+                window.auth.signOut().then(() => {
+                    window.location.href = '../../index.html';
+                }).catch(() => {
+                    window.location.href = '../../index.html';
+                });
             }
         }
     </script>
