@@ -774,46 +774,129 @@
             }
         }
         
-        // Create new user account
+        // Create new user account via modal with subjects selection
         async function createUserAccount() {
-            const email = prompt('Enter user email:');
-            const password = prompt('Enter temporary password:');
-            const fullName = prompt('Enter full name:');
-            const role = prompt('Enter role (system_admin, head_teacher, class_teacher, subject_teacher, bursar, dos, hod):');
-            
-            if (email && password && fullName && role) {
-                try {
-                    // Create user in Firebase Auth
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    const user = userCredential.user;
-                    
-                    // Update user profile
-                    await user.updateProfile({
-                        displayName: fullName
-                    });
-                    
-                    // Create user document in Firestore
-                    await db.collection('users').doc(user.uid).set({
-                        uid: user.uid,
-                        email: email,
-                        role: role,
-                        personalInfo: {
-                            fullName: fullName,
-                            email: email,
-                            phone: '',
-                            address: ''
-                        },
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        createdBy: currentUser.uid
-                    });
-                    
-                    alert('User account created successfully!');
-                    loadUserAccounts(); // Refresh the user list
-                } catch (error) {
-                    console.error('Error creating user:', error);
-                    alert('Error creating user account: ' + error.message);
-                }
+            try {
+                const subjects = await getAllSubjects();
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Create User Account</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input id="new-email" type="email" class="form-control" placeholder="user@example.com">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Temporary Password</label>
+                                        <input id="new-password" type="text" class="form-control" placeholder="Temp password">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Full Name</label>
+                                        <input id="new-fullname" type="text" class="form-control" placeholder="Full name">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Role</label>
+                                        <select id="new-role" class="form-select">
+                                            ${['system_admin','head_teacher','class_teacher','subject_teacher','bursar','dos','hod','teacher','student'].map(r => `<option value="${r}">${r.replace('_',' ')}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="col-12" id="subjects-container" style="display:none;">
+                                        <label class="form-label">Subjects Taught</label>
+                                        <select id="new-subjects" class="form-select" multiple size="8">
+                                            ${subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                        </select>
+                                        <small class="text-muted">Hold Ctrl/Cmd to select multiple subjects</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="create-user-btn">Create</button>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                const roleSelect = modal.querySelector('#new-role');
+                const subjContainer = modal.querySelector('#subjects-container');
+                const toggleSubjects = () => {
+                    const val = roleSelect.value;
+                    const isAcademic = ['teacher','subject_teacher','hod','head_teacher','class_teacher','dos'].includes(val);
+                    subjContainer.style.display = isAcademic ? '' : 'none';
+                };
+                roleSelect.addEventListener('change', toggleSubjects);
+                toggleSubjects();
+
+                modal.querySelector('#create-user-btn').addEventListener('click', async () => {
+                    try {
+                        const email = modal.querySelector('#new-email').value.trim();
+                        const password = modal.querySelector('#new-password').value.trim();
+                        const fullName = modal.querySelector('#new-fullname').value.trim();
+                        const role = roleSelect.value;
+                        if (!email || !password || !fullName || !role) { alert('Fill all required fields'); return; }
+
+                        const isAcademic = ['teacher','subject_teacher','hod','head_teacher','class_teacher','dos'].includes(role);
+                        const newSubjects = isAcademic ? Array.from(modal.querySelector('#new-subjects').selectedOptions).map(o => o.value) : [];
+
+                        // Create user in Firebase Auth
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        const user = userCredential.user;
+
+                        await user.updateProfile({ displayName: fullName });
+
+                        const docData = {
+                            uid: user.uid,
+                            email,
+                            role,
+                            personalInfo: { fullName, email, phone: '', address: '' },
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdBy: currentUser.uid
+                        };
+                        if (isAcademic) {
+                            docData.academicInfo = { subjects: newSubjects };
+                            if (newSubjects.length > 0) {
+                                try {
+                                    const snaps = await Promise.all(newSubjects.map(id => db.collection('subjects').doc(id).get()));
+                                    const deptSet = new Set();
+                                    snaps.forEach(doc => {
+                                        if (!doc.exists) return;
+                                        const s = doc.data();
+                                        if (s.academicInfo) {
+                                            if (s.academicInfo.department) deptSet.add(s.academicInfo.department);
+                                            if (Array.isArray(s.academicInfo.departments)) s.academicInfo.departments.forEach(d => deptSet.add(d));
+                                        }
+                                    });
+                                    const derivedDepts = Array.from(deptSet);
+                                    docData.academicInfo.departments = derivedDepts;
+                                    if (derivedDepts[0]) docData.academicInfo.department = derivedDepts[0];
+                                } catch (e) {}
+                            }
+                        }
+
+                        await db.collection('users').doc(user.uid).set(docData);
+                        bsModal.hide();
+                        modal.remove();
+                        alert('User account created successfully!');
+                        loadUserAccounts();
+                    } catch (error) {
+                        console.error('Error creating user:', error);
+                        alert('Error creating user account: ' + error.message);
+                    }
+                });
+
+                modal.addEventListener('hidden.bs.modal', () => modal.remove());
+            } catch (e) {
+                console.error('createUserAccount modal error', e);
             }
         }
         
@@ -833,9 +916,9 @@
         // Edit user via modal
         async function editUser(userId) {
             try {
-                const [userDoc, depts] = await Promise.all([
+                const [userDoc, subjects] = await Promise.all([
                     db.collection('users').doc(userId).get(),
-                    loadDepartments()
+                    getAllSubjects()
                 ]);
                 if (!userDoc.exists) {
                     alert('User not found');
@@ -845,7 +928,7 @@
                 const fullName = data.personalInfo?.fullName || '';
                 const email = data.email || '';
                 const role = data.role || '';
-                const currentDept = (data.academicInfo && data.academicInfo.department) || (data.roleInfo && data.roleInfo.department) || '';
+                const currentSubjects = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
 
                 const modal = document.createElement('div');
                 modal.className = 'modal fade';
@@ -872,14 +955,14 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Departments</label>
-                                    <select id="edit-dept" class="form-select" multiple>
-                                        ${depts.map(d => {
-                                            const sel = Array.isArray(currentDept) ? currentDept.includes(d.name) : (d.name===currentDept);
-                                            return `<option value="${d.name}" ${sel?'selected':''}>${d.name}</option>`;
+                                    <label class="form-label">Subjects Taught</label>
+                                    <select id="edit-subjects" class="form-select" multiple>
+                                        ${subjects.map(s => {
+                                            const sel = currentSubjects.includes(s.id);
+                                            return `<option value="${s.id}" ${sel?'selected':''}>${s.name}</option>`;
                                         }).join('')}
                                     </select>
-                                    <small class="text-muted">Hold Ctrl/Cmd to select multiple departments</small>
+                                    <small class="text-muted">Hold Ctrl/Cmd to select multiple subjects</small>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="edit-active" ${data.accountStatus !== 'disabled' ? 'checked' : ''}>
@@ -901,8 +984,8 @@
                     try {
                         const newName = modal.querySelector('#edit-fullname').value.trim();
                         const newRole = modal.querySelector('#edit-role').value;
-                        const deptSelect = modal.querySelector('#edit-dept');
-                        const newDepts = Array.from(deptSelect.selectedOptions).map(o => o.value).filter(Boolean);
+                        const subjSelect = modal.querySelector('#edit-subjects');
+                        const newSubjects = Array.from(subjSelect.selectedOptions).map(o => o.value).filter(Boolean);
                         const isActive = modal.querySelector('#edit-active').checked;
 
                         const updates = {
@@ -913,22 +996,30 @@
                         if (newName) {
                             updates['personalInfo'] = { ...(data.personalInfo||{}), fullName: newName };
                         }
-                        // Department placement: academic roles -> academicInfo.department, else roleInfo.department
+                        // Subjects taught (multi) for academic roles
                         const isAcademic = ['teacher','subject_teacher','hod','head_teacher','class_teacher','dos'].includes(newRole);
-                        if (newDepts.length > 0) {
-                            if (isAcademic) {
-                                updates['academicInfo'] = { ...(data.academicInfo||{}),
-                                    department: newDepts[0],
-                                    departments: newDepts
-                                };
+                        if (isAcademic) {
+                            updates['academicInfo'] = { ...(data.academicInfo||{}), subjects: newSubjects };
+                            // Derive departments from selected subjects for consistency
+                            if (newSubjects.length > 0) {
+                                try {
+                                    const snaps = await Promise.all(newSubjects.map(id => db.collection('subjects').doc(id).get()));
+                                    const deptSet = new Set();
+                                    snaps.forEach(doc => {
+                                        if (!doc.exists) return;
+                                        const s = doc.data();
+                                        if (s.academicInfo) {
+                                            if (s.academicInfo.department) deptSet.add(s.academicInfo.department);
+                                            if (Array.isArray(s.academicInfo.departments)) s.academicInfo.departments.forEach(d => deptSet.add(d));
+                                        }
+                                    });
+                                    const derivedDepts = Array.from(deptSet);
+                                    updates['academicInfo'].departments = derivedDepts;
+                                    if (derivedDepts[0]) updates['academicInfo'].department = derivedDepts[0];
+                                } catch (e) {}
                             } else {
-                                updates['roleInfo'] = { ...(data.roleInfo||{}),
-                                    department: newDepts[0],
-                                    departments: newDepts
-                                };
-                            }
-                            for (const depName of newDepts) {
-                                await ensureDepartment(depName);
+                                updates['academicInfo'].departments = [];
+                                delete updates['academicInfo'].department;
                             }
                         }
 

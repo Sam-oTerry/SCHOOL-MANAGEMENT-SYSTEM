@@ -739,10 +739,46 @@
         // Load teacher's subjects
         async function loadTeacherSubjects() {
             try {
-                // Primary query by explicit teacherId
-                let subjectsSnapshot = await db.collection('subjects')
-                    .where('teacherId', '==', currentUser.uid)
-                    .get();
+                // Only show subjects explicitly assigned to this teacher by HOD/admin via academicInfo.subjects on user record
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                const assignedSubjectIds = (userDoc.exists && userDoc.data().academicInfo && Array.isArray(userDoc.data().academicInfo.subjects)) ? userDoc.data().academicInfo.subjects : [];
+                let subjectsSnapshot = null;
+                if (assignedSubjectIds.length > 0) {
+                    const chunks = [];
+                    for (let i = 0; i < assignedSubjectIds.length; i += 10) {
+                        chunks.push(assignedSubjectIds.slice(i, i + 10));
+                    }
+                    const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
+                    const loaded = [];
+                    snaps.forEach(snap => snap.forEach(doc => loaded.push({ id: doc.id, ...doc.data() })));
+                    // Normalize to display shape
+                    subjects = loaded.map(s => ({
+                        id: s.id || s.subjectId || 'unknown',
+                        name: s.name || s.subjectName || 'Unnamed Subject',
+                        category: s.category || (s.academicInfo && (s.academicInfo.level || s.academicInfo.department)) || 'Core Subject',
+                        classes: Array.isArray(s.classes) ? s.classes : [],
+                        averageScore: s.averageScore || null,
+                        teacherId: s.teacherId || currentUser.uid
+                    }));
+                    // If none resolved from assigned list, show empty state message
+                    if (subjects.length === 0) {
+                        subjects = [];
+                        displaySubjects();
+                        updateStatistics();
+                        console.log('⚠️ No subjects resolved from assignments.');
+                        return;
+                    }
+                    displaySubjects();
+                    updateStatistics();
+                    console.log(`✅ Loaded ${subjects.length} assigned subjects`);
+                    return;
+                }
+                // No assignments: show empty state and do not fallback
+                subjects = [];
+                displaySubjects();
+                updateStatistics();
+                console.log('ℹ️ No subjects have been assigned to this teacher.');
+                return;
 
                 let loaded = [];
                 subjectsSnapshot.forEach(doc => {
@@ -962,7 +998,8 @@
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">
                             <i class="fas fa-book fa-2x mb-2"></i><br>
-                            No subjects assigned
+                            No subject has been assigned to you yet.<br>
+                            Please contact your Head of Department.
                         </td>
                     </tr>
                 `;
