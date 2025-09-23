@@ -350,26 +350,75 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Subject Teacher specific functionality
-        function viewSubject(subjectId) {
-            console.log('Viewing subject:', subjectId);
-            // Implement subject viewing logic
+        // Assigned subjects guard
+        async function loadAssignedSubjects() {
+            const user = auth.currentUser;
+            if (!user) return [];
+            const doc = await db.collection('users').doc(user.uid).get();
+            const ids = (doc.exists && doc.data().academicInfo && Array.isArray(doc.data().academicInfo.subjects)) ? doc.data().academicInfo.subjects : [];
+            if (ids.length === 0) return [];
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
+            const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
+            const subs = [];
+            snaps.forEach(snap => snap.forEach(d => subs.push({ id: d.id, ...d.data() })));
+            return subs;
         }
 
-        function editSubject(subjectId) {
-            console.log('Editing subject:', subjectId);
-            // Implement subject editing logic
-        }
-
-        // Logout Functionality
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
+        function renderAssignedSubjectsToTable(subjects) {
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = '';
+            if (!subjects || subjects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-book fa-2x mb-2"></i><br>No subject has been assigned to you yet.<br>Please contact your Head of Department.</td></tr>`;
+                return;
             }
+            subjects.forEach(s => {
+                const row = document.createElement('tr');
+                const classes = Array.isArray(s.classes) ? s.classes : [];
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-3"><i class="fas fa-book text-primary"></i></div>
+                            <div><strong>${s.subjectName || s.name || 'Subject'}</strong><br><small class="text-muted">${(s.academicInfo && (s.academicInfo.department || '')) || ''}</small></div>
+                        </div>
+                    </td>
+                    <td>${classes.map(c => `<span class=\"badge bg-primary me-1\">${c}</span>`).join('')}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewSubject('${s.id}')"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn btn-sm btn-warning" onclick="editSubject('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
+                    </td>`;
+                tbody.appendChild(row);
+            });
         }
+
+        function viewSubject(subjectId) { console.log('Viewing subject:', subjectId); }
+        function editSubject(subjectId) { console.log('Editing subject:', subjectId); }
+
+        function logout() {
+            if (!window.auth) { window.location.href='../../index.html'; return; }
+            auth.signOut().then(() => window.location.href='../../index.html');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.auth) return;
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) { window.location.href='../../index.html'; return; }
+                const subs = await loadAssignedSubjects();
+                renderAssignedSubjectsToTable(subs);
+            });
+        });
     </script>
 </body>
 </html>

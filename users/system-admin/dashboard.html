@@ -847,20 +847,20 @@
                         const isAcademic = ['teacher','subject_teacher','hod','head_teacher','class_teacher','dos'].includes(role);
                         const newSubjects = isAcademic ? Array.from(modal.querySelector('#new-subjects').selectedOptions).map(o => o.value) : [];
 
-                        // Create user in Firebase Auth
-                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                        const user = userCredential.user;
-
+                    // Create user in Firebase Auth
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+                    
                         await user.updateProfile({ displayName: fullName });
-
+                    
                         const docData = {
-                            uid: user.uid,
+                        uid: user.uid,
                             email,
                             role,
                             personalInfo: { fullName, email, phone: '', address: '' },
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            createdBy: currentUser.uid
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid
                         };
                         if (isAcademic) {
                             docData.academicInfo = { subjects: newSubjects };
@@ -886,12 +886,12 @@
                         await db.collection('users').doc(user.uid).set(docData);
                         bsModal.hide();
                         modal.remove();
-                        alert('User account created successfully!');
+                    alert('User account created successfully!');
                         loadUserAccounts();
-                    } catch (error) {
-                        console.error('Error creating user:', error);
-                        alert('Error creating user account: ' + error.message);
-                    }
+                } catch (error) {
+                    console.error('Error creating user:', error);
+                    alert('Error creating user account: ' + error.message);
+                }
                 });
 
                 modal.addEventListener('hidden.bs.modal', () => modal.remove());
