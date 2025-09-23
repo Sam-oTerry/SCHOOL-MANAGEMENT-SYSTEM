@@ -732,73 +732,58 @@
         // Load teacher's subjects
         async function loadTeacherSubjects() {
             try {
-                const subjectsSnapshot = await db.collection('subjects')
+                // Primary query by explicit teacherId
+                let subjectsSnapshot = await db.collection('subjects')
                     .where('teacherId', '==', currentUser.uid)
                     .get();
-                
-                subjects = [];
+
+                let loaded = [];
                 subjectsSnapshot.forEach(doc => {
-                    const subjectData = doc.data();
-                    subjects.push({
-                        id: doc.id,
-                        ...subjectData
-                    });
+                    const s = doc.data();
+                    loaded.push({ id: doc.id, ...s });
                 });
-                
-                // If no subjects found, create sample data for demonstration
-                if (subjects.length === 0) {
-                    console.log('📝 No subjects found, creating sample data...');
-                    subjects = [
-                        {
-                            id: 'sample1',
-                            name: 'Mathematics',
-                            category: 'Core Subject',
-                            classes: ['S.4 Science A', 'S.4 Science B'],
-                            teacherId: currentUser.uid,
-                            averageScore: 85
-                        },
-                        {
-                            id: 'sample2',
-                            name: 'Physics',
-                            category: 'Science Subject',
-                            classes: ['S.4 Science A', 'S.3 Science'],
-                            teacherId: currentUser.uid,
-                            averageScore: 78
-                        },
-                        {
-                            id: 'sample3',
-                            name: 'Chemistry',
-                            category: 'Science Subject',
-                            classes: ['S.4 Science B', 'S.3 Science'],
-                            teacherId: currentUser.uid,
-                            averageScore: 82
+
+                // Fallback: fetch and filter by teachingInfo.teachers including staffId or uid
+                if (loaded.length === 0) {
+                    const allSnapshot = await db.collection('subjects').limit(100).get();
+                    const staffId = teacherData.staffId;
+                    allSnapshot.forEach(doc => {
+                        const s = doc.data();
+                        const teachers = (s.teachingInfo && Array.isArray(s.teachingInfo.teachers)) ? s.teachingInfo.teachers : [];
+                        const matches = teachers.includes(currentUser.uid) || (staffId ? teachers.includes(staffId) : false);
+                        if (matches) {
+                            loaded.push({ id: doc.id, ...s });
                         }
-                    ];
+                    });
                 }
-                
+
+                // Normalize to display shape
+                subjects = loaded.map(s => ({
+                    id: s.id || s.subjectId || 'unknown',
+                    name: s.name || s.subjectName || 'Unnamed Subject',
+                    category: s.category || (s.academicInfo && (s.academicInfo.level || s.academicInfo.department)) || 'Core Subject',
+                    classes: Array.isArray(s.classes) ? s.classes : [],
+                    averageScore: s.averageScore || null,
+                    teacherId: s.teacherId || currentUser.uid
+                }));
+
                 displaySubjects();
                 console.log(`✅ Loaded ${subjects.length} subjects`);
-                
+
+                // If still none, keep existing sample fallback for UX
+                if (subjects.length === 0) {
+                    console.log('📝 No subjects matched. Using sample subjects for display.');
+                    subjects = [
+                        { id: 'sample1', name: 'Mathematics', category: 'Core Subject', classes: ['S.4 Science A', 'S.4 Science B'], teacherId: currentUser.uid, averageScore: 85 },
+                        { id: 'sample2', name: 'Physics', category: 'Science Subject', classes: ['S.4 Science A', 'S.3 Science'], teacherId: currentUser.uid, averageScore: 78 }
+                    ];
+                    displaySubjects();
+                }
             } catch (error) {
                 console.error('Error loading subjects:', error);
-                // Create sample data on error
                 subjects = [
-                    {
-                        id: 'sample1',
-                        name: 'Mathematics',
-                        category: 'Core Subject',
-                        classes: ['S.4 Science A', 'S.4 Science B'],
-                        teacherId: currentUser.uid,
-                        averageScore: 85
-                    },
-                    {
-                        id: 'sample2',
-                        name: 'Physics',
-                        category: 'Science Subject',
-                        classes: ['S.4 Science A', 'S.3 Science'],
-                        teacherId: currentUser.uid,
-                        averageScore: 78
-                    }
+                    { id: 'sample1', name: 'Mathematics', category: 'Core Subject', classes: ['S.4 Science A', 'S.4 Science B'], teacherId: currentUser.uid, averageScore: 85 },
+                    { id: 'sample2', name: 'Physics', category: 'Science Subject', classes: ['S.4 Science A', 'S.3 Science'], teacherId: currentUser.uid, averageScore: 78 }
                 ];
                 displaySubjects();
             }
@@ -807,36 +792,32 @@
         // Load students
         async function loadStudents() {
             try {
-                const studentsSnapshot = await db.collection('students')
-                    .get();
-                
-                students = [];
+                const studentsSnapshot = await db.collection('students').limit(500).get();
+
+                const loaded = [];
                 studentsSnapshot.forEach(doc => {
-                    const studentData = doc.data();
-                    students.push({
-                        id: doc.id,
-                        ...studentData
-                    });
+                    const s = doc.data();
+                    const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
+                    const studentClass = (s.academicInfo && s.academicInfo.currentClass) || s.class || 'Unknown';
+                    const subj = Array.isArray(s.subjects) ? s.subjects : [];
+                    loaded.push({ id: doc.id, name, class: studentClass, subjects: subj });
                 });
-                
-                // If no students found, create sample data for demonstration
+
+                students = loaded;
+
                 if (students.length === 0) {
-                    console.log('📝 No students found, creating sample data...');
+                    console.log('📝 No students found, using sample students for display.');
                     students = [
                         { id: 's1', name: 'John Doe', class: 'S.4 Science A', subjects: ['sample1', 'sample2'] },
                         { id: 's2', name: 'Jane Smith', class: 'S.4 Science A', subjects: ['sample1', 'sample2'] },
                         { id: 's3', name: 'Mike Johnson', class: 'S.4 Science B', subjects: ['sample1', 'sample3'] },
-                        { id: 's4', name: 'Sarah Wilson', class: 'S.4 Science B', subjects: ['sample1', 'sample3'] },
-                        { id: 's5', name: 'David Brown', class: 'S.3 Science', subjects: ['sample2', 'sample3'] },
-                        { id: 's6', name: 'Lisa Davis', class: 'S.3 Science', subjects: ['sample2', 'sample3'] }
+                        { id: 's4', name: 'Sarah Wilson', class: 'S.4 Science B', subjects: ['sample1', 'sample3'] }
                     ];
                 }
-                
+
                 console.log(`✅ Loaded ${students.length} students`);
-                
             } catch (error) {
                 console.error('Error loading students:', error);
-                // Create sample data on error
                 students = [
                     { id: 's1', name: 'John Doe', class: 'S.4 Science A', subjects: ['sample1', 'sample2'] },
                     { id: 's2', name: 'Jane Smith', class: 'S.4 Science A', subjects: ['sample1', 'sample2'] },
@@ -857,10 +838,14 @@
                 
                 recentActivity = [];
                 activitySnapshot.forEach(doc => {
-                    const activityData = doc.data();
+                    const a = doc.data();
                     recentActivity.push({
                         id: doc.id,
-                        ...activityData
+                        title: a.title || 'Activity',
+                        description: a.description || '',
+                        type: a.type || 'default',
+                        subjectId: a.subjectId || null,
+                        timestamp: a.timestamp || null
                     });
                 });
                 
@@ -955,10 +940,12 @@
             
             const icon = subjectIcons[subject.name] || subjectIcons.default;
             
-            // Calculate students for this subject
-            const subjectStudents = students.filter(student => 
-                student.subjects && student.subjects.includes(subject.id)
-            ).length;
+            // Calculate students for this subject: by explicit subject link or by class membership
+            const subjectStudents = students.filter(student => {
+                const bySubjectId = Array.isArray(student.subjects) && student.subjects.includes(subject.id);
+                const byClass = Array.isArray(subject.classes) && subject.classes.includes(student.class);
+                return bySubjectId || byClass;
+            }).length;
             
             // Calculate average score (mock data for now)
             const averageScore = Math.floor(Math.random() * 30) + 70; // 70-100%
@@ -1147,16 +1134,15 @@
         
         // Setup real-time listeners
         function setupRealTimeListeners() {
-            // Listen for subjects changes
+            // Listen for subjects changes (both direct and fallback path)
             db.collection('subjects')
-                .where('teacherId', '==', currentUser.uid)
-                .onSnapshot((snapshot) => {
+                .onSnapshot(() => {
                     console.log('📊 Subjects updated');
                     loadTeacherSubjects();
                 });
             
             // Listen for students changes
-            db.collection('students').onSnapshot((snapshot) => {
+            db.collection('students').onSnapshot(() => {
                 console.log('📊 Students updated');
                 loadStudents();
             });
