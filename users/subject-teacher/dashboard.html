@@ -644,6 +644,7 @@
         let subjects = [];
         let students = [];
         let recentActivity = [];
+        let classesData = [];
         
         // Check authentication and role
         auth.onAuthStateChanged((user) => {
@@ -689,12 +690,18 @@
                 
                 // Load students
                 await loadStudents();
+
+                // Load classes
+                await loadClasses();
                 
                 // Load recent activity
                 await loadRecentActivity();
                 
                 // Load additional statistics
                 await loadAdditionalStats();
+                
+                // Render subjects with classes info
+                displaySubjects();
                 
                 // Update statistics
                 updateStatistics();
@@ -824,6 +831,43 @@
                     { id: 's3', name: 'Mike Johnson', class: 'S.4 Science B', subjects: ['sample1', 'sample3'] },
                     { id: 's4', name: 'Sarah Wilson', class: 'S.4 Science B', subjects: ['sample1', 'sample3'] }
                 ];
+            }
+        }
+
+        // Load classes and map to display format
+        async function loadClasses() {
+            try {
+                const classesSnapshot = await db.collection('classes').limit(200).get();
+                const loaded = [];
+                classesSnapshot.forEach(doc => {
+                    const c = doc.data();
+                    const className = c.className || c.name || c.class || 'Unknown Class';
+                    const level = c.level || (c.classInfo && c.classInfo.level) || null;
+                    const stream = c.stream || (c.classInfo && c.classInfo.stream) || null;
+                    const teacherIds = [];
+                    if (c.classInfo) {
+                        if (c.classInfo.classTeacher) teacherIds.push(c.classInfo.classTeacher);
+                        if (c.classInfo.assistantTeacher) teacherIds.push(c.classInfo.assistantTeacher);
+                    }
+                    loaded.push({ id: doc.id, name: className, level, stream, teacherIds });
+                });
+                classesData = loaded;
+
+                // Attach classes to subjects when missing by matching class names for the teacher
+                const teacherIdCandidates = [currentUser.uid, teacherData.staffId].filter(Boolean);
+                subjects = subjects.map(s => {
+                    if (Array.isArray(s.classes) && s.classes.length > 0) return s;
+                    // infer classes taught by teacher that include subject code/name when available
+                    const inferredClasses = classesData
+                        .filter(cls => {
+                            const teachesClass = cls.teacherIds.some(tid => teacherIdCandidates.includes(tid));
+                            return teachesClass;
+                        })
+                        .map(cls => cls.name);
+                    return { ...s, classes: inferredClasses };
+                });
+            } catch (error) {
+                console.error('Error loading classes:', error);
             }
         }
         
@@ -1068,8 +1112,12 @@
             
             // Basic statistics
             const totalSubjects = subjects.length;
-            const totalClasses = subjects.reduce((total, subject) => 
-                total + (subject.classes ? subject.classes.length : 0), 0);
+            // Count unique classes taught by this teacher
+            const classSet = new Set();
+            subjects.forEach(subject => {
+                (subject.classes || []).forEach(cls => classSet.add(cls));
+            });
+            const totalClasses = classSet.size;
             
             // Calculate students assigned to this teacher's subjects
             const teacherStudentIds = new Set();
@@ -1147,6 +1195,14 @@
                 loadStudents();
             });
             
+            // Listen for classes changes
+            db.collection('classes').onSnapshot(() => {
+                console.log('📊 Classes updated');
+                loadClasses();
+                displaySubjects();
+                updateStatistics();
+            });
+
             // Listen for activity changes
             db.collection('activity')
                 .where('userId', '==', currentUser.uid)
