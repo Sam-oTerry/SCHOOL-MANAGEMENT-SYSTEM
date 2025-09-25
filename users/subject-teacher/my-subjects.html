@@ -89,7 +89,7 @@
 
                 <!-- Staff ID Display -->
                 <div class="alert alert-info">
-                    <i class="fas fa-id-card"></i> <strong>Staff ID:</strong> ST1234
+                    <i class="fas fa-id-card"></i> <strong>Staff ID:</strong> <span id="staff-id">—</span>
                 </div>
 
                 <!-- Subjects Overview -->
@@ -99,7 +99,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">3</h4>
+                                        <h4 class="card-title" id="total-subjects-count">—</h4>
                                         <p class="card-text">Total Subjects</p>
                                     </div>
                                     <div class="align-self-center">
@@ -114,7 +114,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">5</h4>
+                                        <h4 class="card-title" id="total-classes-count">—</h4>
                                         <p class="card-text">Total Classes</p>
                                     </div>
                                     <div class="align-self-center">
@@ -129,7 +129,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">120</h4>
+                                        <h4 class="card-title" id="total-students-count">—</h4>
                                         <p class="card-text">Total Students</p>
                                     </div>
                                     <div class="align-self-center">
@@ -144,7 +144,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">85%</h4>
+                                        <h4 class="card-title" id="avg-performance">—</h4>
                                         <p class="card-text">Average Performance</p>
                                     </div>
                                     <div class="align-self-center">
@@ -176,93 +176,10 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="subjects-tbody">
                                     <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="subject-icon me-3">
-                                                    <i class="fas fa-calculator text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <strong>Mathematics</strong><br>
-                                                    <small class="text-muted">Core Subject</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary me-1">S.4 Science A</span>
-                                            <span class="badge bg-primary me-1">S.4 Science B</span>
-                                            <span class="badge bg-primary">S.3 Science</span>
-                                        </td>
-                                        <td>45</td>
-                                        <td>82.5%</td>
-                                        <td>88.9%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" onclick="viewSubject('math')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-warning" onclick="editSubject('math')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="subject-icon me-3">
-                                                    <i class="fas fa-atom text-success"></i>
-                                                </div>
-                                                <div>
-                                                    <strong>Physics</strong><br>
-                                                    <small class="text-muted">Science Subject</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary me-1">S.4 Science A</span>
-                                            <span class="badge bg-primary">S.3 Science</span>
-                                        </td>
-                                        <td>30</td>
-                                        <td>78.2%</td>
-                                        <td>83.3%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" onclick="viewSubject('physics')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-warning" onclick="editSubject('physics')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="subject-icon me-3">
-                                                    <i class="fas fa-flask text-info"></i>
-                                                </div>
-                                                <div>
-                                                    <strong>Chemistry</strong><br>
-                                                    <small class="text-muted">Science Subject</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary me-1">S.4 Science B</span>
-                                            <span class="badge bg-primary">S.3 Science</span>
-                                        </td>
-                                        <td>30</td>
-                                        <td>79.8%</td>
-                                        <td>86.7%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" onclick="viewSubject('chemistry')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-warning" onclick="editSubject('chemistry')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-circle-notch fa-spin"></i> Loading assigned subjects...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -357,6 +274,105 @@
     <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
+    <script>
+        // Guard and dynamic loader for My Subjects
+        function logout() {
+            if (!window.auth) { window.location.href='../../index.html'; return; }
+            auth.signOut().then(() => window.location.href='../../index.html');
+        }
+
+        function uniq(arr) { return Array.from(new Set(arr)); }
+
+        async function getAssignedSubjectIds(uid) {
+            const snap = await db.collection('users').doc(uid).get();
+            if (!snap.exists) return [];
+            const data = snap.data() || {};
+            // Support both employmentInfo.subjects and academicInfo.subjects
+            const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
+            const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
+            return uniq([...(a||[]), ...(b||[])]).filter(Boolean);
+        }
+
+        async function getSubjectsByIds(ids) {
+            if (!ids || ids.length === 0) return [];
+            const batches = [];
+            for (let i = 0; i < ids.length; i += 10) batches.push(ids.slice(i, i + 10));
+            const snaps = await Promise.all(batches.map(chunk => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get()));
+            const subjects = [];
+            snaps.forEach(snap => snap.forEach(doc => subjects.push({ id: doc.id, ...doc.data() })));
+            return subjects;
+        }
+
+        function renderCounts(subjects) {
+            const totalSubjectsEl = document.getElementById('total-subjects-count');
+            const totalClassesEl = document.getElementById('total-classes-count');
+            const totalStudentsEl = document.getElementById('total-students-count');
+            const avgPerfEl = document.getElementById('avg-performance');
+
+            totalSubjectsEl.textContent = subjects.length;
+
+            const allClasses = subjects.flatMap(s => Array.isArray(s.classes) ? s.classes : []);
+            totalClassesEl.textContent = allClasses.length ? uniq(allClasses).length : '—';
+
+            // Without a reliable mapping from subjects to students, leave as em dash
+            totalStudentsEl.textContent = '—';
+            avgPerfEl.textContent = '—';
+        }
+
+        function renderSubjectsTable(subjects) {
+            const tbody = document.getElementById('subjects-tbody');
+            tbody.innerHTML = '';
+            if (!subjects || subjects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-book fa-2x mb-2"></i><br>No subject has been assigned to you yet.<br>Please contact your Head of Department.</td></tr>`;
+                return;
+            }
+            subjects.forEach(s => {
+                const row = document.createElement('tr');
+                const classes = Array.isArray(s.classes) ? s.classes : [];
+                const status = (s.status || 'active').toString().toLowerCase();
+                const statusClass = status === 'active' ? 'bg-success' : (status === 'inactive' ? 'bg-secondary' : 'bg-primary');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-3"><i class="fas fa-book text-primary"></i></div>
+                            <div><strong>${s.name || s.subjectName || 'Subject'}</strong><br><small class="text-muted">${s.department || (s.academicInfo && s.academicInfo.department) || ''}</small></div>
+                        </div>
+                    </td>
+                    <td>${classes.map(c => `<span class=\"badge bg-primary me-1\">${c}</span>`).join('')}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><span class="badge ${statusClass}">${(s.status || 'Active').toString().charAt(0).toUpperCase() + (s.status || 'Active').toString().slice(1)}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewSubject('${s.id}')"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn btn-sm btn-warning" onclick="editSubject('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
+                    </td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.auth || !window.db) return;
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) { window.location.href='../../index.html'; return; }
+                // Staff ID display
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    const u = userDoc.exists ? userDoc.data() : {};
+                    const staffId = (u && (u.staffId || (u.employmentInfo && u.employmentInfo.staffId))) || '—';
+                    document.getElementById('staff-id').textContent = staffId;
+                } catch (e) {
+                    document.getElementById('staff-id').textContent = '—';
+                }
+
+                // Load subjects
+                const ids = await getAssignedSubjectIds(user.uid);
+                const subjects = await getSubjectsByIds(ids);
+                renderCounts(subjects);
+                renderSubjectsTable(subjects);
+            });
+        });
+    </script>
     <script>
         // Assigned subjects guard
         async function loadAssignedSubjects() {
