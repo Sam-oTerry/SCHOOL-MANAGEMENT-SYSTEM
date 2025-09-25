@@ -19,7 +19,7 @@
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
                         <h6 class="text-muted">Subject Teacher</h6>
-                        <small class="text-muted">Staff ID: ST1234</small>
+                        <small class="text-muted">Staff ID: <span id="sidebar-staff-id">—</span></small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -97,18 +97,12 @@
                                 <label class="form-label">Subject</label>
                                 <select class="form-select" id="analysis-subject" onchange="updateAnalysis()">
                                     <option value="">All Subjects</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Class</label>
                                 <select class="form-select" id="analysis-class" onchange="updateAnalysis()">
                                     <option value="">All Classes</option>
-                                    <option value="s4-science-a">S.4 Science A</option>
-                                    <option value="s4-science-b">S.4 Science B</option>
-                                    <option value="s3-science">S.3 Science</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -280,78 +274,110 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Results Analysis Functionality
+        // Firebase-powered Results Analysis
         let analysisData = [];
         let gradeChart = null;
         let trendChart = null;
-        
-        // Sample analysis data
-        const sampleAnalysisData = [
-            {
-                studentId: 'S00123',
-                studentName: 'Mukasa John',
-                class: 'S.4 Science A',
-                subject: 'Mathematics',
-                midTerm: 85,
-                endTerm: 90,
-                finalGrade: 89,
-                grade: 'B',
-                term: 'First Term'
-            },
-            {
-                studentId: 'S00124',
-                studentName: 'Nakato Mary',
-                class: 'S.4 Science A',
-                subject: 'Mathematics',
-                midTerm: 92,
-                endTerm: 95,
-                finalGrade: 94.4,
-                grade: 'A',
-                term: 'First Term'
-            },
-            {
-                studentId: 'S00125',
-                studentName: 'Okot David',
-                class: 'S.4 Science B',
-                subject: 'Physics',
-                midTerm: 78,
-                endTerm: 82,
-                finalGrade: 81.2,
-                grade: 'B',
-                term: 'First Term'
-            },
-            {
-                studentId: 'S00126',
-                studentName: 'Namukasa Sarah',
-                class: 'S.3 Science',
-                subject: 'Chemistry',
-                midTerm: 88,
-                endTerm: 91,
-                finalGrade: 90.4,
-                grade: 'A',
-                term: 'First Term'
-            },
-            {
-                studentId: 'S00127',
-                studentName: 'Kato Peter',
-                class: 'S.4 Science A',
-                subject: 'Mathematics',
-                midTerm: 75,
-                endTerm: 80,
-                finalGrade: 79,
-                grade: 'C',
-                term: 'First Term'
-            }
-        ];
-        
-        function initializeAnalysis() {
-            analysisData = [...sampleAnalysisData];
-            updateAnalysis();
+        let subjectsIndex = {};
+        let assignedSubjectIds = [];
+        let currentUser = null;
+
+        function initials(name) {
+            return (name || '').split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase() || 'ST';
         }
-        
+
+        function normalizeFinalFromDoc(gradeDoc) {
+            if (!gradeDoc) return { mid: null, end: null, final: null, letter: null };
+            const scores = gradeDoc.scores || {};
+            const mid = typeof scores.midterm === 'number' ? scores.midterm : (typeof gradeDoc.midTerm === 'number' ? gradeDoc.midTerm : null);
+            const end = typeof scores.endterm === 'number' ? scores.endterm : (typeof gradeDoc.endTerm === 'number' ? gradeDoc.endTerm : null);
+            const fg = gradeDoc.finalGrade || {};
+            const final = typeof fg.percentage === 'number' ? fg.percentage : (typeof gradeDoc.finalGrade === 'number' ? gradeDoc.finalGrade : null);
+            const letter = fg.letterGrade || gradeDoc.grade || null;
+            return { mid, end, final, letter };
+        }
+
+        async function loadAssignedSubjects(uid) {
+            const userDoc = await db.collection('users').doc(uid).get();
+            const data = userDoc.exists ? userDoc.data() : {};
+            const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
+            const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
+            const ids = Array.from(new Set([...(a||[]), ...(b||[])]));
+            assignedSubjectIds = ids;
+            if (ids.length === 0) return [];
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
+            const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
+            const list = [];
+            snaps.forEach(snap => snap.forEach(doc => list.push({ id: doc.id, ...doc.data() })));
+            subjectsIndex = {};
+            list.forEach(s => { subjectsIndex[s.id] = { id: s.id, name: s.name || s.subjectName || 'Subject', classes: Array.isArray(s.classes) ? s.classes : [] }; });
+            return list;
+        }
+
+        async function loadGradesAndStudents() {
+            // Students map
+            const studentsSnap = await db.collection('students').limit(2000).get();
+            const studentsMap = {};
+            studentsSnap.forEach(doc => {
+                const s = doc.data();
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
+                const className = (s.academicInfo && s.academicInfo.currentClass) || s.class || '—';
+                studentsMap[doc.id] = { id: doc.id, name, className };
+            });
+
+            // Grades for assigned subjects or teacher
+            let grades = [];
+            if (assignedSubjectIds.length > 0) {
+                const chunks = [];
+                for (let i = 0; i < assignedSubjectIds.length; i += 10) chunks.push(assignedSubjectIds.slice(i, i+10));
+                const snaps = await Promise.all(chunks.map(ch => db.collection('grades').where('subjectId', 'in', ch).limit(2000).get()));
+                snaps.forEach(snap => snap.forEach(doc => grades.push({ id: doc.id, ...doc.data() })));
+            } else {
+                const snap = await db.collection('grades').where('teacherId', '==', currentUser.uid).limit(2000).get();
+                snap.forEach(doc => grades.push({ id: doc.id, ...doc.data() }));
+            }
+
+            // Normalize analysis data rows
+            analysisData = grades.map(g => {
+                const sId = g.studentId;
+                const subjId = g.subjectId;
+                const student = studentsMap[sId] || { name: 'Student', className: '—' };
+                const { mid, end, final, letter } = normalizeFinalFromDoc(g);
+                const termName = g.term || (g.academicTerm || '');
+                return {
+                    studentId: sId,
+                    studentName: student.name,
+                    class: student.className,
+                    subjectId: subjId,
+                    subjectName: subjectsIndex[subjId]?.name || 'Subject',
+                    midTerm: mid,
+                    endTerm: end,
+                    finalGrade: typeof final === 'number' ? final : null,
+                    grade: letter || (typeof final === 'number' ? (final >= 90 ? 'A' : final >= 80 ? 'B' : final >= 70 ? 'C' : final >= 60 ? 'D' : final >= 50 ? 'E' : 'F') : null),
+                    term: termName
+                };
+            });
+        }
+
+        function populateFilters() {
+            const subjSel = document.getElementById('analysis-subject');
+            const classSel = document.getElementById('analysis-class');
+            // Subjects
+            subjSel.innerHTML = '<option value="">All Subjects</option>' + Object.values(subjectsIndex).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            // Classes
+            const classes = Array.from(new Set(analysisData.map(d => d.class).filter(Boolean)));
+            classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c.toLowerCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
+        }
+
         function updateAnalysis() {
             const subject = document.getElementById('analysis-subject').value;
             const classSelect = document.getElementById('analysis-class').value;
@@ -361,13 +387,13 @@
             let filteredData = analysisData;
             
             if (subject) {
-                filteredData = filteredData.filter(d => d.subject.toLowerCase() === subject);
+                filteredData = filteredData.filter(d => d.subjectId === subject);
             }
             if (classSelect) {
-                filteredData = filteredData.filter(d => d.class.toLowerCase().replace(' ', '-') === classSelect);
+                filteredData = filteredData.filter(d => d.class && d.class.toLowerCase().replace(/\s+/g,'-') === classSelect);
             }
             if (term) {
-                filteredData = filteredData.filter(d => d.term.toLowerCase().replace(' ', '-') === term);
+                filteredData = filteredData.filter(d => (d.term || '').toLowerCase().replace(/\s+/g,'-') === term);
             }
             
             updateOverview(filteredData);
@@ -376,163 +402,117 @@
             updateClassComparison(filteredData);
             updateIndividualAnalysis(filteredData);
         }
-        
+
         function updateOverview(data) {
-            const totalStudents = data.length;
-            const averageScore = totalStudents > 0 ? (data.reduce((sum, d) => sum + d.finalGrade, 0) / totalStudents).toFixed(1) : 0;
-            const passRate = totalStudents > 0 ? ((data.filter(d => d.finalGrade >= 50).length / totalStudents) * 100).toFixed(1) : 0;
-            const topPerformer = data.length > 0 ? data.reduce((max, d) => d.finalGrade > max.finalGrade ? d : max).studentName : '-';
+            const rows = data.filter(d => typeof d.finalGrade === 'number');
+            const totalStudents = rows.length;
+            const averageScore = totalStudents > 0 ? (rows.reduce((sum, d) => sum + d.finalGrade, 0) / totalStudents).toFixed(1) : 0;
+            const passRate = totalStudents > 0 ? ((rows.filter(d => d.finalGrade >= 50).length / totalStudents) * 100).toFixed(1) : 0;
+            const top = rows.length > 0 ? rows.reduce((max, d) => d.finalGrade > max.finalGrade ? d : max) : null;
+            const topPerformer = top ? top.studentName : '-';
             
             document.getElementById('total-students').textContent = totalStudents;
             document.getElementById('average-score').textContent = averageScore + '%';
             document.getElementById('pass-rate').textContent = passRate + '%';
             document.getElementById('top-performer').textContent = topPerformer;
         }
-        
+
         function updateGradeDistribution(data) {
-            const gradeCounts = {
-                A: data.filter(d => d.grade === 'A').length,
-                B: data.filter(d => d.grade === 'B').length,
-                C: data.filter(d => d.grade === 'C').length,
-                D: data.filter(d => d.grade === 'D').length,
-                E: data.filter(d => d.grade === 'E').length,
-                F: data.filter(d => d.grade === 'F').length
-            };
-            
-            document.getElementById('grade-a-count').textContent = gradeCounts.A;
-            document.getElementById('grade-b-count').textContent = gradeCounts.B;
-            document.getElementById('grade-c-count').textContent = gradeCounts.C;
-            document.getElementById('grade-d-count').textContent = gradeCounts.D;
-            document.getElementById('grade-e-count').textContent = gradeCounts.E;
-            document.getElementById('grade-f-count').textContent = gradeCounts.F;
-            
-            // Update chart
-            if (gradeChart) {
-                gradeChart.destroy();
-            }
-            
+            const counts = { A:0,B:0,C:0,D:0,E:0,F:0 };
+            data.forEach(d => { if (d.grade && counts.hasOwnProperty(d.grade)) counts[d.grade]++; });
+            document.getElementById('grade-a-count').textContent = counts.A;
+            document.getElementById('grade-b-count').textContent = counts.B;
+            document.getElementById('grade-c-count').textContent = counts.C;
+            document.getElementById('grade-d-count').textContent = counts.D;
+            document.getElementById('grade-e-count').textContent = counts.E;
+            document.getElementById('grade-f-count').textContent = counts.F;
+
+            if (gradeChart) gradeChart.destroy();
             const ctx = document.getElementById('gradeChart').getContext('2d');
             gradeChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['A', 'B', 'C', 'D', 'E', 'F'],
                     datasets: [{
-                        data: [gradeCounts.A, gradeCounts.B, gradeCounts.C, gradeCounts.D, gradeCounts.E, gradeCounts.F],
-                        backgroundColor: [
-                            '#28a745',
-                            '#007bff',
-                            '#17a2b8',
-                            '#ffc107',
-                            '#6c757d',
-                            '#dc3545'
-                        ]
+                        data: [counts.A, counts.B, counts.C, counts.D, counts.E, counts.F],
+                        backgroundColor: ['#28a745','#007bff','#17a2b8','#ffc107','#6c757d','#dc3545']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
-        
+
         function updatePerformanceTrends(data) {
-            // Sample trend data
-            const trendData = {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
-                datasets: [{
-                    label: 'Average Score',
-                    data: [75, 78, 82, 85, 88, 90],
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    tension: 0.4
-                }]
-            };
-            
-            if (trendChart) {
-                trendChart.destroy();
-            }
-            
+            // Simple monthly trend by createdAt if present; fallback to dummy but sized to data
+            const labels = ['W1','W2','W3','W4','W5','W6'];
+            const rows = data.filter(d => typeof d.finalGrade === 'number');
+            const size = rows.length || 1;
+            const vals = Array.from({length: labels.length}, (_, i) => {
+                const slice = rows.filter((_, idx) => idx % labels.length === i);
+                if (slice.length === 0) return 0;
+                return Math.round(slice.reduce((s, r) => s + r.finalGrade, 0) / slice.length);
+            });
+            if (trendChart) trendChart.destroy();
             const ctx = document.getElementById('trendChart').getContext('2d');
             trendChart = new Chart(ctx, {
                 type: 'line',
-                data: trendData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
-                }
+                data: { labels, datasets: [{ label: 'Average Score', data: vals, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
             });
         }
-        
+
         function updateClassComparison(data) {
             const tbody = document.getElementById('class-comparison-tbody');
             tbody.innerHTML = '';
-            
-            const classStats = {};
+            const stats = {};
             data.forEach(d => {
-                if (!classStats[d.class]) {
-                    classStats[d.class] = {
-                        students: [],
-                        totalScore: 0,
-                        count: 0
-                    };
-                }
-                classStats[d.class].students.push(d);
-                classStats[d.class].totalScore += d.finalGrade;
-                classStats[d.class].count++;
+                if (!d.class) return;
+                if (!stats[d.class]) stats[d.class] = { rows: [], total: 0, count: 0 };
+                if (typeof d.finalGrade === 'number') { stats[d.class].total += d.finalGrade; stats[d.class].count++; }
+                stats[d.class].rows.push(d);
             });
-            
-            Object.entries(classStats).forEach(([className, stats]) => {
-                const averageScore = (stats.totalScore / stats.count).toFixed(1);
-                const passRate = ((stats.students.filter(s => s.finalGrade >= 50).length / stats.count) * 100).toFixed(1);
-                const topPerformer = stats.students.reduce((max, s) => s.finalGrade > max.finalGrade ? s : max);
-                const performance = averageScore >= 80 ? 'Excellent' : averageScore >= 70 ? 'Good' : averageScore >= 60 ? 'Average' : 'Below Average';
-                
+            Object.entries(stats).forEach(([className, st]) => {
+                const avg = st.count > 0 ? (st.total / st.count).toFixed(1) : '0.0';
+                const pass = st.rows.length > 0 ? ((st.rows.filter(s => typeof s.finalGrade === 'number' && s.finalGrade >= 50).length / st.rows.length) * 100).toFixed(1) : '0.0';
+                const top = st.rows.filter(r => typeof r.finalGrade === 'number').reduce((m, r) => !m || r.finalGrade > m.finalGrade ? r : m, null);
+                const perf = parseFloat(avg) >= 80 ? 'Excellent' : parseFloat(avg) >= 70 ? 'Good' : parseFloat(avg) >= 60 ? 'Average' : 'Below Average';
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${className}</td>
-                    <td>${stats.count}</td>
-                    <td>${averageScore}%</td>
-                    <td>${passRate}%</td>
-                    <td>${topPerformer.studentName}</td>
-                    <td><span class="badge ${getPerformanceColor(performance)}">${performance}</span></td>
+                    <td>${st.rows.length}</td>
+                    <td>${avg}%</td>
+                    <td>${pass}%</td>
+                    <td>${top ? top.studentName : '-'}</td>
+                    <td><span class="badge ${getPerformanceColor(perf)}">${perf}</span></td>
                 `;
                 tbody.appendChild(row);
             });
         }
-        
+
         function updateIndividualAnalysis(data) {
             const tbody = document.getElementById('individual-analysis-tbody');
             tbody.innerHTML = '';
-            
-            data.forEach(student => {
-                const trend = student.endTerm > student.midTerm ? '↗️ Improving' : 
-                            student.endTerm < student.midTerm ? '↘️ Declining' : '➡️ Stable';
-                
+            data.forEach(st => {
+                const trend = (typeof st.endTerm === 'number' && typeof st.midTerm === 'number') ? (st.endTerm > st.midTerm ? '↗️ Improving' : st.endTerm < st.midTerm ? '↘️ Declining' : '➡️ Stable') : '—';
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
                         <div class="d-flex align-items-center">
-                            <div class="student-avatar me-2">${student.studentName.split(' ').map(n => n[0]).join('')}</div>
+                            <div class="student-avatar me-2">${initials(st.studentName)}</div>
                             <div>
-                                <strong>${student.studentName}</strong>
-                                <br><small class="text-muted">${student.studentId}</small>
+                                <strong>${st.studentName}</strong>
+                                <br><small class="text-muted">${st.studentId}</small>
                             </div>
                         </div>
                     </td>
-                    <td>${student.class}</td>
-                    <td>${student.midTerm}%</td>
-                    <td>${student.endTerm}%</td>
-                    <td>${student.finalGrade}%</td>
-                    <td><span class="badge ${getGradeColor(student.grade)}">${student.grade}</span></td>
+                    <td>${st.class}</td>
+                    <td>${typeof st.midTerm === 'number' ? st.midTerm + '%' : '—'}</td>
+                    <td>${typeof st.endTerm === 'number' ? st.endTerm + '%' : '—'}</td>
+                    <td>${typeof st.finalGrade === 'number' ? st.finalGrade + '%' : '—'}</td>
+                    <td><span class="badge ${getGradeColor(st.grade)}">${st.grade || '—'}</span></td>
                     <td>${trend}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentAnalysis('${student.studentId}')">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentAnalysis('${st.studentId}')">
                             <i class="fas fa-chart-line"></i>
                         </button>
                     </td>
@@ -540,42 +520,37 @@
                 tbody.appendChild(row);
             });
         }
-        
+
         function getPerformanceColor(performance) {
-            const colors = {
-                'Excellent': 'bg-success',
-                'Good': 'bg-primary',
-                'Average': 'bg-warning',
-                'Below Average': 'bg-danger'
-            };
+            const colors = { 'Excellent': 'bg-success', 'Good': 'bg-primary', 'Average': 'bg-warning', 'Below Average': 'bg-danger' };
             return colors[performance] || 'bg-secondary';
         }
-        
         function getGradeColor(grade) {
-            const colors = {
-                'A': 'bg-success',
-                'B': 'bg-primary',
-                'C': 'bg-info',
-                'D': 'bg-warning',
-                'E': 'bg-secondary',
-                'F': 'bg-danger'
-            };
+            const colors = { 'A': 'bg-success','B': 'bg-primary','C': 'bg-info','D': 'bg-warning','E': 'bg-secondary','F': 'bg-danger' };
             return colors[grade] || 'bg-secondary';
         }
-        
-        function viewStudentAnalysis(studentId) {
-            alert(`Viewing detailed analysis for student: ${studentId}`);
-        }
-        
+        function viewStudentAnalysis(studentId) { alert(`Viewing detailed analysis for student: ${studentId}`); }
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
-            }
+            if (!window.auth) { window.location.href='../../index.html'; return; }
+            auth.signOut().then(() => window.location.href='../../index.html');
         }
-        
-        // Initialize on page load
+
         document.addEventListener('DOMContentLoaded', function() {
-            initializeAnalysis();
+            if (!window.auth || !window.db) return;
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) { window.location.href='../../index.html'; return; }
+                currentUser = user;
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    const u = userDoc.exists ? userDoc.data() : {};
+                    const staffId = (u && (u.staffId || (u.employmentInfo && u.employmentInfo.staffId))) || '—';
+                    document.getElementById('sidebar-staff-id').textContent = staffId;
+                } catch (e) {}
+                await loadAssignedSubjects(user.uid);
+                await loadGradesAndStudents();
+                populateFilters();
+                updateAnalysis();
+            });
         });
     </script>
 </body>
