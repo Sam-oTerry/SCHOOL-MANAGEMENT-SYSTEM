@@ -509,19 +509,19 @@
                 const ref = await db.collection('projects').add({
                     title,
                     subjectId: subject,
-                    class: classSelect,
+                class: classSelect,
                     dueDate,
-                    totalMarks: parseInt(marks),
+                totalMarks: parseInt(marks),
                     type,
                     description,
                     instructions,
-                    status: 'Active',
+                status: 'Active',
                     createdBy: auth.currentUser.uid,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 await loadProjects();
-                displayProjects();
+            displayProjects();
             } catch (e) {
                 console.error('Add project error:', e);
                 alert('Failed to add project');
@@ -554,7 +554,7 @@
                 try {
                     await db.collection('projects').doc(projectId).delete();
                     await loadProjects();
-                    displayProjects();
+                displayProjects();
                 } catch (e) {
                     console.error('Delete project error:', e);
                     alert('Failed to delete project');
@@ -635,7 +635,7 @@
             submissions = [];
             snap.forEach(doc => submissions.push({ id: doc.id, ...doc.data() }));
         }
-
+        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             if (!window.auth || !window.db) return;

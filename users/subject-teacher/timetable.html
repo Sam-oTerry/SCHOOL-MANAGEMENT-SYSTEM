@@ -164,36 +164,36 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3">
-                <div class="card bg-light text-center">
-                    <div class="card-body">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
                         <h3 class="text-primary" id="stat-hours">0</h3>
-                        <p class="mb-0">Total Hours/Week</p>
-                    </div>
-                </div>
+                                        <p class="mb-0">Total Hours/Week</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                <div class="card bg-light text-center">
-                    <div class="card-body">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
                         <h3 class="text-success" id="stat-subjects">0</h3>
-                        <p class="mb-0">Subjects</p>
-                    </div>
-                </div>
+                                        <p class="mb-0">Subjects</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                <div class="card bg-light text-center">
-                    <div class="card-body">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
                         <h3 class="text-info" id="stat-classes">0</h3>
-                        <p class="mb-0">Classes</p>
-                    </div>
-                </div>
+                                        <p class="mb-0">Classes</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                <div class="card bg-light text-center">
-                    <div class="card-body">
+                                <div class="card bg-light text-center">
+                                    <div class="card-body">
                         <h3 class="text-warning" id="stat-students">0</h3>
-                        <p class="mb-0">Total Students</p>
-                    </div>
-                </div>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -312,14 +312,14 @@
         
         function formatTimetableCell(cell) {
             if (!cell.subject || cell.subject === 'Break') {
-                return `<span class="text-muted">${cell.subject || 'Free'}</span>`;
+                return `<div class="timetable-cell break"><i class="fas fa-coffee"></i><br><span class="text-muted">${cell.subject || 'Free'}</span></div>`;
             }
             
             return `
-                <div class="timetable-slot">
-                    <div class="fw-bold text-primary">${cell.subject}</div>
-                    <div class="text-muted small">${cell.class}</div>
-                    <div class="text-muted small"><i class="fas fa-map-marker-alt"></i> ${cell.room}</div>
+                <div class="timetable-cell">
+                    <div class="fw-bold mb-2">${cell.class}</div>
+                    <div class="subject-badge mb-1">${cell.subject}</div>
+                    <div class="room-badge"><i class="fas fa-map-marker-alt"></i> ${cell.room}</div>
                 </div>
             `;
         }
@@ -453,6 +453,23 @@
             }
         }
         
+        // Setup real-time listeners for timetable updates
+        function setupRealTimeListeners() {
+            console.log('🔄 Setting up real-time timetable listeners...');
+            
+            // Listen for timetable changes for the current teacher
+            if (currentUser) {
+                db.collection('timetables').doc(currentUser.uid).onSnapshot((doc) => {
+                    console.log('📅 Timetable updated in real-time');
+                    if (doc.exists) {
+                        loadTimetable();
+                    }
+                }, (error) => {
+                    console.error('❌ Real-time timetable listener error:', error);
+                });
+            }
+        }
+        
         // Initialize on page load (auth guard)
         document.addEventListener('DOMContentLoaded', function() {
             if (!window.auth || !window.db) return;
@@ -467,6 +484,7 @@
                 } catch (e) {}
                 await loadAssignedSubjects(user.uid);
                 await loadTimetable();
+                setupRealTimeListeners();
             });
         });
     </script>
@@ -489,15 +507,48 @@
             padding: 10px;
         }
         
-        .timetable-slot {
+        .timetable-cell {
+            padding: 12px;
+            border-radius: 8px;
             background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 8px;
-            border-left: 4px solid var(--primary);
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
         }
         
-        .timetable-slot:hover {
+        .timetable-cell:hover {
             background-color: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .timetable-cell.break {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        .timetable-cell.break:hover {
+            background-color: #ffeaa7;
+        }
+        
+        .subject-badge {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .room-badge {
+            background: linear-gradient(45deg, #6c757d, #495057);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
         
         @media print {

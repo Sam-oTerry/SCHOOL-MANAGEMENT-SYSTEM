@@ -230,39 +230,130 @@
             const container = document.getElementById('announcements-list');
             container.innerHTML = '';
             
+            if (announcements.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-bullhorn text-muted fa-3x mb-3"></i>
+                        <h5 class="text-muted">No announcements found</h5>
+                        <p class="text-muted">Check back later for updates.</p>
+                    </div>
+                `;
+                return;
+            }
+            
             announcements.forEach(announcement => {
-                const announcementCard = document.createElement('div');
-                announcementCard.className = `card mb-3 ${announcement.status === 'Unread' ? 'border-primary' : ''}`;
-                announcementCard.innerHTML = `
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title ${announcement.status === 'Unread' ? 'fw-bold' : ''}">
-                                    ${announcement.title}
-                                    ${announcement.status === 'Unread' ? '<span class="badge bg-primary ms-2">New</span>' : ''}
-                                </h6>
-                                <p class="card-text text-muted">${announcement.content.substring(0, 150)}...</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <small class="text-muted">
-                                            <i class="fas fa-user"></i> ${announcement.author} | 
-                                            <i class="fas fa-calendar"></i> ${announcement.date} | 
-                                            <i class="fas fa-tag"></i> ${announcement.category}
-                                        </small>
-                                    </div>
-                                    <div>
-                                        <span class="badge ${getPriorityColor(announcement.priority)} me-2">${announcement.priority}</span>
-                                        <button class="btn btn-sm btn-outline-primary" onclick="viewAnnouncement('${announcement.id}')">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                    </div>
+                const announcementCard = createAnnouncementCard(announcement);
+                container.appendChild(announcementCard);
+            });
+        }
+        
+        function createAnnouncementCard(announcement) {
+            const card = document.createElement('div');
+            card.className = `card mb-3 announcement-card ${announcement.category.toLowerCase()} ${announcement.status === 'Unread' ? 'unread' : ''}`;
+            
+            const typeColors = {
+                'general': 'primary',
+                'academic': 'info',
+                'examination': 'warning',
+                'urgent': 'danger',
+                'event': 'success'
+            };
+            
+            const priorityColors = {
+                'High': 'danger',
+                'Medium': 'warning',
+                'Low': 'success'
+            };
+            
+            const typeIcons = {
+                'general': 'fas fa-bullhorn',
+                'academic': 'fas fa-graduation-cap',
+                'examination': 'fas fa-clipboard-check',
+                'urgent': 'fas fa-exclamation-triangle',
+                'event': 'fas fa-calendar-alt'
+            };
+            
+            const typeColor = typeColors[announcement.category.toLowerCase()] || 'primary';
+            const priorityColor = priorityColors[announcement.priority] || 'success';
+            const typeIcon = typeIcons[announcement.category.toLowerCase()] || 'fas fa-bullhorn';
+            
+            card.innerHTML = `
+                <div class="card-header d-flex justify-content-between align-items-center bg-${typeColor} bg-opacity-10 border-${typeColor} border-opacity-25">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="${typeIcon} text-${typeColor} fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1 text-dark fw-bold">${announcement.title}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>${announcement.date}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="mb-2">
+                            <span class="badge bg-${typeColor} me-2">
+                                <i class="${typeIcon} me-1"></i>${announcement.category.toUpperCase()}
+                            </span>
+                            <span class="badge bg-${priorityColor}">
+                                ${announcement.priority.toUpperCase()}
+                            </span>
+                        </div>
+                        ${announcement.status === 'Unread' ? '<span class="badge bg-primary"><i class="fas fa-circle me-1"></i>NEW</span>' : ''}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="card-text text-dark">${announcement.content}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="announcement-meta">
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user text-primary me-2"></i>
+                                        <strong>Author:</strong><br>
+                                        <span class="text-dark">${announcement.author}</span>
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar text-info me-2"></i>
+                                        <strong>Date:</strong><br>
+                                        <span class="text-dark">${announcement.date}</span>
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag text-secondary me-2"></i>
+                                        <strong>Category:</strong><br>
+                                        <span class="text-dark">${announcement.category}</span>
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                `;
-                container.appendChild(announcementCard);
-            });
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="announcement-actions">
+                            <button class="btn btn-outline-primary btn-sm me-2" onclick="markAsRead('${announcement.id}')" title="Mark as Read">
+                                <i class="fas fa-eye me-1"></i>Mark as Read
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="viewAnnouncement('${announcement.id}')" title="View Details">
+                                <i class="fas fa-info-circle me-1"></i>View Details
+                            </button>
+                        </div>
+                        <div class="announcement-stats">
+                            <small class="text-muted">
+                                <i class="fas fa-circle me-1"></i>${announcement.status}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
         }
         
         function displayRecentAnnouncements() {
@@ -380,5 +471,131 @@
             });
         });
     </script>
+    
+    <style>
+        .announcement-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .announcement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .announcement-card .card-header {
+            border-bottom: 2px solid;
+            position: relative;
+        }
+        
+        .announcement-card .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+        }
+        
+        .announcement-meta {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--bs-primary);
+        }
+        
+        .announcement-actions .btn {
+            transition: all 0.2s ease;
+        }
+        
+        .announcement-actions .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .announcement-stats {
+            opacity: 0.7;
+        }
+        
+        .card-text {
+            line-height: 1.6;
+            max-height: 4.8rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .announcement-card.pinned {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .announcement-card.urgent {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .announcement-card.event {
+            border-left: 4px solid #198754;
+        }
+        
+        .announcement-card.academic {
+            border-left: 4px solid #0dcaf0;
+        }
+        
+        .announcement-card.unread {
+            border-left: 4px solid #0d6efd;
+            background-color: #f8f9ff;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.border-primary:hover {
+            border-color: var(--bs-primary) !important;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.2);
+        }
+        
+        .stat-card.border-success:hover {
+            border-color: var(--bs-success) !important;
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.2);
+        }
+        
+        .stat-card.border-info:hover {
+            border-color: var(--bs-info) !important;
+            box-shadow: 0 6px 20px rgba(13, 202, 240, 0.2);
+        }
+        
+        .stat-card.border-warning:hover {
+            border-color: var(--bs-warning) !important;
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.2);
+        }
+        
+        .stat-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+        
+        .number {
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+    </style>
 </body>
 </html>

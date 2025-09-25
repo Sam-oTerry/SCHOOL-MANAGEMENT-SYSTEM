@@ -377,7 +377,7 @@
             const classes = Array.from(new Set(analysisData.map(d => d.class).filter(Boolean)));
             classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c.toLowerCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
         }
-
+        
         function updateAnalysis() {
             const subject = document.getElementById('analysis-subject').value;
             const classSelect = document.getElementById('analysis-class').value;
@@ -402,7 +402,7 @@
             updateClassComparison(filteredData);
             updateIndividualAnalysis(filteredData);
         }
-
+        
         function updateOverview(data) {
             const rows = data.filter(d => typeof d.finalGrade === 'number');
             const totalStudents = rows.length;
@@ -416,7 +416,7 @@
             document.getElementById('pass-rate').textContent = passRate + '%';
             document.getElementById('top-performer').textContent = topPerformer;
         }
-
+        
         function updateGradeDistribution(data) {
             const counts = { A:0,B:0,C:0,D:0,E:0,F:0 };
             data.forEach(d => { if (d.grade && counts.hasOwnProperty(d.grade)) counts[d.grade]++; });
@@ -441,7 +441,7 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
-
+        
         function updatePerformanceTrends(data) {
             // Simple monthly trend by createdAt if present; fallback to dummy but sized to data
             const labels = ['W1','W2','W3','W4','W5','W6'];
@@ -460,7 +460,7 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
             });
         }
-
+        
         function updateClassComparison(data) {
             const tbody = document.getElementById('class-comparison-tbody');
             tbody.innerHTML = '';
@@ -488,7 +488,7 @@
                 tbody.appendChild(row);
             });
         }
-
+        
         function updateIndividualAnalysis(data) {
             const tbody = document.getElementById('individual-analysis-tbody');
             tbody.innerHTML = '';
@@ -520,7 +520,7 @@
                 tbody.appendChild(row);
             });
         }
-
+        
         function getPerformanceColor(performance) {
             const colors = { 'Excellent': 'bg-success', 'Good': 'bg-primary', 'Average': 'bg-warning', 'Below Average': 'bg-danger' };
             return colors[performance] || 'bg-secondary';
@@ -534,7 +534,7 @@
             if (!window.auth) { window.location.href='../../index.html'; return; }
             auth.signOut().then(() => window.location.href='../../index.html');
         }
-
+        
         document.addEventListener('DOMContentLoaded', function() {
             if (!window.auth || !window.db) return;
             auth.onAuthStateChanged(async (user) => {
