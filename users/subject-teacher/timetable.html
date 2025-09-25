@@ -164,36 +164,36 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3">
-                                <div class="card bg-light text-center">
-                                    <div class="card-body">
-                                        <h3 class="text-primary">18</h3>
-                                        <p class="mb-0">Total Hours/Week</p>
-                                    </div>
-                                </div>
+                <div class="card bg-light text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary" id="stat-hours">0</h3>
+                        <p class="mb-0">Total Hours/Week</p>
+                    </div>
+                </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-light text-center">
-                                    <div class="card-body">
-                                        <h3 class="text-success">3</h3>
-                                        <p class="mb-0">Subjects</p>
-                                    </div>
-                                </div>
+                <div class="card bg-light text-center">
+                    <div class="card-body">
+                        <h3 class="text-success" id="stat-subjects">0</h3>
+                        <p class="mb-0">Subjects</p>
+                    </div>
+                </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-light text-center">
-                                    <div class="card-body">
-                                        <h3 class="text-info">5</h3>
-                                        <p class="mb-0">Classes</p>
-                                    </div>
-                                </div>
+                <div class="card bg-light text-center">
+                    <div class="card-body">
+                        <h3 class="text-info" id="stat-classes">0</h3>
+                        <p class="mb-0">Classes</p>
+                    </div>
+                </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-light text-center">
-                                    <div class="card-body">
-                                        <h3 class="text-warning">105</h3>
-                                        <p class="mb-0">Total Students</p>
-                                    </div>
-                                </div>
+                <div class="card bg-light text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning" id="stat-students">0</h3>
+                        <p class="mb-0">Total Students</p>
+                    </div>
+                </div>
                             </div>
                         </div>
                     </div>
@@ -289,6 +289,7 @@
             displayTimetable();
             const upcoming = Array.isArray(data.upcoming) ? data.upcoming.slice(0, 8) : [];
             displayUpcomingClasses(upcoming);
+            updateTeachingScheduleStats();
         }
         
         function displayTimetable() {
@@ -321,6 +322,39 @@
                     <div class="text-muted small"><i class="fas fa-map-marker-alt"></i> ${cell.room}</div>
                 </div>
             `;
+        }
+
+        async function updateTeachingScheduleStats() {
+            // Compute hours from non-empty slots (1 hour per slot by default)
+            let hours = 0;
+            const subjectsSet = new Set();
+            const classesSet = new Set();
+
+            timetableData.forEach(slot => {
+                ['monday','tuesday','wednesday','thursday','friday'].forEach(day => {
+                    const cell = slot[day];
+                    if (cell && cell.subject && cell.subject !== 'Break') {
+                        hours += 1;
+                        if (cell.subjectId) subjectsSet.add(cell.subjectId); else subjectsSet.add(cell.subject);
+                        if (cell.class) classesSet.add(cell.class);
+                    }
+                });
+            });
+
+            // Attempt to estimate students by counting students in classes taught
+            let students = 0;
+            try {
+                const classNames = Array.from(classesSet).slice(0, 10); // limit to avoid massive queries
+                if (classNames.length > 0) {
+                    const snaps = await Promise.all(classNames.map(cn => db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
+                    snaps.forEach(snap => { students += snap.size; });
+                }
+            } catch (e) {}
+
+            document.getElementById('stat-hours').textContent = hours;
+            document.getElementById('stat-subjects').textContent = subjectsSet.size;
+            document.getElementById('stat-classes').textContent = classesSet.size;
+            document.getElementById('stat-students').textContent = students;
         }
         
         function displayUpcomingClasses() {
