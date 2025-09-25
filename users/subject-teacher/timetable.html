@@ -19,7 +19,7 @@
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
                         <h6 class="text-muted">Subject Teacher</h6>
-                        <small class="text-muted">Staff ID: ST1234</small>
+                        <small class="text-muted">Staff ID: <span id="sidebar-staff-id">—</span></small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -112,9 +112,6 @@
                                 <label class="form-label">Subject Filter</label>
                                 <select class="form-select" id="subject-filter" onchange="updateTimetable()">
                                     <option value="">All Subjects</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -232,104 +229,66 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Timetable Functionality
+        // Firebase-powered Timetable (read-only for Subject Teacher; DOS manages creation)
         let timetableData = [];
         let currentWeek = 'current';
-        
-        // Sample timetable data
-        const sampleTimetableData = [
-            {
-                time: '08:00-09:00',
-                monday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
-                tuesday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
-                wednesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
-                thursday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
-                friday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' }
-            },
-            {
-                time: '09:00-10:00',
-                monday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
-                tuesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
-                wednesday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
-                thursday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
-                friday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' }
-            },
-            {
-                time: '10:00-11:00',
-                monday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
-                tuesday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
-                wednesday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
-                thursday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
-                friday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' }
-            },
-            {
-                time: '11:00-12:00',
-                monday: { subject: 'Break', class: '', room: '' },
-                tuesday: { subject: 'Break', class: '', room: '' },
-                wednesday: { subject: 'Break', class: '', room: '' },
-                thursday: { subject: 'Break', class: '', room: '' },
-                friday: { subject: 'Break', class: '', room: '' }
-            },
-            {
-                time: '12:00-13:00',
-                monday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
-                tuesday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
-                wednesday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' },
-                thursday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
-                friday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' }
-            },
-            {
-                time: '13:00-14:00',
-                monday: { subject: 'Physics', class: 'S.4 Science A', room: 'Lab 1' },
-                tuesday: { subject: 'Chemistry', class: 'S.3 Science', room: 'Lab 2' },
-                wednesday: { subject: 'Mathematics', class: 'S.4 Science B', room: 'Room 102' },
-                thursday: { subject: 'Physics', class: 'S.4 Science B', room: 'Lab 1' },
-                friday: { subject: 'Mathematics', class: 'S.4 Science A', room: 'Room 101' }
+        let currentUser = null;
+        let subjectsIndex = {};
+
+        async function loadAssignedSubjects(uid) {
+            const doc = await db.collection('users').doc(uid).get();
+            const data = doc.exists ? doc.data() : {};
+            const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
+            const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
+            const ids = Array.from(new Set([...(a||[]), ...(b||[])]));
+            const sel = document.getElementById('subject-filter');
+            if (ids.length === 0) { sel.innerHTML = '<option value="">All Subjects</option>'; return []; }
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
+            const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
+            const list = [];
+            snaps.forEach(snap => snap.forEach(doc => list.push({ id: doc.id, ...doc.data() })));
+            subjectsIndex = {};
+            list.forEach(s => { subjectsIndex[s.id] = s.name || s.subjectName || 'Subject'; });
+            sel.innerHTML = '<option value="">All Subjects</option>' + list.map(s => `<option value="${s.id}">${s.name || s.subjectName || 'Subject'}</option>`).join('');
+            return list;
+        }
+
+        async function loadTimetable() {
+            const snap = await db.collection('timetables').where('teacherId', '==', currentUser.uid).limit(1).get();
+            if (snap.empty) {
+                timetableData = [];
+                displayTimetable();
+                displayUpcomingClasses([]);
+                // Show info that DOS manages timetable
+                const card = document.querySelector('.card');
+                if (card) {
+                    card.insertAdjacentHTML('afterbegin', `<div class="alert alert-info mb-3"><i class="fas fa-info-circle"></i> Your timetable is managed by the Director of Studies (DOS). Contact DOS for changes.</div>`);
+                }
+                return;
             }
-        ];
-        
-        const upcomingClasses = [
-            {
-                date: '2023-10-16',
-                time: '08:00-09:00',
-                subject: 'Mathematics',
-                class: 'S.4 Science A',
-                room: 'Room 101',
-                duration: '1 hour'
-            },
-            {
-                date: '2023-10-16',
-                time: '09:00-10:00',
-                subject: 'Physics',
-                class: 'S.4 Science B',
-                room: 'Lab 1',
-                duration: '1 hour'
-            },
-            {
-                date: '2023-10-17',
-                time: '08:00-09:00',
-                subject: 'Mathematics',
-                class: 'S.4 Science A',
-                room: 'Room 101',
-                duration: '1 hour'
-            },
-            {
-                date: '2023-10-17',
-                time: '12:00-13:00',
-                subject: 'Chemistry',
-                class: 'S.3 Science',
-                room: 'Lab 2',
-                duration: '1 hour'
-            }
-        ];
-        
-        function initializeTimetable() {
-            timetableData = [...sampleTimetableData];
+            const data = snap.docs[0].data();
+            const schedule = data.schedule || {};
+            const times = data.times || ['08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','13:00-14:00'];
+            timetableData = times.map(time => ({
+                time,
+                monday: schedule.monday && schedule.monday[time] ? schedule.monday[time] : { subject: 'Break', class: '', room: '' },
+                tuesday: schedule.tuesday && schedule.tuesday[time] ? schedule.tuesday[time] : { subject: '', class: '', room: '' },
+                wednesday: schedule.wednesday && schedule.wednesday[time] ? schedule.wednesday[time] : { subject: '', class: '', room: '' },
+                thursday: schedule.thursday && schedule.thursday[time] ? schedule.thursday[time] : { subject: '', class: '', room: '' },
+                friday: schedule.friday && schedule.friday[time] ? schedule.friday[time] : { subject: '', class: '', room: '' }
+            }));
             displayTimetable();
-            displayUpcomingClasses();
+            const upcoming = Array.isArray(data.upcoming) ? data.upcoming.slice(0, 8) : [];
+            displayUpcomingClasses(upcoming);
         }
         
         function displayTimetable() {

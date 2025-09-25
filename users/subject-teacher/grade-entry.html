@@ -19,7 +19,7 @@
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
                         <h6 class="text-muted">Subject Teacher</h6>
-                        <small class="text-muted">Staff ID: ST1234</small>
+                        <small class="text-muted">Staff ID: <span id="sidebar-staff-id">—</span></small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -99,18 +99,14 @@
                                     <label class="form-label">Subject</label>
                                     <select class="form-select" id="subject-select" required>
                                         <option value="">Select Subject</option>
-                                        <option value="mathematics">Mathematics</option>
-                                        <option value="physics">Physics</option>
-                                        <option value="chemistry">Chemistry</option>
+                                        
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Class</label>
                                     <select class="form-select" id="class-select" required>
                                         <option value="">Select Class</option>
-                                        <option value="s4-science-a">S.4 Science A</option>
-                                        <option value="s4-science-b">S.4 Science B</option>
-                                        <option value="s3-science">S.3 Science</option>
+                                        
                                     </select>
                                 </div>
                                 <div class="col-md-4">
@@ -254,9 +250,10 @@
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Grade Entry Functionality
+        // Grade Entry Functionality (Firebase)
         let currentStudents = [];
         let currentGrades = {};
+        let assignedSubjects = [];
         
         async function ensureAssignedSubjects() {
             if (!window.auth || !window.db) return { assigned: [], subjects: [] };
@@ -296,16 +293,39 @@
                 return;
             }
             
-            // Simulate loading students
-            currentStudents = [
-                { id: 'S00123', name: 'Mukasa John' },
-                { id: 'S00124', name: 'Nakato Mary' },
-                { id: 'S00125', name: 'Okot David' },
-                { id: 'S00126', name: 'Namukasa Sarah' },
-                { id: 'S00127', name: 'Kato Peter' }
-            ];
-            
+            // Fetch students in selected class
+            const snap = await db.collection('students')
+                .where('academicInfo.currentClass', '==', classSelect)
+                .get();
+            currentStudents = [];
+            snap.forEach(doc => {
+                const s = doc.data();
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
+                currentStudents.push({ id: doc.id, name });
+            });
+
+            // Optionally prefill existing grades for this subject/term
+            const gradeSnap = await db.collection('grades')
+                .where('subjectId', '==', subject)
+                .where('classId', '==', classSelect)
+                .where('term', '==', term)
+                .get();
+            const existing = {};
+            gradeSnap.forEach(d => { existing[d.data().studentId] = d.data(); });
+
             displayStudents();
+            // Prefill inputs
+            currentStudents.forEach(st => {
+                const ex = existing[st.id];
+                if (ex) {
+                    const scores = ex.scores || {};
+                    const mid = typeof scores.midterm === 'number' ? scores.midterm : (typeof ex.midTerm === 'number' ? ex.midTerm : '');
+                    const end = typeof scores.endterm === 'number' ? scores.endterm : (typeof ex.endTerm === 'number' ? ex.endTerm : '');
+                    if (mid !== '') document.getElementById(`mid-${st.id}`).value = mid;
+                    if (end !== '') document.getElementById(`end-${st.id}`).value = end;
+                    calculateFinalGrade(st.id);
+                }
+            });
         }
         
         function displayStudents() {
@@ -341,7 +361,7 @@
         
         function calculateFinalGrade(studentId) {
             const midTerm = parseFloat(document.getElementById(`mid-${studentId}`).value) || 0;
-            const endTerm = parseFloat(document.getElementById(`end-${student.id}`).value) || 0;
+            const endTerm = parseFloat(document.getElementById(`end-${studentId}`).value) || 0;
             
             const finalScore = (midTerm * 0.2) + (endTerm * 0.8);
             const grade = getGrade(finalScore);
@@ -404,18 +424,21 @@
             alert(`Editing grades for entry: ${entryId}`);
         }
         
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
-            }
-        }
+        function logout() { if (!window.auth) { window.location.href='../../index.html'; return; } auth.signOut().then(() => window.location.href='../../index.html'); }
         
         // Auth guard and assigned subjects setup
         document.addEventListener('DOMContentLoaded', async function() {
-            if (!window.auth) return;
+            if (!window.auth || !window.db) return;
             auth.onAuthStateChanged(async (user) => {
                 if (!user) { window.location.href='../../index.html'; return; }
+                try {
+                    const uDoc = await db.collection('users').doc(user.uid).get();
+                    const data = uDoc.exists ? uDoc.data() : {};
+                    const staffId = (data.staffId || (data.employmentInfo && data.employmentInfo.staffId)) || '—';
+                    document.getElementById('sidebar-staff-id').textContent = staffId;
+                } catch (e) {}
                 const { subjects } = await ensureAssignedSubjects();
+                assignedSubjects = subjects;
                 if (subjects.length === 0) {
                     const card = document.querySelector('.card');
                     if (card) {
@@ -430,7 +453,7 @@
         });
 
         // Form submission
-        document.getElementById('grade-entry-form').addEventListener('submit', function(e) {
+        document.getElementById('grade-entry-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const subject = document.getElementById('subject-select').value;
@@ -442,8 +465,31 @@
                 return;
             }
             
-            // Simulate saving grades
-            alert(`Grades saved successfully for ${subject} - ${classSelect} - ${term}`);
+            // Save grades to Firestore
+            try {
+                const batch = db.batch();
+                const teacherId = auth.currentUser.uid;
+                Object.entries(currentGrades).forEach(([studentId, g]) => {
+                    const ref = db.collection('grades').doc();
+                    batch.set(ref, {
+                        studentId,
+                        subjectId: subject,
+                        classId: classSelect,
+                        term,
+                        teacherId,
+                        scores: { midterm: g.midTerm, endterm: g.endTerm },
+                        finalGrade: { percentage: parseFloat(g.finalScore.toFixed(1)), letterGrade: g.grade },
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                await batch.commit();
+                alert('Grades saved successfully.');
+            } catch (err) {
+                console.error('Save grades error:', err);
+                alert('Failed to save grades.');
+                return;
+            }
             
             // Reset form
             document.getElementById('grade-entry-form').reset();
