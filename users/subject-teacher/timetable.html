@@ -419,9 +419,21 @@
             }
         }
         
-        // Initialize on page load
+        // Initialize on page load (auth guard)
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTimetable();
+            if (!window.auth || !window.db) return;
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) { window.location.href='../../index.html'; return; }
+                currentUser = user;
+                try {
+                    const uDoc = await db.collection('users').doc(user.uid).get();
+                    const data = uDoc.exists ? uDoc.data() : {};
+                    const staffId = (data.staffId || (data.employmentInfo && data.employmentInfo.staffId)) || '—';
+                    document.getElementById('sidebar-staff-id').textContent = staffId;
+                } catch (e) {}
+                await loadAssignedSubjects(user.uid);
+                await loadTimetable();
+            });
         });
     </script>
     
