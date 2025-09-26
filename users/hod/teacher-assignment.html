@@ -211,11 +211,37 @@
                 <div class="header">
                     <div>
                         <h4>Teacher Assignment</h4>
-                        <span class="role-badge">Department Management</span>
+                        <span class="role-badge" id="department-badge">Department Management</span>
                     </div>
                     <div>
                         <span id="current-user">John Doe</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
+                    </div>
+                </div>
+                
+                <!-- Department Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle"></i> Department Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Detected Department:</strong>
+                                <span class="badge bg-primary ms-2" id="detected-department">Loading...</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Available Data:</strong>
+                                <span class="ms-2">
+                                    <span class="badge bg-success" id="subjects-count">0</span> Subjects |
+                                    <span class="badge bg-info" id="teachers-count">0</span> Teachers |
+                                    <span class="badge bg-warning" id="classes-count">0</span> Classes
+                                </span>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="debugDepartmentDetection()" title="Debug department detection">
+                                    <i class="fas fa-bug"></i> Debug
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -230,37 +256,31 @@
                                 <label class="form-label">Subject</label>
                                 <select class="form-select" id="subject-select" onchange="loadTeachers()">
                                     <option value="">Select Subject</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="biology">Biology</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Class</label>
                                 <select class="form-select" id="class-select" onchange="loadTeachers()">
                                     <option value="">Select Class</option>
-                                    <option value="s4-science-a">S.4 Science A</option>
-                                    <option value="s4-science-b">S.4 Science B</option>
-                                    <option value="s3-science">S.3 Science</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Term</label>
                                 <select class="form-select" id="term-select" onchange="loadTeachers()">
-                                    <option value="term1">Term 1</option>
-                                    <option value="term2">Term 2</option>
-                                    <option value="term3">Term 3</option>
+                                    <option value="">Select Term</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Actions</label>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 flex-wrap">
                                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignTeacherModal">
                                         <i class="fas fa-plus"></i> Assign Teacher
                                     </button>
                                     <button class="btn btn-info btn-sm" onclick="exportAssignments()">
                                         <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="refreshAllDropdowns()" title="Refresh dropdowns for current department">
+                                        <i class="fas fa-sync"></i> Refresh
                                     </button>
                                 </div>
                             </div>
@@ -376,10 +396,6 @@
                                     <label class="form-label">Teacher</label>
                                     <select class="form-select" id="teacher-select" required>
                                         <option value="">Select Teacher</option>
-                                        <option value="teacher1">John Smith - Mathematics</option>
-                                        <option value="teacher2">Mary Johnson - Physics</option>
-                                        <option value="teacher3">Peter Brown - Chemistry</option>
-                                        <option value="teacher4">Sarah Wilson - Biology</option>
                                     </select>
                                 </div>
                             </div>
@@ -388,10 +404,6 @@
                                     <label class="form-label">Subject</label>
                                     <select class="form-select" id="assign-subject" required>
                                         <option value="">Select Subject</option>
-                                        <option value="mathematics">Mathematics</option>
-                                        <option value="physics">Physics</option>
-                                        <option value="chemistry">Chemistry</option>
-                                        <option value="biology">Biology</option>
                                     </select>
                                 </div>
                             </div>
@@ -402,9 +414,6 @@
                                     <label class="form-label">Class</label>
                                     <select class="form-select" id="assign-class" required>
                                         <option value="">Select Class</option>
-                                        <option value="s4-science-a">S.4 Science A</option>
-                                        <option value="s4-science-b">S.4 Science B</option>
-                                        <option value="s3-science">S.3 Science</option>
                                     </select>
                                 </div>
                             </div>
@@ -412,9 +421,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Term</label>
                                     <select class="form-select" id="assign-term" required>
-                                        <option value="term1">Term 1</option>
-                                        <option value="term2">Term 2</option>
-                                        <option value="term3">Term 3</option>
+                                        <option value="">Select Term</option>
                                     </select>
                                 </div>
                             </div>
@@ -468,10 +475,6 @@
                                     <label class="form-label">Teacher</label>
                                     <select class="form-select" id="edit-teacher-select" required>
                                         <option value="">Select Teacher</option>
-                                        <option value="teacher1">John Smith - Mathematics</option>
-                                        <option value="teacher2">Mary Johnson - Physics</option>
-                                        <option value="teacher3">Peter Brown - Chemistry</option>
-                                        <option value="teacher4">Sarah Wilson - Biology</option>
                                     </select>
                                 </div>
                             </div>
@@ -480,10 +483,6 @@
                                     <label class="form-label">Subject</label>
                                     <select class="form-select" id="edit-assign-subject" required>
                                         <option value="">Select Subject</option>
-                                        <option value="mathematics">Mathematics</option>
-                                        <option value="physics">Physics</option>
-                                        <option value="chemistry">Chemistry</option>
-                                        <option value="biology">Biology</option>
                                     </select>
                                 </div>
                             </div>
@@ -494,9 +493,6 @@
                                     <label class="form-label">Class</label>
                                     <select class="form-select" id="edit-assign-class" required>
                                         <option value="">Select Class</option>
-                                        <option value="s4-science-a">S.4 Science A</option>
-                                        <option value="s4-science-b">S.4 Science B</option>
-                                        <option value="s3-science">S.3 Science</option>
                                     </select>
                                 </div>
                             </div>
@@ -504,9 +500,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Term</label>
                                     <select class="form-select" id="edit-assign-term" required>
-                                        <option value="term1">Term 1</option>
-                                        <option value="term2">Term 2</option>
-                                        <option value="term3">Term 3</option>
+                                        <option value="">Select Term</option>
                                     </select>
                                 </div>
                             </div>
@@ -551,6 +545,420 @@
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
+        // Dynamic Data Management
+        let departments = [];
+        let subjects = [];
+        let classes = [];
+        let teachers = [];
+        let terms = [];
+        let currentDepartment = '';
+        
+        // Load dynamic data from Firebase
+        async function loadDynamicData() {
+            try {
+                showNotification('Loading system data...', 'info');
+                
+                // Load departments
+                const departmentsSnapshot = await db.collection('departments').get();
+                departments = [];
+                departmentsSnapshot.forEach(doc => {
+                    departments.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Load subjects
+                const subjectsSnapshot = await db.collection('subjects').get();
+                subjects = [];
+                subjectsSnapshot.forEach(doc => {
+                    subjects.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Load classes
+                const classesSnapshot = await db.collection('classes').get();
+                classes = [];
+                classesSnapshot.forEach(doc => {
+                    classes.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Load teachers
+                const teachersSnapshot = await db.collection('teachers').get();
+                teachers = [];
+                teachersSnapshot.forEach(doc => {
+                    teachers.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Load terms
+                const termsSnapshot = await db.collection('terms').get();
+                terms = [];
+                termsSnapshot.forEach(doc => {
+                    terms.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Set current department from user profile
+                await loadUserProfile();
+                
+                // Populate dropdowns
+                populateDropdowns();
+                
+                // Update UI with dynamic data
+                updateUIWithDynamicData();
+                
+                showNotification('System data loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error loading dynamic data:', error);
+                showNotification('Error loading system data. Using fallback data.', 'warning');
+                loadFallbackData();
+            }
+        }
+        
+        async function loadUserProfile() {
+            try {
+                const userProfileSnapshot = await db.collection('userProfiles')
+                    .where('email', '==', currentUser.email)
+                    .get();
+                
+                if (!userProfileSnapshot.empty) {
+                    const userProfile = userProfileSnapshot.docs[0].data();
+                    currentDepartment = userProfile.department || userProfile.subject || 'Mathematics';
+                    
+                    // Log the detected department for debugging
+                    console.log('User department detected:', currentDepartment);
+                    console.log('User profile data:', userProfile);
+                } else {
+                    // Try to get department from user's role or custom claims
+                    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        currentDepartment = userData.department || userData.subject || 'Mathematics';
+                        console.log('Department from user document:', currentDepartment);
+                    } else {
+                        currentDepartment = 'Mathematics'; // Default fallback
+                        console.log('Using default department:', currentDepartment);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                currentDepartment = 'Mathematics'; // Default fallback
+            }
+        }
+        
+        function loadFallbackData() {
+            // Fallback data when Firebase is unavailable
+            departments = [
+                { id: 'math', name: 'Mathematics', code: 'MATH' },
+                { id: 'science', name: 'Science', code: 'SCI' },
+                { id: 'english', name: 'English', code: 'ENG' }
+            ];
+            
+            subjects = [
+                { id: 'math', name: 'Mathematics', department: 'math' },
+                { id: 'physics', name: 'Physics', department: 'science' },
+                { id: 'chemistry', name: 'Chemistry', department: 'science' },
+                { id: 'biology', name: 'Biology', department: 'science' }
+            ];
+            
+            classes = [
+                { id: 's4a', name: 'S.4 Science A', level: 'S4' },
+                { id: 's4b', name: 'S.4 Science B', level: 'S4' },
+                { id: 's3', name: 'S.3 Science', level: 'S3' }
+            ];
+            
+            teachers = [
+                { id: 't001', name: 'John Smith', subject: 'Mathematics', department: 'math' },
+                { id: 't002', name: 'Mary Johnson', subject: 'Physics', department: 'science' },
+                { id: 't003', name: 'Peter Brown', subject: 'Chemistry', department: 'science' },
+                { id: 't004', name: 'Sarah Wilson', subject: 'Biology', department: 'science' }
+            ];
+            
+            terms = [
+                { id: 'term1', name: 'Term 1', year: '2024', active: true },
+                { id: 'term2', name: 'Term 2', year: '2024', active: false },
+                { id: 'term3', name: 'Term 3', year: '2024', active: false }
+            ];
+            
+            currentDepartment = 'Mathematics';
+            populateDropdowns();
+            updateUIWithDynamicData();
+        }
+        
+        function updateUIWithDynamicData() {
+            // Update department badge
+            const departmentBadge = document.getElementById('department-badge');
+            if (departmentBadge) {
+                departmentBadge.textContent = `${currentDepartment} Department Head`;
+            }
+            
+            // Update sidebar department info
+            const sidebarDepartment = document.querySelector('.sidebar h6');
+            if (sidebarDepartment) {
+                sidebarDepartment.textContent = `Head of ${currentDepartment}`;
+            }
+            
+            // Update current user info
+            const currentUserElement = document.getElementById('current-user');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.displayName || currentUser.email.split('@')[0];
+            }
+            
+            // Add department info to the page header
+            const pageTitle = document.querySelector('.header h4');
+            if (pageTitle) {
+                pageTitle.textContent = `Teacher Assignment - ${currentDepartment} Department`;
+            }
+            
+            // Update department information display
+            const detectedDeptElement = document.getElementById('detected-department');
+            if (detectedDeptElement) {
+                detectedDeptElement.textContent = currentDepartment;
+            }
+            
+            // Update data counts
+            const subjectsCountElement = document.getElementById('subjects-count');
+            const teachersCountElement = document.getElementById('teachers-count');
+            const classesCountElement = document.getElementById('classes-count');
+            
+            if (subjectsCountElement) {
+                const departmentSubjects = subjects.filter(subject => {
+                    const subjectDept = (subject.department || '').toLowerCase();
+                    const currentDept = currentDepartment.toLowerCase();
+                    return subjectDept === currentDept || 
+                           subjectDept.includes(currentDept) || 
+                           currentDept.includes(subjectDept) ||
+                           subject.name.toLowerCase().includes(currentDept);
+                });
+                subjectsCountElement.textContent = departmentSubjects.length;
+            }
+            
+            if (teachersCountElement) {
+                const departmentTeachers = teachers.filter(teacher => {
+                    const teacherDept = (teacher.department || '').toLowerCase();
+                    const teacherSubject = (teacher.subject || '').toLowerCase();
+                    const currentDept = currentDepartment.toLowerCase();
+                    return teacherDept === currentDept || 
+                           teacherDept.includes(currentDept) || 
+                           currentDept.includes(teacherDept) ||
+                           teacherSubject.includes(currentDept) ||
+                           teacher.name.toLowerCase().includes(currentDept);
+                });
+                teachersCountElement.textContent = departmentTeachers.length;
+            }
+            
+            if (classesCountElement) {
+                classesCountElement.textContent = classes.length;
+            }
+            
+            // Log department information for debugging
+            console.log(`UI updated for department: ${currentDepartment}`);
+            console.log(`Available subjects: ${subjects.length}`);
+            console.log(`Available teachers: ${teachers.length}`);
+            console.log(`Available classes: ${classes.length}`);
+        }
+
+        function populateDropdowns() {
+            console.log(`Populating dropdowns for department: ${currentDepartment}`);
+            
+            // Populate subject dropdowns
+            populateSubjectDropdown('subject-select');
+            populateSubjectDropdown('assign-subject');
+            populateSubjectDropdown('edit-assign-subject');
+            
+            // Populate class dropdowns
+            populateClassDropdown('class-select');
+            populateClassDropdown('assign-class');
+            populateClassDropdown('edit-assign-class');
+            
+            // Populate teacher dropdowns
+            populateTeacherDropdown('teacher-select');
+            populateTeacherDropdown('edit-teacher-select');
+            
+            // Populate term dropdowns
+            populateTermDropdown('term-select');
+            populateTermDropdown('assign-term');
+            populateTermDropdown('edit-assign-term');
+        }
+        
+        // Debug function to show department detection details
+        function debugDepartmentDetection() {
+            console.log('=== DEPARTMENT DETECTION DEBUG ===');
+            console.log('Current User:', currentUser);
+            console.log('Detected Department:', currentDepartment);
+            console.log('All Departments:', departments);
+            console.log('All Subjects:', subjects);
+            console.log('All Teachers:', teachers);
+            console.log('All Classes:', classes);
+            
+            // Show filtered data
+            const filteredSubjects = subjects.filter(subject => {
+                const subjectDept = (subject.department || '').toLowerCase();
+                const currentDept = currentDepartment.toLowerCase();
+                return subjectDept === currentDept || 
+                       subjectDept.includes(currentDept) || 
+                       currentDept.includes(subjectDept) ||
+                       subject.name.toLowerCase().includes(currentDept);
+            });
+            
+            const filteredTeachers = teachers.filter(teacher => {
+                const teacherDept = (teacher.department || '').toLowerCase();
+                const teacherSubject = (teacher.subject || '').toLowerCase();
+                const currentDept = currentDepartment.toLowerCase();
+                return teacherDept === currentDept || 
+                       teacherDept.includes(currentDept) || 
+                       currentDept.includes(teacherDept) ||
+                       teacherSubject.includes(currentDept) ||
+                       teacher.name.toLowerCase().includes(currentDept);
+            });
+            
+            console.log('Filtered Subjects for Department:', filteredSubjects);
+            console.log('Filtered Teachers for Department:', filteredTeachers);
+            console.log('=====================================');
+            
+            showNotification(`Debug info logged to console. Department: ${currentDepartment}`, 'info');
+        }
+        
+        function populateSubjectDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            // Clear existing options except first
+            select.innerHTML = '<option value="">Select Subject</option>';
+            
+            // Filter subjects by current department (case-insensitive)
+            const departmentSubjects = subjects.filter(subject => {
+                const subjectDept = (subject.department || '').toLowerCase();
+                const currentDept = currentDepartment.toLowerCase();
+                
+                // Check for exact match or if subject department contains current department
+                return subjectDept === currentDept || 
+                       subjectDept.includes(currentDept) || 
+                       currentDept.includes(subjectDept) ||
+                       subject.name.toLowerCase().includes(currentDept);
+            });
+            
+            console.log(`Filtering subjects for department: ${currentDepartment}`);
+            console.log(`Found ${departmentSubjects.length} subjects:`, departmentSubjects);
+            
+            departmentSubjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                select.appendChild(option);
+            });
+            
+            // If no subjects found, show all subjects as fallback
+            if (departmentSubjects.length === 0) {
+                console.log('No department-specific subjects found, showing all subjects');
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.id;
+                    option.textContent = subject.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        function populateClassDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select Class</option>';
+            
+            // Filter classes by current department if classes have department field
+            let filteredClasses = classes;
+            
+            // Check if classes have department information
+            const hasDepartmentInfo = classes.some(cls => cls.department);
+            
+            if (hasDepartmentInfo) {
+                filteredClasses = classes.filter(cls => {
+                    const classDept = (cls.department || '').toLowerCase();
+                    const currentDept = currentDepartment.toLowerCase();
+                    
+                    return classDept === currentDept || 
+                           classDept.includes(currentDept) || 
+                           currentDept.includes(classDept);
+                });
+            }
+            
+            console.log(`Filtering classes for department: ${currentDepartment}`);
+            console.log(`Found ${filteredClasses.length} classes:`, filteredClasses);
+            
+            filteredClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = cls.name;
+                select.appendChild(option);
+            });
+            
+            // If no classes found and we filtered by department, show all classes
+            if (filteredClasses.length === 0 && hasDepartmentInfo) {
+                console.log('No department-specific classes found, showing all classes');
+                classes.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        function populateTeacherDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select Teacher</option>';
+            
+            // Filter teachers by current department (case-insensitive)
+            const departmentTeachers = teachers.filter(teacher => {
+                const teacherDept = (teacher.department || '').toLowerCase();
+                const teacherSubject = (teacher.subject || '').toLowerCase();
+                const currentDept = currentDepartment.toLowerCase();
+                
+                // Check for exact match or if teacher department/subject matches current department
+                return teacherDept === currentDept || 
+                       teacherDept.includes(currentDept) || 
+                       currentDept.includes(teacherDept) ||
+                       teacherSubject.includes(currentDept) ||
+                       teacher.name.toLowerCase().includes(currentDept);
+            });
+            
+            console.log(`Filtering teachers for department: ${currentDepartment}`);
+            console.log(`Found ${departmentTeachers.length} teachers:`, departmentTeachers);
+            
+            departmentTeachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = `${teacher.name} - ${teacher.subject || 'General'}`;
+                select.appendChild(option);
+            });
+            
+            // If no teachers found, show all teachers as fallback
+            if (departmentTeachers.length === 0) {
+                console.log('No department-specific teachers found, showing all teachers');
+                teachers.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = `${teacher.name} - ${teacher.subject || 'General'}`;
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        function populateTermDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            select.innerHTML = '';
+            
+            terms.forEach(term => {
+                const option = document.createElement('option');
+                option.value = term.id;
+                option.textContent = term.name;
+                if (term.active) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
         // Firebase Integration
         let db;
         let currentUser;
@@ -600,9 +1008,7 @@
         }
         
         function getDepartmentFromUser() {
-            // This could be enhanced to get department from user profile
-            // For now, assuming Mathematics department
-            return 'Mathematics';
+            return currentDepartment;
         }
 
         // Initialize Firebase
@@ -620,7 +1026,9 @@
                 if (user) {
                     currentUser = user;
                     console.log('User authenticated:', user.email);
-                    initializeTeacherAssignment();
+                    loadDynamicData().then(() => {
+                        initializeTeacherAssignment();
+                    });
                 } else {
                     console.log('User not authenticated, redirecting to login');
                     window.location.href = '../../index.html';
@@ -659,8 +1067,8 @@
                 console.error('Error loading assignments:', error);
                 showNotification('Error loading assignments. Using sample data.', 'warning');
                 // Fallback to sample data
-                assignments = [...sampleAssignments];
-                displayAssignments();
+            assignments = [...sampleAssignments];
+            displayAssignments();
                 updateDepartmentStats();
                 updateQuickStats();
             }
@@ -848,57 +1256,8 @@
 
         // Enhanced Teacher Assignment Functions
         
-        // Sample assignments data
-        const sampleAssignments = [
-            {
-                id: 1,
-                teacher: 'John Smith',
-                teacherId: 'T001',
-                subject: 'Mathematics',
-                class: 'S.4 Science A',
-                term: 'Term 1',
-                workload: 18,
-                status: 'Active',
-                priority: 'High',
-                notes: 'Primary mathematics teacher for senior class'
-            },
-            {
-                id: 2,
-                teacher: 'Mary Johnson',
-                teacherId: 'T002',
-                subject: 'Physics',
-                class: 'S.4 Science B',
-                term: 'Term 1',
-                workload: 16,
-                status: 'Active',
-                priority: 'High',
-                notes: 'Experienced physics teacher'
-            },
-            {
-                id: 3,
-                teacher: 'Peter Brown',
-                teacherId: 'T003',
-                subject: 'Chemistry',
-                class: 'S.3 Science',
-                term: 'Term 1',
-                workload: 14,
-                status: 'Active',
-                priority: 'Medium',
-                notes: 'New chemistry teacher'
-            },
-            {
-                id: 4,
-                teacher: 'Sarah Wilson',
-                teacherId: 'T004',
-                subject: 'Biology',
-                class: 'S.4 Science A',
-                term: 'Term 1',
-                workload: 12,
-                status: 'Pending',
-                priority: 'Medium',
-                notes: 'Part-time biology teacher'
-            }
-        ];
+        // Sample assignments data (fallback only)
+        const sampleAssignments = [];
         
         function initializeTeacherAssignment() {
             // Load from Firebase instead of sample data
@@ -1001,14 +1360,19 @@
         function updateDepartmentStats() {
             const stats = calculateWorkloadStats();
             const assignedCount = assignments.filter(a => a.status === 'Active').length;
-            const unassignedCount = 12 - assignedCount; // Assuming 12 total teachers
+            const totalTeachers = teachers.filter(t => t.department === currentDepartment.toLowerCase()).length;
+            const unassignedCount = Math.max(0, totalTeachers - assignedCount);
             
             // Update the department overview cards
             const successCard = document.querySelector('.card.bg-success h3');
             const warningCard = document.querySelector('.card.bg-warning h3');
+            const primaryCard = document.querySelector('.card.bg-primary h3');
+            const infoCard = document.querySelector('.card.bg-info h3');
             
             if (successCard) successCard.textContent = assignedCount;
             if (warningCard) warningCard.textContent = unassignedCount;
+            if (primaryCard) primaryCard.textContent = totalTeachers;
+            if (infoCard) infoCard.textContent = classes.length;
         }
         
         function exportAssignmentsToCSV() {
@@ -1063,26 +1427,37 @@
         }
 
         async function assignTeacher() {
-            const teacher = document.getElementById('teacher-select').value;
-            const subject = document.getElementById('assign-subject').value;
-            const classSelect = document.getElementById('assign-class').value;
-            const term = document.getElementById('assign-term').value;
+            const teacherId = document.getElementById('teacher-select').value;
+            const subjectId = document.getElementById('assign-subject').value;
+            const classId = document.getElementById('assign-class').value;
+            const termId = document.getElementById('assign-term').value;
             const workload = document.getElementById('workload').value;
             const priority = document.getElementById('priority').value;
             const notes = document.getElementById('notes').value;
             
+            // Get dynamic data from arrays
+            const teacher = teachers.find(t => t.id === teacherId);
+            const subject = subjects.find(s => s.id === subjectId);
+            const classData = classes.find(c => c.id === classId);
+            const term = terms.find(t => t.id === termId);
+            
+            if (!teacher || !subject || !classData || !term) {
+                showNotification('Please select valid options from all dropdowns.', 'warning');
+                return;
+            }
+            
             // Use enhanced validation
-            if (!validateAssignment(teacher, subject, classSelect, workload)) {
+            if (!validateAssignment(teacher.name, subject.name, classData.name, workload)) {
                 return;
             }
             
             const newAssignment = {
                 id: currentAssignmentId++,
-                teacher: teacher.split(' - ')[0],
-                teacherId: 'T' + String(currentAssignmentId).padStart(3, '0'),
-                subject: subject,
-                class: classSelect,
-                term: term,
+                teacher: teacher.name,
+                teacherId: teacher.id,
+                subject: subject.name,
+                class: classData.name,
+                term: term.name,
                 workload: parseInt(workload),
                 status: 'Active',
                 priority: priority,
@@ -1114,12 +1489,18 @@
             const assignment = assignments.find(a => a.id === assignmentId);
             if (!assignment) return;
             
+            // Find the corresponding IDs from dynamic data
+            const teacher = teachers.find(t => t.name === assignment.teacher);
+            const subject = subjects.find(s => s.name === assignment.subject);
+            const classData = classes.find(c => c.name === assignment.class);
+            const term = terms.find(t => t.name === assignment.term);
+            
             // Populate edit form
             document.getElementById('edit-assignment-id').value = assignment.id;
-            document.getElementById('edit-teacher-select').value = assignment.teacher;
-            document.getElementById('edit-assign-subject').value = assignment.subject;
-            document.getElementById('edit-assign-class').value = assignment.class;
-            document.getElementById('edit-assign-term').value = assignment.term;
+            document.getElementById('edit-teacher-select').value = teacher ? teacher.id : '';
+            document.getElementById('edit-assign-subject').value = subject ? subject.id : '';
+            document.getElementById('edit-assign-class').value = classData ? classData.id : '';
+            document.getElementById('edit-assign-term').value = term ? term.id : '';
             document.getElementById('edit-workload').value = assignment.workload;
             document.getElementById('edit-priority').value = assignment.priority;
             document.getElementById('edit-notes').value = assignment.notes;
@@ -1135,14 +1516,33 @@
             
             if (assignmentIndex === -1) return;
             
+            const teacherId = document.getElementById('edit-teacher-select').value;
+            const subjectId = document.getElementById('edit-assign-subject').value;
+            const classId = document.getElementById('edit-assign-class').value;
+            const termId = document.getElementById('edit-assign-term').value;
+            const workload = document.getElementById('edit-workload').value;
+            const priority = document.getElementById('edit-priority').value;
+            const notes = document.getElementById('edit-notes').value;
+            
+            // Get dynamic data from arrays
+            const teacher = teachers.find(t => t.id === teacherId);
+            const subject = subjects.find(s => s.id === subjectId);
+            const classData = classes.find(c => c.id === classId);
+            const term = terms.find(t => t.id === termId);
+            
+            if (!teacher || !subject || !classData || !term) {
+                showNotification('Please select valid options from all dropdowns.', 'warning');
+                return;
+            }
+            
             const updateData = {
-                teacher: document.getElementById('edit-teacher-select').value.split(' - ')[0],
-                subject: document.getElementById('edit-assign-subject').value,
-                class: document.getElementById('edit-assign-class').value,
-                term: document.getElementById('edit-assign-term').value,
-                workload: parseInt(document.getElementById('edit-workload').value),
-                priority: document.getElementById('edit-priority').value,
-                notes: document.getElementById('edit-notes').value
+                teacher: teacher.name,
+                subject: subject.name,
+                class: classData.name,
+                term: term.name,
+                workload: parseInt(workload),
+                priority: priority,
+                notes: notes
             };
             
             try {
@@ -1152,8 +1552,8 @@
                 await updateAssignmentInFirebase(assignmentId, updateData);
                 
                 // Update local array (real-time listener will also update this)
-                assignments[assignmentIndex] = {
-                    ...assignments[assignmentIndex],
+            assignments[assignmentIndex] = {
+                ...assignments[assignmentIndex],
                     ...updateData
                 };
             
