@@ -28,21 +28,31 @@ class AuthService {
   async loadUserRole(uid) {
     try {
       console.log('🔄 Loading user role for UID:', uid);
+      // Clear existing role first to prevent contamination
+      this.userRole = null;
+      
       const userDoc = await firebase.firestore().collection('users').doc(uid).get();
       if (userDoc.exists) {
         this.userRole = userDoc.data().role;
         console.log('✅ User role loaded:', this.userRole);
       } else {
         console.warn('⚠️ User document not found in Firestore');
+        this.userRole = null;
       }
     } catch (error) {
       console.error('❌ Error loading user role:', error);
+      this.userRole = null;
     }
   }
 
   // Sign in with email and password
   async signIn(email, password) {
     try {
+      // Clear any existing state before signing in
+      this.currentUser = null;
+      this.userRole = null;
+      this.isLoggingOut = false;
+      
       const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
       return { success: true, user: userCredential.user };
     } catch (error) {
@@ -87,6 +97,9 @@ class AuthService {
       await firebase.auth().signOut();
       this.currentUser = null;
       this.userRole = null;
+      // Clear any cached data
+      sessionStorage.clear();
+      localStorage.clear();
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };

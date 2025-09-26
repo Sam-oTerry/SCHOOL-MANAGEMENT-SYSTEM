@@ -426,6 +426,17 @@
                 console.log('🔐 Attempting Firebase authentication...');
                 console.log('📧 Email:', username);
                 
+                // Clear any existing session data before login
+                sessionStorage.clear();
+                localStorage.clear();
+                
+                // Clear auth service state to prevent role contamination
+                if (window.authService) {
+                    window.authService.currentUser = null;
+                    window.authService.userRole = null;
+                    window.authService.isLoggingOut = false;
+                }
+                
                 // Wait for Firebase services to be available
                 if (!window.authService) {
                     console.log('⏳ Waiting for auth service to load...');
@@ -442,16 +453,22 @@
                 if (result.success) {
                     console.log('✅ Firebase authentication successful');
                     
-                    // Wait for user role to be loaded
+                    // Wait for user role to be loaded with fresh data
                     let userRole = null;
                     let attempts = 0;
-                    const maxAttempts = 10;
+                    const maxAttempts = 15; // Increased attempts
                     
                     while (!userRole && attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 200));
+                        await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay
                         userRole = window.authService.getUserRole();
                         attempts++;
                         console.log(`🔄 Attempt ${attempts}: User role = ${userRole}`);
+                        
+                        // Force reload user role every few attempts
+                        if (attempts % 3 === 0 && !userRole) {
+                            console.log('🔄 Forcing user role reload...');
+                            await window.authService.reloadUserRole();
+                        }
                     }
                     
                     if (!userRole) {
@@ -464,7 +481,7 @@
                     
                     console.log('👤 Final User Role:', userRole);
                     
-                    // Store user session
+                    // Store user session with fresh data
                     sessionStorage.setItem('userEmail', username);
                     sessionStorage.setItem('userRole', userRole || 'system_admin'); // Default to system_admin for admin users
                     
@@ -511,19 +528,53 @@
         // Enhanced logout function
         async function logout() {
             try {
-                await window.authService.signOut();
+                // Clear all user data first
                 sessionStorage.clear();
+                localStorage.clear();
+                
+                // Clear auth service state
+                if (window.authService) {
+                    window.authService.currentUser = null;
+                    window.authService.userRole = null;
+                    window.authService.isLoggingOut = true;
+                }
+                
+                // Sign out from Firebase
+                await window.authService.signOut();
+                
+                // Force redirect to login page
                 window.location.href = './index.html';
             } catch (error) {
                 console.error('Logout error:', error);
                 // Force logout even if Firebase logout fails
                 sessionStorage.clear();
+                localStorage.clear();
                 window.location.href = './index.html';
             }
         }
         
         // Make logout function globally available
         window.logout = logout;
+        
+        // Clear any existing session data on page load
+        function clearSessionData() {
+            // Clear session storage
+            sessionStorage.removeItem('userEmail');
+            sessionStorage.removeItem('userRole');
+            sessionStorage.removeItem('currentUser');
+            
+            // Clear any cached auth data
+            if (window.authService) {
+                window.authService.currentUser = null;
+                window.authService.userRole = null;
+                window.authService.isLoggingOut = false;
+            }
+            
+            console.log('🧹 Session data cleared on page load');
+        }
+        
+        // Call clearSessionData when page loads
+        clearSessionData();
         
         document.querySelector('form').addEventListener('submit', function(e) {
             e.preventDefault();
