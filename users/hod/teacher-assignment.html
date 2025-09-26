@@ -9,12 +9,130 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/hod.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a4f8b;
+            --secondary: #3a7cbd;
+            --accent: #ff9e1b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1050;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .mobile-menu-toggle:hover {
+            background: var(--secondary);
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+        
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 60px 15px 20px 15px;
+            }
+            
+            .header {
+                padding: 10px 15px;
+                margin-bottom: 15px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 60px 10px 20px 10px;
+            }
+            
+            .header h4 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+            <nav class="sidebar" id="sidebar">
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
@@ -89,7 +207,7 @@
             </nav>
 
             <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <main class="col-12 main-content">
                 <div class="header">
                     <div>
                         <h4>Teacher Assignment</h4>
@@ -144,6 +262,25 @@
                                     <button class="btn btn-info btn-sm" onclick="exportAssignments()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Search Assignments</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="search-input" placeholder="Search by teacher, subject, class, or ID..." onkeyup="searchAssignments(this.value)">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('search-input').value=''; searchAssignments('')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Quick Stats</label>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-primary" id="total-assignments">Total: 0</span>
+                                    <span class="badge bg-success" id="active-assignments">Active: 0</span>
+                                    <span class="badge bg-warning" id="pending-assignments">Pending: 0</span>
                                 </div>
                             </div>
                         </div>
@@ -406,13 +543,310 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
-        // Teacher Assignment Functionality
-        let assignments = [];
-        let currentAssignmentId = 1;
+        // Firebase Integration
+        let db;
+        let currentUser;
+        
+        // Enhanced Firebase Functions
+        function enableOfflineSupport() {
+            // Enable offline persistence
+            db.enablePersistence({
+                synchronizeTabs: true
+            }).catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                } else if (err.code == 'unimplemented') {
+                    console.log('The current browser does not support all of the features required to enable persistence');
+                }
+            });
+        }
+        
+        function setupConnectionStatus() {
+            const statusElement = document.createElement('div');
+            statusElement.id = 'connection-status';
+            statusElement.className = 'position-fixed bottom-0 end-0 p-2';
+            statusElement.style.zIndex = '9999';
+            document.body.appendChild(statusElement);
+            
+            // Monitor connection status
+            firebase.database().ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    statusElement.innerHTML = '<span class="badge bg-success">Online</span>';
+                } else {
+                    statusElement.innerHTML = '<span class="badge bg-warning">Offline</span>';
+                }
+            });
+        }
+        
+        function addAssignmentAuditLog(assignmentId, action, details) {
+            const auditRef = db.collection('assignmentAuditLog').doc();
+            auditRef.set({
+                assignmentId: assignmentId,
+                action: action,
+                details: details,
+                user: currentUser.email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(error => {
+                console.error('Error logging audit:', error);
+            });
+        }
+        
+        function getDepartmentFromUser() {
+            // This could be enhanced to get department from user profile
+            // For now, assuming Mathematics department
+            return 'Mathematics';
+        }
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            db = firebase.firestore();
+            
+            // Enable offline support
+            enableOfflineSupport();
+            
+            // Setup connection status
+            setupConnectionStatus();
+            
+            // Check authentication
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    console.log('User authenticated:', user.email);
+                    initializeTeacherAssignment();
+                } else {
+                    console.log('User not authenticated, redirecting to login');
+                    window.location.href = '../../index.html';
+                }
+            });
+        }
+        
+        // Firebase Teacher Assignment Functions
+        async function loadAssignmentsFromFirebase() {
+            try {
+                showNotification('Loading assignments...', 'info');
+                
+                const department = getDepartmentFromUser();
+                const assignmentsRef = db.collection('teacherAssignments');
+                const snapshot = await assignmentsRef
+                    .where('department', '==', department)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                assignments = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    assignments.push({
+                        id: doc.id,
+                        ...data,
+                        firebaseId: doc.id
+                    });
+                });
+                
+                displayAssignments();
+                updateDepartmentStats();
+                updateQuickStats();
+                
+                showNotification('Assignments loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                showNotification('Error loading assignments. Using sample data.', 'warning');
+                // Fallback to sample data
+                assignments = [...sampleAssignments];
+                displayAssignments();
+                updateDepartmentStats();
+                updateQuickStats();
+            }
+        }
+        
+        async function saveAssignmentToFirebase(assignmentData) {
+            try {
+                const assignmentRef = db.collection('teacherAssignments').doc();
+                const department = getDepartmentFromUser();
+                
+                const assignment = {
+                    teacher: assignmentData.teacher,
+                    teacherId: assignmentData.teacherId,
+                    subject: assignmentData.subject,
+                    class: assignmentData.class,
+                    term: assignmentData.term,
+                    workload: assignmentData.workload,
+                    status: assignmentData.status,
+                    priority: assignmentData.priority,
+                    notes: assignmentData.notes,
+                    department: department,
+                    createdBy: currentUser.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await assignmentRef.set(assignment);
+                
+                // Add Firebase ID to local assignment
+                assignmentData.firebaseId = assignmentRef.id;
+                assignmentData.id = assignmentRef.id;
+                
+                // Log audit trail
+                addAssignmentAuditLog(assignmentRef.id, 'CREATE', {
+                    teacher: assignmentData.teacher,
+                    subject: assignmentData.subject,
+                    class: assignmentData.class
+                });
+                
+                return assignmentData;
+            } catch (error) {
+                console.error('Error saving assignment:', error);
+                throw error;
+            }
+        }
+        
+        async function updateAssignmentInFirebase(assignmentId, updateData) {
+            try {
+                const assignmentRef = db.collection('teacherAssignments').doc(assignmentId);
+                
+                const updateFields = {
+                    teacher: updateData.teacher,
+                    subject: updateData.subject,
+                    class: updateData.class,
+                    term: updateData.term,
+                    workload: updateData.workload,
+                    priority: updateData.priority,
+                    notes: updateData.notes,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.email
+                };
+                
+                await assignmentRef.update(updateFields);
+                
+                // Log audit trail
+                addAssignmentAuditLog(assignmentId, 'UPDATE', updateData);
+                
+                return true;
+            } catch (error) {
+                console.error('Error updating assignment:', error);
+                throw error;
+            }
+        }
+        
+        async function deleteAssignmentFromFirebase(assignmentId) {
+            try {
+                // Get assignment details before deletion for audit log
+                const assignment = assignments.find(a => a.id === assignmentId);
+                
+                await db.collection('teacherAssignments').doc(assignmentId).delete();
+                
+                // Log audit trail
+                if (assignment) {
+                    addAssignmentAuditLog(assignmentId, 'DELETE', {
+                        teacher: assignment.teacher,
+                        subject: assignment.subject,
+                        class: assignment.class
+                    });
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error deleting assignment:', error);
+                throw error;
+            }
+        }
+        
+        // Real-time listener for assignments
+        function setupRealtimeListener() {
+            const department = getDepartmentFromUser();
+            const assignmentsRef = db.collection('teacherAssignments')
+                .where('department', '==', department)
+                .orderBy('createdAt', 'desc');
+            
+            assignmentsRef.onSnapshot((snapshot) => {
+                assignments = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    assignments.push({
+                        id: doc.id,
+                        ...data,
+                        firebaseId: doc.id
+                    });
+                });
+                
+                displayAssignments();
+                updateDepartmentStats();
+                updateQuickStats();
+                
+                console.log('Assignments updated in real-time');
+            }, (error) => {
+                console.error('Error in real-time listener:', error);
+                showNotification('Real-time updates unavailable. Data may not be current.', 'warning');
+            });
+        }
+
+        // Mobile Sidebar Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            // Toggle sidebar on mobile
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+            });
+            
+            // Close sidebar when clicking overlay
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+            
+            // Close sidebar when clicking on nav links (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
+        });
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Enhanced Teacher Assignment Functions
         
         // Sample assignments data
         const sampleAssignments = [
@@ -467,8 +901,9 @@
         ];
         
         function initializeTeacherAssignment() {
-            assignments = [...sampleAssignments];
-            displayAssignments();
+            // Load from Firebase instead of sample data
+            loadAssignmentsFromFirebase();
+            setupRealtimeListener();
         }
         
         function displayAssignments() {
@@ -514,7 +949,120 @@
             }
         }
         
-        function assignTeacher() {
+        // Enhanced Assignment Functions
+        function validateAssignment(teacher, subject, classSelect, workload) {
+            if (!teacher || !subject || !classSelect || !workload) {
+                showNotification('Please fill in all required fields.', 'warning');
+                return false;
+            }
+            
+            if (workload < 1 || workload > 40) {
+                showNotification('Workload must be between 1 and 40 hours per week.', 'warning');
+                return false;
+            }
+            
+            // Check for duplicate assignments
+            const duplicate = assignments.find(a => 
+                a.teacher === teacher.split(' - ')[0] && 
+                a.subject === subject && 
+                a.class === classSelect
+            );
+            
+            if (duplicate) {
+                showNotification('This teacher is already assigned to this subject and class.', 'warning');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function calculateWorkloadStats() {
+            const totalWorkload = assignments.reduce((sum, assignment) => sum + assignment.workload, 0);
+            const averageWorkload = assignments.length > 0 ? totalWorkload / assignments.length : 0;
+            const maxWorkload = Math.max(...assignments.map(a => a.workload), 0);
+            
+            return {
+                total: totalWorkload,
+                average: Math.round(averageWorkload * 10) / 10,
+                max: maxWorkload
+            };
+        }
+        
+        function updateQuickStats() {
+            const total = assignments.length;
+            const active = assignments.filter(a => a.status === 'Active').length;
+            const pending = assignments.filter(a => a.status === 'Pending').length;
+            
+            document.getElementById('total-assignments').textContent = `Total: ${total}`;
+            document.getElementById('active-assignments').textContent = `Active: ${active}`;
+            document.getElementById('pending-assignments').textContent = `Pending: ${pending}`;
+        }
+
+        function updateDepartmentStats() {
+            const stats = calculateWorkloadStats();
+            const assignedCount = assignments.filter(a => a.status === 'Active').length;
+            const unassignedCount = 12 - assignedCount; // Assuming 12 total teachers
+            
+            // Update the department overview cards
+            const successCard = document.querySelector('.card.bg-success h3');
+            const warningCard = document.querySelector('.card.bg-warning h3');
+            
+            if (successCard) successCard.textContent = assignedCount;
+            if (warningCard) warningCard.textContent = unassignedCount;
+        }
+        
+        function exportAssignmentsToCSV() {
+            if (assignments.length === 0) {
+                showNotification('No assignments to export.', 'warning');
+                return;
+            }
+            
+            const headers = ['Teacher', 'Teacher ID', 'Subject', 'Class', 'Term', 'Workload', 'Status', 'Priority', 'Notes'];
+            const csvContent = [
+                headers.join(','),
+                ...assignments.map(assignment => [
+                    `"${assignment.teacher}"`,
+                    `"${assignment.teacherId}"`,
+                    `"${assignment.subject}"`,
+                    `"${assignment.class}"`,
+                    `"${assignment.term}"`,
+                    assignment.workload,
+                    `"${assignment.status}"`,
+                    `"${assignment.priority}"`,
+                    `"${assignment.notes}"`
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `teacher-assignments-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('Assignments exported successfully!', 'success');
+        }
+        
+        function searchAssignments(searchTerm) {
+            if (!searchTerm.trim()) {
+                displayAssignments();
+                return;
+            }
+            
+            const filteredAssignments = assignments.filter(assignment => 
+                assignment.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                assignment.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                assignment.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                assignment.teacherId.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            displayFilteredAssignments(filteredAssignments);
+        }
+
+        async function assignTeacher() {
             const teacher = document.getElementById('teacher-select').value;
             const subject = document.getElementById('assign-subject').value;
             const classSelect = document.getElementById('assign-class').value;
@@ -523,8 +1071,8 @@
             const priority = document.getElementById('priority').value;
             const notes = document.getElementById('notes').value;
             
-            if (!teacher || !subject || !classSelect || !workload) {
-                alert('Please fill in all required fields.');
+            // Use enhanced validation
+            if (!validateAssignment(teacher, subject, classSelect, workload)) {
                 return;
             }
             
@@ -541,8 +1089,14 @@
                 notes: notes
             };
             
-            assignments.push(newAssignment);
-            displayAssignments();
+            try {
+                showNotification('Saving assignment...', 'info');
+                
+                // Save to Firebase
+                const savedAssignment = await saveAssignmentToFirebase(newAssignment);
+                
+                // Add to local array (real-time listener will also update this)
+                assignments.push(savedAssignment);
             
             // Close modal and reset form
             const modal = bootstrap.Modal.getInstance(document.getElementById('assignTeacherModal'));
@@ -550,6 +1104,10 @@
             document.getElementById('assign-teacher-form').reset();
             
             showNotification('Teacher assigned successfully!', 'success');
+            } catch (error) {
+                console.error('Error assigning teacher:', error);
+                showNotification('Error saving assignment. Please try again.', 'error');
+            }
         }
         
         function editAssignment(assignmentId) {
@@ -571,14 +1129,13 @@
             modal.show();
         }
         
-        function updateAssignment() {
+        async function updateAssignment() {
             const assignmentId = document.getElementById('edit-assignment-id').value;
             const assignmentIndex = assignments.findIndex(a => a.id == assignmentId);
             
             if (assignmentIndex === -1) return;
             
-            assignments[assignmentIndex] = {
-                ...assignments[assignmentIndex],
+            const updateData = {
                 teacher: document.getElementById('edit-teacher-select').value.split(' - ')[0],
                 subject: document.getElementById('edit-assign-subject').value,
                 class: document.getElementById('edit-assign-class').value,
@@ -588,20 +1145,45 @@
                 notes: document.getElementById('edit-notes').value
             };
             
-            displayAssignments();
+            try {
+                showNotification('Updating assignment...', 'info');
+                
+                // Update in Firebase
+                await updateAssignmentInFirebase(assignmentId, updateData);
+                
+                // Update local array (real-time listener will also update this)
+                assignments[assignmentIndex] = {
+                    ...assignments[assignmentIndex],
+                    ...updateData
+                };
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('editAssignmentModal'));
             modal.hide();
             
             showNotification('Assignment updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error updating assignment:', error);
+                showNotification('Error updating assignment. Please try again.', 'error');
+            }
         }
         
-        function removeAssignment(assignmentId) {
+        async function removeAssignment(assignmentId) {
             if (confirm('Are you sure you want to remove this assignment?')) {
+                try {
+                    showNotification('Deleting assignment...', 'info');
+                    
+                    // Delete from Firebase
+                    await deleteAssignmentFromFirebase(assignmentId);
+                    
+                    // Remove from local array (real-time listener will also update this)
                 assignments = assignments.filter(a => a.id !== assignmentId);
-                displayAssignments();
+                    
                 showNotification('Assignment removed successfully!', 'success');
+                } catch (error) {
+                    console.error('Error removing assignment:', error);
+                    showNotification('Error removing assignment. Please try again.', 'error');
+                }
             }
         }
         
@@ -666,18 +1248,24 @@
         }
         
         function exportAssignments() {
-            alert('Export Assignments feature:\n\nThis will download the teacher assignments as an Excel file for backup or external use.');
+            exportAssignmentsToCSV();
         }
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
+                firebase.auth().signOut().then(() => {
+                    console.log('User signed out');
                 window.location.href = '../../index.html';
+                }).catch((error) => {
+                    console.error('Logout error:', error);
+                    showNotification('Error during logout. Please try again.', 'error');
+                });
             }
         }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTeacherAssignment();
+            initializeFirebase();
         });
     </script>
 </body>
