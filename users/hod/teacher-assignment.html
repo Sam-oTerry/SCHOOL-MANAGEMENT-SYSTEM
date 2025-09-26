@@ -552,6 +552,8 @@
         let teachers = [];
         let terms = [];
         let currentDepartment = '';
+        let assignments = []; // Initialize assignments array
+        let currentAssignmentId = 1; // Initialize assignment ID counter
         
         // Load dynamic data from Firebase
         async function loadDynamicData() {
@@ -978,20 +980,8 @@
         }
         
         function setupConnectionStatus() {
-            const statusElement = document.createElement('div');
-            statusElement.id = 'connection-status';
-            statusElement.className = 'position-fixed bottom-0 end-0 p-2';
-            statusElement.style.zIndex = '9999';
-            document.body.appendChild(statusElement);
-            
-            // Monitor connection status
-            firebase.database().ref('.info/connected').on('value', (snapshot) => {
-                if (snapshot.val() === true) {
-                    statusElement.innerHTML = '<span class="badge bg-success">Online</span>';
-                } else {
-                    statusElement.innerHTML = '<span class="badge bg-warning">Offline</span>';
-                }
-            });
+            // Connection status monitoring removed - not needed for Firestore-only functionality
+            console.log('Connection status monitoring disabled - using Firestore only');
         }
         
         function addAssignmentAuditLog(assignmentId, action, details) {
@@ -1022,13 +1012,12 @@
             setupConnectionStatus();
             
             // Check authentication
-            firebase.auth().onAuthStateChanged((user) => {
+            firebase.auth().onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUser = user;
                     console.log('User authenticated:', user.email);
-                    loadDynamicData().then(() => {
-                        initializeTeacherAssignment();
-                    });
+                    await loadDynamicData();
+                    await initializeTeacherAssignment();
                 } else {
                     console.log('User not authenticated, redirecting to login');
                     window.location.href = '../../index.html';
@@ -1048,6 +1037,7 @@
                     .orderBy('createdAt', 'desc')
                     .get();
                 
+                // Initialize assignments array
                 assignments = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -1067,8 +1057,8 @@
                 console.error('Error loading assignments:', error);
                 showNotification('Error loading assignments. Using sample data.', 'warning');
                 // Fallback to sample data
-            assignments = [...sampleAssignments];
-            displayAssignments();
+                assignments = sampleAssignments || [];
+                displayAssignments();
                 updateDepartmentStats();
                 updateQuickStats();
             }
@@ -1259,15 +1249,33 @@
         // Sample assignments data (fallback only)
         const sampleAssignments = [];
         
-        function initializeTeacherAssignment() {
+        async function initializeTeacherAssignment() {
             // Load from Firebase instead of sample data
-            loadAssignmentsFromFirebase();
+            await loadAssignmentsFromFirebase();
             setupRealtimeListener();
         }
         
         function displayAssignments() {
             const tbody = document.getElementById('assignments-tbody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
+            
+            // Ensure assignments array exists
+            if (!assignments) {
+                assignments = [];
+            }
+            
+            if (assignments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle"></i> No assignments found for ${currentDepartment} department
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             assignments.forEach(assignment => {
                 const row = document.createElement('tr');
