@@ -544,10 +544,15 @@
                          return false;
                      }
                      
-                     // Get department from user data (using 'department' field as seen in Firestore)
-                     departmentId = userData.department || userData.departmentId;
+                     // Get department from user data (checking nested objects)
+                     departmentId = userData.academicInfo?.department || 
+                                   userData.personalInfo?.department || 
+                                   userData.department || 
+                                   userData.departmentId;
                      
                      console.log('Department ID found:', departmentId);
+                     console.log('Academic Info:', userData.academicInfo);
+                     console.log('Personal Info:', userData.personalInfo);
                     
                     // Update staff ID display
                     const staffIdElement = document.getElementById('staffId');
