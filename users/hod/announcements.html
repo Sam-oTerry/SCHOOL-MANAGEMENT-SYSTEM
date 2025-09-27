@@ -958,6 +958,29 @@
         
         function refreshAnnouncements() { if (window.db) loadAnnouncements(); }
         
+        // Toggle announcement status (active/inactive)
+        async function toggleAnnouncementStatus(announcementId) {
+            try {
+                const announcement = announcements.find(a => a.id === announcementId);
+                if (!announcement) {
+                    showError('Announcement not found');
+                    return;
+                }
+                
+                const newStatus = announcement.status === 'active' ? 'inactive' : 'active';
+                
+                await db.collection('announcements').doc(announcementId).update({
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showSuccess(`Announcement ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+                
+            } catch (error) {
+                console.error('Error toggling announcement status:', error);
+                showError('Failed to update announcement status. Please try again.');
+            }
+        }
 
         // Make functions globally available
         window.createAnnouncement = createAnnouncement;
