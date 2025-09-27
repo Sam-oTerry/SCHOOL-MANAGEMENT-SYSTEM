@@ -457,33 +457,20 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     
+    <!-- Firebase Initialization -->
+    <script src="../../assets/js/firebase-init-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/database-service.js"></script>
     <script src="../../assets/js/services/teacher-service.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
-            authDomain: "ass-sms.firebaseapp.com",
-            projectId: "ass-sms",
-            storageBucket: "ass-sms.firebasestorage.app",
-            messagingSenderId: "515388722489",
-            appId: "1:515388722489:web:21169f130303f48aaa2ce8",
-            measurementId: "G-2FVKDJWK5E"
-        };
-
-        // Initialize Firebase (check if already initialized)
-        let app;
-        try {
-            app = firebase.app();
-        } catch (e) {
-            app = firebase.initializeApp(firebaseConfig);
-        }
+        // Use Firebase instances from firebase-init-compat.js
+        const db = window.db || firebase.firestore();
+        const auth = window.auth || firebase.auth();
         
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        console.log('Firebase services ready');
 
         // Global variables
         let currentUser = null;
