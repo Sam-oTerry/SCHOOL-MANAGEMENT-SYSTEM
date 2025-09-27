@@ -409,49 +409,8 @@
     <script src="../../assets/js/users/hod-utils.js"></script>
     <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Mobile Sidebar Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            
-            // Toggle sidebar on mobile
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-                sidebarOverlay.classList.toggle('show');
-            });
-            
-            // Close sidebar when clicking overlay
-            sidebarOverlay.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            });
-            
-            // Close sidebar when clicking on nav links (mobile)
-            const navLinks = document.querySelectorAll('.sidebar .nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                    }
-                });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                }
-            });
-        });
 
         // Guard and dynamic loader for My Subjects
-        function logout() {
-            if (!window.auth) { window.location.href='../../index.html'; return; }
-            auth.signOut().then(() => window.location.href='../../index.html');
-        }
 
         function uniq(arr) { return Array.from(new Set(arr)); }
 
@@ -523,27 +482,63 @@
             });
         }
 
+        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            if (!window.auth || !window.db) return;
-            auth.onAuthStateChanged(async (user) => {
-                if (!user) { window.location.href='../../index.html'; return; }
-                // Staff ID display
-                try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    const u = userDoc.exists ? userDoc.data() : {};
-                    const staffId = (u && (u.staffId || (u.employmentInfo && u.employmentInfo.staffId))) || '—';
-                    document.getElementById('staff-id').textContent = staffId;
-                } catch (e) {
-                    document.getElementById('staff-id').textContent = '—';
-                }
+            initializeMySubjects();
+            setupMobileSidebar(); // From hod-utils.js
+        });
 
+        async function initializeMySubjects() {
+            try {
+                // Wait for authentication
+                await waitForAuth(); // From hod-utils.js
+                
+                // Load user data using utility function
+                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                if (!userResult.success) {
+                    showError(userResult.error); // From hod-utils.js
+                    return;
+                }
+                
+                // Update UI with user data
+                updateUserDisplay(userResult);
+                
                 // Load subjects
-                const ids = await getAssignedSubjectIds(user.uid);
+                const ids = await getAssignedSubjectIds(currentUser.uid);
                 const subjects = await getSubjectsByIds(ids);
                 renderCounts(subjects);
                 renderSubjectsTable(subjects);
-            });
-        });
+                
+            } catch (error) {
+                console.error('Error initializing my subjects:', error);
+                showError('Failed to initialize my subjects. Please refresh and try again.'); // From hod-utils.js
+            }
+        }
+
+        function updateUserDisplay(userResult) {
+            try {
+                // Update current user display
+                const currentUserEl = document.getElementById('current-user');
+                if (currentUserEl) {
+                    currentUserEl.textContent = userResult.userName;
+                }
+                
+                // Update sidebar staff ID
+                const staffIdEl = document.getElementById('staff-id');
+                if (staffIdEl) {
+                    staffIdEl.textContent = userResult.staffId;
+                }
+                
+                console.log('My Subjects user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
+            } catch (error) {
+                console.error('Error updating user display:', error);
+            }
+        }
     </script>
     <script>
         // Assigned subjects guard
@@ -594,10 +589,6 @@
         function viewSubject(subjectId) { console.log('Viewing subject:', subjectId); }
         function editSubject(subjectId) { console.log('Editing subject:', subjectId); }
 
-        function logout() {
-            if (!window.auth) { window.location.href='../../index.html'; return; }
-            auth.signOut().then(() => window.location.href='../../index.html');
-        }
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!window.auth) return;
