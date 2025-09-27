@@ -603,10 +603,10 @@
                     <div class="d-flex flex-column align-items-end">
                         <div class="mb-2">
                             <span class="badge bg-${typeColor} me-2">
-                                <i class="${typeIcon} me-1"></i>${announcement.type.toUpperCase()}
+                                <i class="${typeIcon} me-1"></i>${(announcement.type || 'GENERAL').toUpperCase()}
                             </span>
                             <span class="badge bg-${statusColor}">
-                                <i class="${statusIcon} me-1"></i>${announcement.status.toUpperCase()}
+                                <i class="${statusIcon} me-1"></i>${(announcement.status || 'ACTIVE').toUpperCase()}
                             </span>
                         </div>
                         ${announcement.pinned ? '<span class="badge bg-warning"><i class="fas fa-thumbtack me-1"></i>PINNED</span>' : ''}
@@ -708,17 +708,17 @@
                                 ${announcement.status === 'unread' ? '<i class="fas fa-circle text-primary me-2"></i>' : ''}
                                 ${announcement.title}
                             </h6>
-                            <p class="card-text text-muted">${announcement.content.substring(0, 100)}...</p>
+                            <p class="card-text text-muted">${(announcement.content || '').substring(0, 100)}...</p>
                             <div class="d-flex align-items-center">
-                                <span class="badge ${categoryColor} me-2">${announcement.category.toUpperCase()}</span>
-                                <span class="badge ${priorityColor} me-2">${announcement.priority.toUpperCase()}</span>
+                                <span class="badge ${categoryColor} me-2">${(announcement.category || 'GENERAL').toUpperCase()}</span>
+                                <span class="badge ${priorityColor} me-2">${(announcement.priority || 'NORMAL').toUpperCase()}</span>
                                 <small class="text-muted me-3">
-                                    <i class="fas fa-user"></i> ${announcement.sender}
+                                    <i class="fas fa-user"></i> ${announcement.sender || 'Unknown'}
                                 </small>
                                 <small class="text-muted me-3">
-                                    <i class="fas fa-calendar"></i> ${formatDate(announcement.date)} ${announcement.time}
+                                    <i class="fas fa-calendar"></i> ${formatDate(announcement.date || new Date())} ${announcement.time || ''}
                                 </small>
-                                ${announcement.attachments.length > 0 ? 
+                                ${(announcement.attachments && announcement.attachments.length > 0) ? 
                                     `<small class="text-muted"><i class="fas fa-paperclip"></i> ${announcement.attachments.length} attachment(s)</small>` : 
                                     ''
                                 }
@@ -768,15 +768,15 @@
             currentAnnouncement = announcement;
             
             // Populate modal
-            document.getElementById('detail-title').textContent = announcement.title;
-            document.getElementById('detail-content').innerHTML = `<p>${announcement.content}</p>`;
-            document.getElementById('detail-category').textContent = announcement.category.toUpperCase();
-            document.getElementById('detail-category').className = `badge ${getCategoryColor(announcement.category)}`;
-            document.getElementById('detail-priority').textContent = announcement.priority.toUpperCase();
-            document.getElementById('detail-priority').className = `badge ${getPriorityColor(announcement.priority)}`;
-            document.getElementById('detail-date').textContent = `${formatDate(announcement.date)} ${announcement.time}`;
-            document.getElementById('detail-sender').textContent = announcement.sender;
-            document.getElementById('detail-recipients').textContent = announcement.recipients;
+            document.getElementById('detail-title').textContent = announcement.title || 'No Title';
+            document.getElementById('detail-content').innerHTML = `<p>${announcement.content || 'No content available'}</p>`;
+            document.getElementById('detail-category').textContent = (announcement.category || 'GENERAL').toUpperCase();
+            document.getElementById('detail-category').className = `badge ${getCategoryColor(announcement.category || 'general')}`;
+            document.getElementById('detail-priority').textContent = (announcement.priority || 'NORMAL').toUpperCase();
+            document.getElementById('detail-priority').className = `badge ${getPriorityColor(announcement.priority || 'normal')}`;
+            document.getElementById('detail-date').textContent = `${formatDate(announcement.date || new Date())} ${announcement.time || ''}`;
+            document.getElementById('detail-sender').textContent = announcement.sender || 'Unknown';
+            document.getElementById('detail-recipients').textContent = announcement.recipients || 'All Staff';
             
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('announcementDetailModal'));
