@@ -474,8 +474,14 @@
             measurementId: "G-2FVKDJWK5E"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase (check if already initialized)
+        let app;
+        try {
+            app = firebase.app();
+        } catch (e) {
+            app = firebase.initializeApp(firebaseConfig);
+        }
+        
         const db = firebase.firestore();
         const auth = firebase.auth();
 
@@ -542,6 +548,14 @@
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
                 if (userDoc.exists) {
                     const userData = userDoc.data();
+                    
+                    // Check if user has HOD role
+                    if (userData.role !== 'hod') {
+                        showError('Access denied. This page is only for Head of Department users.');
+                        return false;
+                    }
+                    
+                    // Get department from user data (using 'department' field as seen in Firestore)
                     departmentId = userData.departmentId || userData.department;
                     
                     // Update staff ID display
@@ -550,19 +564,28 @@
                         staffIdElement.textContent = userData.staffId || 'N/A';
                     }
                     
-                    // Load department name
+                    // Load department name and set up department-specific data
                     if (departmentId) {
+                        // Try to get department document first
                         const deptDoc = await db.collection('departments').doc(departmentId).get();
                         if (deptDoc.exists) {
-                            departmentName = deptDoc.data().name || 'Unknown Department';
-                            document.getElementById('departmentName').textContent = `Teachers in the ${departmentName}`;
-                            document.getElementById('departmentPerformanceSubtitle').textContent = `${departmentName} Performance Overview`;
+                            departmentName = deptDoc.data().name || departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
                         } else {
-                            console.warn('Department document not found for ID:', departmentId);
-                            departmentName = 'Unknown Department';
+                            // If no department document, use the department field value
+                            departmentName = departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
                         }
+                        
+                        document.getElementById('departmentName').textContent = `Teachers in the ${departmentName} Department`;
+                        document.getElementById('departmentPerformanceSubtitle').textContent = `${departmentName} Department Performance Overview`;
+                        
+                        console.log('HOD user loaded:', {
+                            name: userData.fullName || `${userData.firstName} ${userData.lastName}`,
+                            department: departmentId,
+                            departmentName: departmentName,
+                            staffId: userData.staffId
+                        });
                     } else {
-                        console.warn('No department ID found for user:', currentUser.uid);
+                        console.warn('No department found for HOD user:', currentUser.uid);
                         showError('No department assigned. Please contact administrator to assign you to a department.');
                         return false;
                     }
@@ -642,10 +665,10 @@
                     throw new Error('Department ID not available');
                 }
 
+                // Query teachers by department (check both departmentId and department fields)
                 const snapshot = await db.collection('teachers')
-                    .where('departmentId', '==', departmentId)
+                    .where('department', '==', departmentId)
                     .where('status', '==', 'active')
-                    .orderBy('firstName', 'asc')
                     .get();
 
                 teachersData = [];
@@ -656,6 +679,7 @@
                     });
                 });
 
+                console.log(`Loaded ${teachersData.length} teachers for department: ${departmentId}`);
                 return { success: true, data: teachersData };
             } catch (error) {
                 console.error('Error loading teachers:', error);
@@ -670,7 +694,7 @@
                 }
 
                 const snapshot = await db.collection('teacher_assignments')
-                    .where('departmentId', '==', departmentId)
+                    .where('department', '==', departmentId)
                     .where('status', '==', 'active')
                     .get();
 
@@ -682,6 +706,7 @@
                     });
                 });
 
+                console.log(`Loaded ${assignmentsData.length} assignments for department: ${departmentId}`);
                 return { success: true, data: assignmentsData };
             } catch (error) {
                 console.error('Error loading assignments:', error);
@@ -696,9 +721,8 @@
                 }
 
                 const snapshot = await db.collection('classes')
-                    .where('departmentId', '==', departmentId)
+                    .where('department', '==', departmentId)
                     .where('status', '==', 'active')
-                    .orderBy('name', 'asc')
                     .get();
 
                 classesData = [];
@@ -709,6 +733,7 @@
                     });
                 });
 
+                console.log(`Loaded ${classesData.length} classes for department: ${departmentId}`);
                 return { success: true, data: classesData };
             } catch (error) {
                 console.error('Error loading classes:', error);
@@ -723,9 +748,8 @@
                 }
 
                 const snapshot = await db.collection('subjects')
-                    .where('departmentId', '==', departmentId)
+                    .where('department', '==', departmentId)
                     .where('status', '==', 'active')
-                    .orderBy('name', 'asc')
                     .get();
 
                 subjectsData = [];
@@ -736,6 +760,7 @@
                     });
                 });
 
+                console.log(`Loaded ${subjectsData.length} subjects for department: ${departmentId}`);
                 return { success: true, data: subjectsData };
             } catch (error) {
                 console.error('Error loading subjects:', error);
@@ -957,9 +982,11 @@
                 return;
             }
 
+            console.log('Setting up real-time listeners for department:', departmentId);
+
             // Listen for teachers changes
             db.collection('teachers')
-                .where('departmentId', '==', departmentId)
+                .where('department', '==', departmentId)
                 .where('status', '==', 'active')
                 .onSnapshot((snapshot) => {
                     teachersData = [];
@@ -969,6 +996,7 @@
                             ...doc.data()
                         });
                     });
+                    console.log(`Real-time update: ${teachersData.length} teachers loaded`);
                     updateTeachersTable();
                 }, (error) => {
                     console.error('Error in teachers listener:', error);
@@ -976,7 +1004,7 @@
 
             // Listen for assignments changes
             db.collection('teacher_assignments')
-                .where('departmentId', '==', departmentId)
+                .where('department', '==', departmentId)
                 .where('status', '==', 'active')
                 .onSnapshot((snapshot) => {
                     assignmentsData = [];
@@ -986,6 +1014,7 @@
                             ...doc.data()
                         });
                     });
+                    console.log(`Real-time update: ${assignmentsData.length} assignments loaded`);
                     updateTeachersTable();
                 }, (error) => {
                     console.error('Error in assignments listener:', error);
@@ -1030,7 +1059,7 @@
 
                 const docRef = await db.collection('teacher_assignments').add({
                     ...assignmentData,
-                    departmentId: departmentId,
+                    department: departmentId,
                     status: 'active',
                     assignedBy: currentUser.uid,
                     assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1071,7 +1100,7 @@
                     subjects: subjectsData,
                     exportedAt: new Date().toISOString(),
                     exportedBy: currentUser.uid,
-                    departmentId: departmentId,
+                    department: departmentId,
                     departmentName: departmentName
                 };
 
