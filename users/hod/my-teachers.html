@@ -503,7 +503,11 @@
                 await waitForAuth();
                 
                 // Load user data
-                await loadUserData();
+                const userDataLoaded = await loadUserData();
+                if (!userDataLoaded) {
+                    hideLoadingState();
+                    return; // Stop initialization if user data loading failed
+                }
                 
                 // Load all data
                 await loadAllData();
@@ -515,15 +519,20 @@
             } catch (error) {
                 console.error('Error initializing page:', error);
                 showError('Failed to initialize page. Please refresh and try again.');
+                hideLoadingState();
             }
         }
 
         function waitForAuth() {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const unsubscribe = auth.onAuthStateChanged((user) => {
                     unsubscribe();
                     currentUser = user;
-                    resolve();
+                    if (user) {
+                        resolve();
+                    } else {
+                        reject(new Error('User not authenticated'));
+                    }
                 });
             });
         }
@@ -548,11 +557,26 @@
                             departmentName = deptDoc.data().name || 'Unknown Department';
                             document.getElementById('departmentName').textContent = `Teachers in the ${departmentName}`;
                             document.getElementById('departmentPerformanceSubtitle').textContent = `${departmentName} Performance Overview`;
+                        } else {
+                            console.warn('Department document not found for ID:', departmentId);
+                            departmentName = 'Unknown Department';
                         }
+                    } else {
+                        console.warn('No department ID found for user:', currentUser.uid);
+                        showError('No department assigned. Please contact administrator to assign you to a department.');
+                        return false;
                     }
+                } else {
+                    console.error('User document not found:', currentUser.uid);
+                    showError('User profile not found. Please contact administrator.');
+                    return false;
                 }
+                
+                return true;
             } catch (error) {
                 console.error('Error loading user data:', error);
+                showError('Failed to load user data. Please refresh and try again.');
+                return false;
             }
         }
 
@@ -585,6 +609,13 @@
 
         async function loadAllData() {
             try {
+                // Check if departmentId is available
+                if (!departmentId) {
+                    console.error('Department ID not available');
+                    showError('Department information not found. Please contact administrator.');
+                    return;
+                }
+
                 // Load data in parallel
                 const [teachersResult, assignmentsResult, classesResult, subjectsResult, statsResult] = await Promise.all([
                     loadTeachers(),
@@ -607,6 +638,10 @@
 
         async function loadTeachers() {
             try {
+                if (!departmentId) {
+                    throw new Error('Department ID not available');
+                }
+
                 const snapshot = await db.collection('teachers')
                     .where('departmentId', '==', departmentId)
                     .where('status', '==', 'active')
@@ -630,6 +665,10 @@
 
         async function loadAssignments() {
             try {
+                if (!departmentId) {
+                    throw new Error('Department ID not available');
+                }
+
                 const snapshot = await db.collection('teacher_assignments')
                     .where('departmentId', '==', departmentId)
                     .where('status', '==', 'active')
@@ -652,6 +691,10 @@
 
         async function loadClasses() {
             try {
+                if (!departmentId) {
+                    throw new Error('Department ID not available');
+                }
+
                 const snapshot = await db.collection('classes')
                     .where('departmentId', '==', departmentId)
                     .where('status', '==', 'active')
@@ -675,6 +718,10 @@
 
         async function loadSubjects() {
             try {
+                if (!departmentId) {
+                    throw new Error('Department ID not available');
+                }
+
                 const snapshot = await db.collection('subjects')
                     .where('departmentId', '==', departmentId)
                     .where('status', '==', 'active')
@@ -904,6 +951,12 @@
         }
 
         function setupRealtimeListeners() {
+            // Check if departmentId is available before setting up listeners
+            if (!departmentId) {
+                console.error('Cannot setup real-time listeners: Department ID not available');
+                return;
+            }
+
             // Listen for teachers changes
             db.collection('teachers')
                 .where('departmentId', '==', departmentId)
@@ -917,6 +970,8 @@
                         });
                     });
                     updateTeachersTable();
+                }, (error) => {
+                    console.error('Error in teachers listener:', error);
                 });
 
             // Listen for assignments changes
@@ -932,6 +987,8 @@
                         });
                     });
                     updateTeachersTable();
+                }, (error) => {
+                    console.error('Error in assignments listener:', error);
                 });
         }
 
@@ -949,6 +1006,12 @@
 
         async function handleTeacherAssignment(e) {
             e.preventDefault();
+            
+            // Check if departmentId is available
+            if (!departmentId) {
+                showError('Department information not available. Please refresh the page.');
+                return;
+            }
             
             const assignmentData = {
                 teacherId: document.getElementById('teacherSelect').value,
