@@ -1,0 +1,213 @@
+// HOD Utility Functions
+// Shared utilities for all Head of Department pages
+
+// Utility function to get user department (can be used across the application)
+function getUserDepartment(userData) {
+    if (!userData) return null;
+    
+    // Priority order for department extraction
+    return userData.academicInfo?.department || 
+           userData.personalInfo?.department || 
+           userData.department || 
+           userData.departmentId;
+}
+
+// Utility function to get user name (can be used across the application)
+function getUserName(userData) {
+    if (!userData) return 'Unknown User';
+    
+    return userData.personalInfo?.fullName || 
+           `${userData.personalInfo?.firstName || ''} ${userData.personalInfo?.lastName || ''}`.trim() ||
+           userData.fullName ||
+           `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+           'Unknown User';
+}
+
+// Utility function to get user staff ID
+function getUserStaffId(userData) {
+    if (!userData) return 'N/A';
+    
+    return userData.staffId || userData.personalInfo?.staffId || 'N/A';
+}
+
+// Utility function to get user email
+function getUserEmail(userData) {
+    if (!userData) return 'N/A';
+    
+    return userData.email || userData.personalInfo?.email || 'N/A';
+}
+
+// Utility function to get user phone
+function getUserPhone(userData) {
+    if (!userData) return 'N/A';
+    
+    return userData.personalInfo?.phone || userData.phone || 'N/A';
+}
+
+// Utility function to check if user has HOD role
+function isHODUser(userData) {
+    if (!userData) return false;
+    
+    return userData.role === 'hod';
+}
+
+// Utility function to load user data with proper error handling
+async function loadHODUserData(db, currentUser) {
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+            const userData = userDoc.data();
+            
+            console.log('User data loaded:', userData);
+            
+            // Check if user has HOD role
+            if (!isHODUser(userData)) {
+                throw new Error('Access denied. This page is only for Head of Department users.');
+            }
+            
+            // Get department from user data using utility function
+            const departmentId = getUserDepartment(userData);
+            
+            console.log('Department ID found:', departmentId);
+            console.log('Academic Info:', userData.academicInfo);
+            console.log('Personal Info:', userData.personalInfo);
+            
+            // Store full user data for use throughout the application
+            window.currentUserData = userData;
+            
+            if (!departmentId) {
+                throw new Error('No department assigned. Please contact administrator to assign you to a department.');
+            }
+            
+            return {
+                success: true,
+                userData: userData,
+                departmentId: departmentId,
+                departmentName: departmentId.charAt(0).toUpperCase() + departmentId.slice(1),
+                userName: getUserName(userData),
+                staffId: getUserStaffId(userData)
+            };
+        } else {
+            throw new Error('User profile not found. Please contact administrator.');
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Utility function to get department name from Firestore
+async function getDepartmentName(db, departmentId) {
+    try {
+        const deptDoc = await db.collection('departments').doc(departmentId).get();
+        if (deptDoc.exists) {
+            return deptDoc.data().name || departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
+        } else {
+            return departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
+        }
+    } catch (error) {
+        console.error('Error loading department name:', error);
+        return departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
+    }
+}
+
+// Utility function to show success message
+function showSuccess(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.top = '20px';
+    alert.style.right = '20px';
+    alert.style.zIndex = '9999';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+}
+
+// Utility function to show error message
+function showError(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alert.style.top = '20px';
+    alert.style.right = '20px';
+    alert.style.zIndex = '9999';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+}
+
+// Utility function to setup mobile sidebar
+function setupMobileSidebar() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    if (mobileMenuToggle && sidebar && sidebarOverlay) {
+        mobileMenuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+        
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+        
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
+        });
+        
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            }
+        });
+    }
+}
+
+// Utility function for logout
+function logout(auth) {
+    if (confirm('Are you sure you want to logout?')) {
+        auth.signOut().then(() => {
+            window.location.href = '../../index.html';
+        }).catch((error) => {
+            console.error('Error signing out:', error);
+            window.location.href = '../../index.html';
+        });
+    }
+}
+
+// Make utility functions globally available
+window.getUserDepartment = getUserDepartment;
+window.getUserName = getUserName;
+window.getUserStaffId = getUserStaffId;
+window.getUserEmail = getUserEmail;
+window.getUserPhone = getUserPhone;
+window.isHODUser = isHODUser;
+window.loadHODUserData = loadHODUserData;
+window.getDepartmentName = getDepartmentName;
+window.showSuccess = showSuccess;
+window.showError = showError;
+window.setupMobileSidebar = setupMobileSidebar;
+window.logout = logout;

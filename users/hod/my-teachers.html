@@ -466,11 +466,37 @@
     <script src="../../assets/js/services/teacher-service.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
-        // Use Firebase instances from firebase-init-compat.js
-        const db = window.db || firebase.firestore();
-        const auth = window.auth || firebase.auth();
-        
-        console.log('Firebase services ready');
+         // Use Firebase instances from firebase-init-compat.js
+         const db = window.db || firebase.firestore();
+         const auth = window.auth || firebase.auth();
+         
+         console.log('Firebase services ready');
+         
+         // Utility function to get user department (can be used across the application)
+         function getUserDepartment(userData) {
+             if (!userData) return null;
+             
+             // Priority order for department extraction
+             return userData.academicInfo?.department || 
+                    userData.personalInfo?.department || 
+                    userData.department || 
+                    userData.departmentId;
+         }
+         
+         // Utility function to get user name (can be used across the application)
+         function getUserName(userData) {
+             if (!userData) return 'Unknown User';
+             
+             return userData.personalInfo?.fullName || 
+                    `${userData.personalInfo?.firstName || ''} ${userData.personalInfo?.lastName || ''}`.trim() ||
+                    userData.fullName ||
+                    `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+                    'Unknown User';
+         }
+         
+         // Make utility functions globally available
+         window.getUserDepartment = getUserDepartment;
+         window.getUserName = getUserName;
 
         // Global variables
         let currentUser = null;
@@ -544,15 +570,15 @@
                          return false;
                      }
                      
-                     // Get department from user data (checking nested objects)
-                     departmentId = userData.academicInfo?.department || 
-                                   userData.personalInfo?.department || 
-                                   userData.department || 
-                                   userData.departmentId;
+                     // Get department from user data using utility function
+                     departmentId = getUserDepartment(userData);
                      
                      console.log('Department ID found:', departmentId);
                      console.log('Academic Info:', userData.academicInfo);
                      console.log('Personal Info:', userData.personalInfo);
+                     
+                     // Store full user data for use throughout the application
+                     window.currentUserData = userData;
                     
                     // Update staff ID display
                     const staffIdElement = document.getElementById('staffId');
@@ -560,31 +586,33 @@
                         staffIdElement.textContent = userData.staffId || 'N/A';
                     }
                     
-                    // Load department name and set up department-specific data
-                    if (departmentId) {
-                        // Try to get department document first
-                        const deptDoc = await db.collection('departments').doc(departmentId).get();
-                        if (deptDoc.exists) {
-                            departmentName = deptDoc.data().name || departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
-                        } else {
-                            // If no department document, use the department field value
-                            departmentName = departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
-                        }
-                        
-                        document.getElementById('departmentName').textContent = `Teachers in the ${departmentName} Department`;
-                        document.getElementById('departmentPerformanceSubtitle').textContent = `${departmentName} Department Performance Overview`;
-                        
-                        console.log('HOD user loaded:', {
-                            name: userData.fullName || `${userData.firstName} ${userData.lastName}`,
-                            department: departmentId,
-                            departmentName: departmentName,
-                            staffId: userData.staffId
-                        });
-                    } else {
-                        console.warn('No department found for HOD user:', currentUser.uid);
-                        showError('No department assigned. Please contact administrator to assign you to a department.');
-                        return false;
-                    }
+                     // Load department name and set up department-specific data
+                     if (departmentId) {
+                         // Try to get department document first
+                         const deptDoc = await db.collection('departments').doc(departmentId).get();
+                         if (deptDoc.exists) {
+                             departmentName = deptDoc.data().name || departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
+                         } else {
+                             // If no department document, use the department field value
+                             departmentName = departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
+                         }
+                         
+                         document.getElementById('departmentName').textContent = `Teachers in the ${departmentName} Department`;
+                         document.getElementById('departmentPerformanceSubtitle').textContent = `${departmentName} Department Performance Overview`;
+                         
+                         console.log('HOD user loaded:', {
+                             name: getUserName(userData),
+                             department: departmentId,
+                             departmentName: departmentName,
+                             staffId: userData.staffId,
+                             academicInfo: userData.academicInfo,
+                             personalInfo: userData.personalInfo
+                         });
+                     } else {
+                         console.warn('No department found for HOD user:', currentUser.uid);
+                         showError('No department assigned. Please contact administrator to assign you to a department.');
+                         return false;
+                     }
                 } else {
                     console.error('User document not found:', currentUser.uid);
                     showError('User profile not found. Please contact administrator.');
