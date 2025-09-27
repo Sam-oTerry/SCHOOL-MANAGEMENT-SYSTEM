@@ -343,35 +343,35 @@
                             <p class="mt-2">Loading performance data...</p>
                         </div>
                         <div id="performanceContent" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Overall Statistics</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Overall Statistics</h6>
                                     <table class="table table-sm" id="overallStatsTable">
-                                        <tr>
-                                            <td><strong>Total Students:</strong></td>
+                                    <tr>
+                                        <td><strong>Total Students:</strong></td>
                                             <td id="totalStudents">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Average Score:</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Average Score:</strong></td>
                                             <td id="averageScore">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Pass Rate:</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Pass Rate:</strong></td>
                                             <td id="passRate">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Department Rank:</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Department Rank:</strong></td>
                                             <td id="departmentRank">-</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Subject Performance</h6>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Subject Performance</h6>
                                     <table class="table table-sm" id="subjectPerformanceTable">
                                         <tbody id="subjectPerformanceBody">
                                             <!-- Dynamic content will be loaded here -->
                                         </tbody>
-                                    </table>
+                                </table>
                                 </div>
                             </div>
                         </div>
@@ -459,7 +459,7 @@
     
     <!-- Firebase Initialization -->
     <script src="../../assets/js/firebase-init-compat.js"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/database-service.js"></script>
@@ -533,17 +533,21 @@
         async function loadUserData() {
             try {
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    
-                    // Check if user has HOD role
-                    if (userData.role !== 'hod') {
-                        showError('Access denied. This page is only for Head of Department users.');
-                        return false;
-                    }
-                    
-                    // Get department from user data (using 'department' field as seen in Firestore)
-                    departmentId = userData.departmentId || userData.department;
+                 if (userDoc.exists) {
+                     const userData = userDoc.data();
+                     
+                     console.log('User data loaded:', userData);
+                     
+                     // Check if user has HOD role
+                     if (userData.role !== 'hod') {
+                         showError('Access denied. This page is only for Head of Department users.');
+                         return false;
+                     }
+                     
+                     // Get department from user data (using 'department' field as seen in Firestore)
+                     departmentId = userData.department || userData.departmentId;
+                     
+                     console.log('Department ID found:', departmentId);
                     
                     // Update staff ID display
                     const staffIdElement = document.getElementById('staffId');
@@ -1318,7 +1322,7 @@
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 auth.signOut().then(() => {
-                    window.location.href = '../../index.html';
+                window.location.href = '../../index.html';
                 }).catch((error) => {
                     console.error('Error signing out:', error);
                     window.location.href = '../../index.html';
