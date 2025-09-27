@@ -419,7 +419,7 @@
                 updateUserDisplay(userResult);
                 
                 // Load announcements
-                loadAnnouncements();
+                            loadAnnouncements();
                 
             } catch (error) {
                 console.error('Error initializing announcements:', error);
@@ -981,7 +981,7 @@
                 showError('Failed to update announcement status. Please try again.');
             }
         }
-
+        
         // Make functions globally available
         window.createAnnouncement = createAnnouncement;
         window.editAnnouncement = editAnnouncement;
