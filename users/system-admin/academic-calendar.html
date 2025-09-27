@@ -314,65 +314,75 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
+    <script src="../../assets/js/users/system-admin-utils.js"></script>
     
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
-            authDomain: "ass-sms.firebaseapp.com",
-            projectId: "ass-sms",
-            storageBucket: "ass-sms.firebasestorage.app",
-            messagingSenderId: "515388722489",
-            appId: "1:515388722489:web:21169f130303f48aaa2ce8"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        // Global variables
+        // System Admin Academic Calendar Functionality
+        let calendarEvents = [];
         let currentUser = null;
         let calendar = null;
-        let calendarEvents = [];
         let academicTerms = [];
         let currentView = 'month';
         
-        // Check authentication and role
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection('users').doc(user.uid).get().then((doc) => {
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        const userRole = userData.role;
-                        
-                        if (userRole === 'system_admin') {
-                            console.log('✅ System Administrator authenticated:', user.email);
-                            currentUser = user;
-                            initializeCalendar();
-                            setupRealTimeListeners();
-                        } else {
-                            console.log('❌ Access denied. Required role: system_admin');
-                            alert('Access denied. You do not have system administrator privileges.');
-                            auth.signOut().then(() => {
-                                window.location.href = '../../index.html';
-                            });
-                        }
-                    } else {
-                        console.log('❌ User document not found');
-                        auth.signOut().then(() => {
-                            window.location.href = '../../index.html';
-                        });
-                    }
-                });
-            } else {
-                console.log('❌ No authenticated user, redirecting to login');
-                window.location.href = '../../index.html';
-            }
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAcademicCalendar();
+            setupMobileSidebar(); // From system-admin-utils.js
         });
+
+        async function initializeAcademicCalendar() {
+            try {
+                // Wait for authentication
+                await waitForAuth(); // From system-admin-utils.js
+                
+                // Load user data using utility function
+                const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
+                if (!userResult.success) {
+                    showError(userResult.error); // From system-admin-utils.js
+                    return;
+                }
+                
+                // Update UI with user data
+                updateUserDisplay(userResult);
+                
+                // Initialize calendar
+                initializeCalendar();
+                setupRealTimeListeners();
+                
+            } catch (error) {
+                console.error('Error initializing academic calendar:', error);
+                showError('Failed to initialize academic calendar. Please refresh and try again.'); // From system-admin-utils.js
+            }
+        }
+
+        function updateUserDisplay(userResult) {
+            try {
+                // Update current user display
+                const currentUserEl = document.getElementById('current-user');
+                if (currentUserEl) {
+                    currentUserEl.textContent = userResult.userName;
+                }
+                
+                // Update sidebar staff ID
+                const staffIdEl = document.querySelector('.sidebar small');
+                if (staffIdEl) {
+                    staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
+                }
+                
+                console.log('System Admin Academic Calendar user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
+            } catch (error) {
+                console.error('Error updating user display:', error);
+            }
+        }
         
         // Initialize FullCalendar
         function initializeCalendar() {
