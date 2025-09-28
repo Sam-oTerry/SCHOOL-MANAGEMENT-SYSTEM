@@ -256,7 +256,7 @@
                             <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
                         </div>
                         <h5 class="text-white">Head of Department</h5>
-                        <p class="small text-white-50">Staff ID: HOD1234</p>
+                        <p class="small text-white-50" id="sidebar-staff-id">Staff ID: Loading...</p>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -330,10 +330,10 @@
                 <div class="header">
                     <div>
                         <h4>Head of Department Dashboard</h4>
-                        <span class="role-badge">Mathematics Department</span>
+                        <span class="role-badge" id="department-badge">Loading Department...</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -557,8 +557,12 @@
                 // Wait for authentication
                 await waitForAuth();
                 
+                // Check if database is available
+                console.log('Database available:', !!window.db);
+                console.log('Current user:', currentUser);
+                
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser);
+                const userResult = await loadHODUserData(window.db, currentUser);
                 if (!userResult.success) {
                     showError(userResult.error);
                     return;
@@ -592,16 +596,15 @@
 
         function updateUserDisplay(userResult) {
             try {
-                // Update current user display
-                const currentUserEl = document.getElementById('current-user');
-                if (currentUserEl) {
-                    currentUserEl.textContent = userResult.userName;
+                // Use the standardized updateUserDisplay function from hod-utils.js
+                if (window.updateUserDisplay) {
+                    window.updateUserDisplay(userResult);
                 }
                 
-                // Update role badge
-                const roleBadgeEl = document.querySelector('.role-badge');
-                if (roleBadgeEl) {
-                    roleBadgeEl.textContent = `${userResult.departmentName} Department`;
+                // Update department badge specifically
+                const departmentBadgeEl = document.getElementById('department-badge');
+                if (departmentBadgeEl) {
+                    departmentBadgeEl.textContent = `${userResult.departmentName} Department`;
                 }
                 
                 console.log('Dashboard user loaded:', {
