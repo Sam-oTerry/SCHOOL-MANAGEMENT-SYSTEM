@@ -70,7 +70,10 @@ async function loadHODUserData(db, currentUser) {
         }
 
         const departmentId = getUserDepartment(userData);
+        console.log('Department ID extracted:', departmentId);
+        
         const departmentName = await getUserDepartmentName(database, userData);
+        console.log('Department name resolved:', departmentName);
 
         return {
             success: true,
@@ -104,9 +107,12 @@ async function getUserDepartmentName(db, userData) {
     const departmentId = getUserDepartment(userData);
     if (!departmentId) return 'Unknown Department';
     
+    console.log('Resolving department name for ID:', departmentId);
+    
     try {
         // Check if it's already a name (not an ID)
         if (departmentId.length < 20 && !departmentId.match(/^[a-zA-Z0-9]{20,}$/)) {
+            console.log('Department ID appears to be a name:', departmentId);
             return departmentId; // It's already a name
         }
         
@@ -115,10 +121,21 @@ async function getUserDepartmentName(db, userData) {
         if (!database) {
             throw new Error('Firebase database not initialized');
         }
+        
+        console.log('Fetching department document for ID:', departmentId);
         const deptDoc = await database.collection('departments').doc(departmentId).get();
+        
         if (deptDoc.exists) {
-            return deptDoc.data().name || departmentId;
+            const deptData = deptDoc.data();
+            console.log('Department document found:', deptData);
+            const deptName = deptData.name || deptData.code || departmentId;
+            console.log('Returning department name:', deptName);
+            return deptName;
         } else {
+            console.log('Department document not found for ID:', departmentId);
+            // Try to get all departments to see what's available
+            const allDepts = await database.collection('departments').get();
+            console.log('Available departments:', allDepts.docs.map(doc => ({ id: doc.id, data: doc.data() })));
             return departmentId; // Fallback to ID if department not found
         }
     } catch (error) {
