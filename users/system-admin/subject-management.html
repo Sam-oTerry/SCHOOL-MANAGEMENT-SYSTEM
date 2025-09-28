@@ -903,7 +903,7 @@
             }
             
             // Check if subject code already exists
-            const existingSubject = subjects.find(s => s.code.toLowerCase() === code.toLowerCase());
+            const existingSubject = subjects.find(s => s.code && s.code.toLowerCase() === code.toLowerCase());
             if (existingSubject) {
                 showError('Subject code already exists. Please use a different code.');
                 return;
