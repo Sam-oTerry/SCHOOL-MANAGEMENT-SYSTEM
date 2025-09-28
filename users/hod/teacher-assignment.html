@@ -1649,7 +1649,7 @@
                 await waitForAuth(); // From hod-utils.js
                 
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                const userResult = await window.loadHODUserData(window.db, window.currentUser); // From hod-utils.js
                 if (!userResult.success) {
                     showError(userResult.error); // From hod-utils.js
                     return;
@@ -1700,8 +1700,10 @@
         window.searchAssignments = searchAssignments;
         window.assignTeacher = assignTeacher;
         window.editAssignment = editAssignment;
-        window.deleteAssignment = deleteAssignment;
+        window.removeAssignment = removeAssignment;
+        window.updateAssignment = updateAssignment;
         window.exportAssignments = exportAssignments;
+        window.viewAssignment = viewAssignment;
     </script>
 </body>
 </html>
