@@ -483,31 +483,42 @@
         }
 
         // Initialize page
+        let isInitialized = false;
         document.addEventListener('DOMContentLoaded', function() {
-            initializeMySubjects();
-            setupMobileSidebar(); // From hod-utils.js
+            if (!isInitialized) {
+                isInitialized = true;
+                initializeMySubjects();
+                setupMobileSidebar(); // From hod-utils.js
+            }
         });
 
         async function initializeMySubjects() {
+            console.log('initializeMySubjects called');
             try {
                 // Wait for authentication
+                console.log('Waiting for auth...');
                 await waitForAuth(); // From hod-utils.js
+                console.log('Auth completed, currentUser:', window.currentUser);
                 
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                console.log('Loading user data...');
+                const userResult = await loadHODUserData(window.db, window.currentUser); // From hod-utils.js
                 if (!userResult.success) {
                     showError(userResult.error); // From hod-utils.js
                     return;
                 }
                 
                 // Update UI with user data
+                console.log('Updating user display...');
                 updateUserDisplay(userResult);
                 
                 // Load subjects
-                const ids = await getAssignedSubjectIds(currentUser.uid);
+                console.log('Loading subjects...');
+                const ids = await getAssignedSubjectIds(window.currentUser.uid);
                 const subjects = await getSubjectsByIds(ids);
                 renderCounts(subjects);
                 renderSubjectsTable(subjects);
+                console.log('Initialization completed successfully');
                 
             } catch (error) {
                 console.error('Error initializing my subjects:', error);
