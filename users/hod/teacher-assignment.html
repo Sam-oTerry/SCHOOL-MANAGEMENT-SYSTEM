@@ -576,7 +576,7 @@
                 }
                 
                 // Load departments
-                const departmentsSnapshot = await window.window.db.collection('departments').get();
+                const departmentsSnapshot = await window.db.collection('departments').get();
                 departments = [];
                 departmentsSnapshot.forEach(doc => {
                     departments.push({ id: doc.id, ...doc.data() });
@@ -596,11 +596,20 @@
                     classes.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // Load teachers
-                const teachersSnapshot = await window.db.collection('teachers').get();
+                // Load teachers from users collection with teacher role
+                const teachersSnapshot = await window.db.collection('users')
+                    .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
+                    .get();
                 teachers = [];
                 teachersSnapshot.forEach(doc => {
-                    teachers.push({ id: doc.id, ...doc.data() });
+                    const userData = doc.data();
+                    teachers.push({ 
+                        id: doc.id, 
+                        ...userData,
+                        name: userData.personalInfo?.fullName || userData.displayName || userData.email,
+                        department: userData.academicInfo?.department || userData.department,
+                        subjects: userData.academicInfo?.subjects || userData.subjects || []
+                    });
                 });
                 
                 // Load terms
@@ -932,18 +941,60 @@
                 select.appendChild(hodOption);
             }
             
-            // Filter teachers by current department (case-insensitive)
-            const departmentTeachers = teachers.filter(teacher => {
-                const teacherDept = (teacher.department || '').toLowerCase();
-                const teacherSubject = (teacher.subject || '').toLowerCase();
+            // Get subjects that belong to the current department
+            const departmentSubjects = subjects.filter(subject => {
+                const subjectDept = (subject.department || subject.departmentId || '').toLowerCase();
                 const currentDept = currentDepartment.toLowerCase();
+                return subjectDept === currentDept || 
+                       subjectDept.includes(currentDept) || 
+                       currentDept.includes(subjectDept);
+            });
+            
+            const departmentSubjectIds = departmentSubjects.map(subject => subject.id);
+            const departmentSubjectNames = departmentSubjects.map(subject => subject.name || subject.subjectName);
+            
+            console.log(`Department subjects for ${currentDepartment}:`, departmentSubjectNames);
+            
+            // Filter teachers who teach subjects under the current department
+            const departmentTeachers = teachers.filter(teacher => {
+                const teacherSubjects = teacher.subjects || teacher.academicInfo?.subjects || [];
                 
-                // Check for exact match or if teacher department/subject matches current department
-                return teacherDept === currentDept || 
-                       teacherDept.includes(currentDept) || 
-                       currentDept.includes(teacherDept) ||
-                       teacherSubject.includes(currentDept) ||
-                       teacher.name.toLowerCase().includes(currentDept);
+                // Check if teacher teaches any subject that belongs to the current department
+                const teachesDepartmentSubject = teacherSubjects.some(teacherSubject => {
+                    // Check by subject ID
+                    if (typeof teacherSubject === 'string' && departmentSubjectIds.includes(teacherSubject)) {
+                        return true;
+                    }
+                    
+                    // Check by subject name
+                    if (typeof teacherSubject === 'string') {
+                        return departmentSubjectNames.some(deptSubjectName => 
+                            deptSubjectName.toLowerCase().includes(teacherSubject.toLowerCase()) ||
+                            teacherSubject.toLowerCase().includes(deptSubjectName.toLowerCase())
+                        );
+                    }
+                    
+                    // If teacherSubject is an object with id or name
+                    if (typeof teacherSubject === 'object') {
+                        const subjectId = teacherSubject.id || teacherSubject.subjectId;
+                        const subjectName = teacherSubject.name || teacherSubject.subjectName;
+                        
+                        return departmentSubjectIds.includes(subjectId) ||
+                               departmentSubjectNames.some(deptSubjectName => 
+                                   deptSubjectName.toLowerCase().includes(subjectName.toLowerCase()) ||
+                                   subjectName.toLowerCase().includes(deptSubjectName.toLowerCase())
+                               );
+                    }
+                    
+                    return false;
+                });
+                
+                // Also include HOD of the current department
+                const isHODOfDepartment = teacher.role === 'hod' && 
+                    (teacher.department === currentDepartment || 
+                     teacher.academicInfo?.department === currentDepartment);
+                
+                return teachesDepartmentSubject || isHODOfDepartment;
             });
             
             console.log(`Filtering teachers for department: ${currentDepartment}`);
@@ -952,19 +1003,28 @@
             departmentTeachers.forEach(teacher => {
                 const option = document.createElement('option');
                 option.value = teacher.id;
-                option.textContent = `${teacher.name} - ${teacher.subject || 'General'}`;
+                
+                // Get teacher's subjects
+                const teacherSubjects = teacher.subjects || [];
+                const subjectsText = teacherSubjects.length > 0 
+                    ? teacherSubjects.join(', ') 
+                    : (teacher.academicInfo?.subjects?.join(', ') || 'General');
+                
+                // Get staff ID
+                const staffId = teacher.staffId || teacher.academicInfo?.staffId || 'N/A';
+                
+                option.textContent = `${teacher.name} (${staffId}) - ${subjectsText}`;
                 select.appendChild(option);
             });
             
-            // If no teachers found, show all teachers as fallback
+            // If no teachers found, show a message
             if (departmentTeachers.length === 0) {
-                console.log('No department-specific teachers found, showing all teachers');
-                teachers.forEach(teacher => {
-                    const option = document.createElement('option');
-                    option.value = teacher.id;
-                    option.textContent = `${teacher.name} - ${teacher.subject || 'General'}`;
-                    select.appendChild(option);
-                });
+                console.log('No teachers found who teach subjects in this department');
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No teachers available for this department';
+                option.disabled = true;
+                select.appendChild(option);
             }
         }
         
@@ -1026,10 +1086,11 @@
 
         // Initialize Firebase
         function initializeFirebase() {
-            db = firebase.firestore();
+            // Use the global db instance instead of creating a new one
+            // db = firebase.firestore(); // Remove this line to avoid conflicts
             
-            // Enable offline support
-            enableOfflineSupport();
+            // Skip offline support as it's already initialized elsewhere
+            // enableOfflineSupport(); // Remove this to avoid persistence error
             
             // Setup connection status
             setupConnectionStatus();
