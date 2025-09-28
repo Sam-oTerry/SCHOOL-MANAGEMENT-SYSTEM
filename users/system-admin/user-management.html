@@ -198,6 +198,9 @@
                                         <th>Email</th>
                                         <th>Full Name</th>
                                         <th>Role</th>
+                                        <th>Subjects</th>
+                                        <th>Departments</th>
+                                        <th>Class</th>
                                         <th>Last Login</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -303,69 +306,73 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                            <label for="department" class="form-label">Department</label>
-                            <select class="form-select" id="department">
-                                <option value="">Select Department</option>
-                                                <!-- Compulsory Subjects (Senior 1–Senior 2) -->
-                                                <optgroup label="Compulsory Subjects (S1-S2)">
-                                                    <option value="english">English Language</option>
-                                                    <option value="mathematics">Mathematics</option>
-                                                    <option value="history">History & Political Education</option>
-                                                    <option value="physics">Physics</option>
-                                                    <option value="chemistry">Chemistry</option>
-                                                    <option value="biology">Biology</option>
-                                                    <option value="geography">Geography</option>
-                                                    <option value="kiswahili">Kiswahili</option>
-                                                    <option value="pe">Physical Education</option>
-                                                    <option value="re">Religious Education</option>
-                                                    <option value="general_science">General Science</option>
-                                                </optgroup>
-                                                <!-- Elective Subjects (S1-S2) -->
-                                                <optgroup label="Elective Subjects (S1-S2)">
-                                                    <option value="literature">Literature in English</option>
-                                                    <option value="luganda">Luganda</option>
-                                                    <option value="french">French</option>
-                                                    <option value="fine_art">Fine Art</option>
-                                                    <option value="entrepreneurship">Entrepreneurship Education</option>
-                                                    <option value="performing_arts">Performing Arts</option>
-                                                    <option value="agriculture">Agriculture</option>
-                                                    <option value="ict">Information and Computer Technology (ICT)</option>
-                                                    <option value="business">Business Studies/Commerce</option>
-                                                    <option value="home_economics">Home Economics</option>
-                                                    <option value="woodwork">Woodwork</option>
-                                                    <option value="metal_fabrication">Metal Fabrication</option>
-                                                </optgroup>
-                                                <!-- Upper Secondary Principal Subjects (S5-S6) -->
-                                                <optgroup label="Upper Secondary Principal Subjects (S5-S6)">
-                                                    <option value="biology_al">Biology (A-Level)</option>
-                                                    <option value="chemistry_al">Chemistry (A-Level)</option>
-                                                    <option value="physics_al">Physics (A-Level)</option>
-                                                    <option value="mathematics_al">Mathematics (A-Level)</option>
-                                                    <option value="geography_al">Geography (A-Level)</option>
-                                                    <option value="economics">Economics</option>
-                                                    <option value="history_al">History (A-Level)</option>
-                                                    <option value="literature_al">Literature in English (A-Level)</option>
-                                                    <option value="divinity">Divinity (Religious Studies)</option>
-                                                    <option value="fine_art_al">Fine Art (A-Level)</option>
-                                                    <option value="business_al">Business Studies (A-Level)</option>
-                                                    <option value="entrepreneurship_al">Entrepreneurship (A-Level)</option>
-                                                    <option value="accountancy">Accountancy</option>
-                                                </optgroup>
-                                                <!-- Compulsory Subsidiary Subjects (S5-S6) -->
-                                                <optgroup label="Compulsory Subsidiary Subjects (S5-S6)">
-                                                    <option value="general_paper">General Paper</option>
-                                                    <option value="subsidiary_math">Subsidiary Mathematics</option>
-                                                    <option value="subsidiary_ict">Subsidiary ICT</option>
-                                                </optgroup>
-                                                <!-- Administration -->
-                                                <optgroup label="Administration">
-                                <option value="administration">Administration</option>
-                                <option value="support">Support Staff</option>
-                                                </optgroup>
-                            </select>
-                                        </div>
+                                    <label for="department" class="form-label">Primary Department</label>
+                                    <select class="form-select" id="department" onchange="handleDepartmentChange()">
+                                        <option value="">Select Department</option>
+                                        <!-- Departments will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Subjects Selection -->
+                        <div class="row" id="subjectsRow">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="subject1" class="form-label">Primary Subject</label>
+                                    <select class="form-select" id="subject1" onchange="handleSubjectChange()">
+                                        <option value="">Select Primary Subject</option>
+                                        <!-- Subjects will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="subject2" class="form-label">Secondary Subject (Optional)</label>
+                                    <select class="form-select" id="subject2">
+                                        <option value="">Select Secondary Subject</option>
+                                        <!-- Subjects will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Class Selection for Class Teachers -->
+                        <div class="row" id="classRow" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="assignedClass" class="form-label">Assigned Class</label>
+                                    <select class="form-select" id="assignedClass">
+                                        <option value="">Select Class</option>
+                                        <!-- Classes will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="classStream" class="form-label">Class Stream (Optional)</label>
+                                    <select class="form-select" id="classStream">
+                                        <option value="">Select Stream</option>
+                                        <option value="A">Stream A</option>
+                                        <option value="B">Stream B</option>
+                                        <option value="C">Stream C</option>
+                                        <option value="D">Stream D</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Departments -->
+                        <div class="row" id="additionalDepartmentsRow" style="display: none;">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Additional Departments</label>
+                                    <div id="additionalDepartmentsList">
+                                        <!-- Additional departments will be shown here -->
                                     </div>
                                 </div>
+                            </div>
+                        </div>
                             </div>
                         </div>
                     </form>
@@ -778,6 +785,9 @@
         let currentUser = null;
         let allUsers = [];
         let filteredUsers = [];
+        let departments = [];
+        let subjects = [];
+        let classes = [];
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -801,6 +811,12 @@
                 
                 // Load all users
                 await loadAllUsers();
+                
+                // Load dynamic data
+                await loadDepartments();
+                await loadSubjects();
+                await loadClasses();
+                
                 setupRealTimeListeners();
                 
             } catch (error) {
@@ -893,6 +909,233 @@
             }
         }
         
+        // Load departments from Firestore
+        async function loadDepartments() {
+            try {
+                const departmentsSnapshot = await db.collection('departments').orderBy('name').get();
+                departments = [];
+                
+                departmentsSnapshot.forEach(doc => {
+                    const deptData = doc.data();
+                    departments.push({
+                        id: doc.id,
+                        ...deptData
+                    });
+                });
+                
+                populateDepartmentDropdowns();
+                console.log(`✅ Loaded ${departments.length} departments from Firestore`);
+                
+            } catch (error) {
+                console.error('Error loading departments:', error);
+                showError('Failed to load departments. Please try again.');
+            }
+        }
+        
+        // Load subjects from Firestore
+        async function loadSubjects() {
+            try {
+                const subjectsSnapshot = await db.collection('subjects').orderBy('name').get();
+                subjects = [];
+                
+                subjectsSnapshot.forEach(doc => {
+                    const subjectData = doc.data();
+                    subjects.push({
+                        id: doc.id,
+                        ...subjectData
+                    });
+                });
+                
+                populateSubjectDropdowns();
+                console.log(`✅ Loaded ${subjects.length} subjects from Firestore`);
+                
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                showError('Failed to load subjects. Please try again.');
+            }
+        }
+        
+        // Load classes from Firestore
+        async function loadClasses() {
+            try {
+                const classesSnapshot = await db.collection('classes').orderBy('name').get();
+                classes = [];
+                
+                classesSnapshot.forEach(doc => {
+                    const classData = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        ...classData
+                    });
+                });
+                
+                populateClassDropdown();
+                console.log(`✅ Loaded ${classes.length} classes from Firestore`);
+                
+            } catch (error) {
+                console.error('Error loading classes:', error);
+                showError('Failed to load classes. Please try again.');
+            }
+        }
+        
+        // Populate department dropdowns
+        function populateDepartmentDropdowns() {
+            const departmentSelect = document.getElementById('department');
+            if (!departmentSelect) return;
+            
+            departmentSelect.innerHTML = '<option value="">Select Department</option>';
+            
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name;
+                departmentSelect.appendChild(option);
+            });
+        }
+        
+        // Populate subject dropdowns
+        function populateSubjectDropdowns() {
+            const subject1Select = document.getElementById('subject1');
+            const subject2Select = document.getElementById('subject2');
+            
+            if (!subject1Select || !subject2Select) return;
+            
+            // Clear existing options
+            subject1Select.innerHTML = '<option value="">Select Primary Subject</option>';
+            subject2Select.innerHTML = '<option value="">Select Secondary Subject</option>';
+            
+            subjects.forEach(subject => {
+                const option1 = document.createElement('option');
+                option1.value = subject.id;
+                option1.textContent = `${subject.name} (${subject.code})`;
+                subject1Select.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = subject.id;
+                option2.textContent = `${subject.name} (${subject.code})`;
+                subject2Select.appendChild(option2);
+            });
+        }
+        
+        // Populate class dropdown
+        function populateClassDropdown() {
+            const classSelect = document.getElementById('assignedClass');
+            if (!classSelect) return;
+            
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classSelect.appendChild(option);
+            });
+        }
+        
+        // Handle department change
+        function handleDepartmentChange() {
+            const departmentId = document.getElementById('department').value;
+            const role = document.getElementById('user-role').value;
+            
+            // Show/hide subjects based on role
+            const subjectsRow = document.getElementById('subjectsRow');
+            const classRow = document.getElementById('classRow');
+            const additionalDepartmentsRow = document.getElementById('additionalDepartmentsRow');
+            
+            if (role === 'bursar' || role === 'system_admin') {
+                subjectsRow.style.display = 'none';
+                classRow.style.display = 'none';
+                additionalDepartmentsRow.style.display = 'none';
+            } else {
+                subjectsRow.style.display = 'block';
+                if (role === 'class_teacher') {
+                    classRow.style.display = 'block';
+                } else {
+                    classRow.style.display = 'none';
+                }
+                additionalDepartmentsRow.style.display = 'none';
+            }
+            
+            // Update additional departments if subjects are selected
+            updateAdditionalDepartments();
+        }
+        
+        // Handle subject change
+        function handleSubjectChange() {
+            updateAdditionalDepartments();
+        }
+        
+        // Update additional departments based on selected subjects
+        function updateAdditionalDepartments() {
+            const subject1Id = document.getElementById('subject1').value;
+            const subject2Id = document.getElementById('subject2').value;
+            const additionalDepartmentsRow = document.getElementById('additionalDepartmentsRow');
+            const additionalDepartmentsList = document.getElementById('additionalDepartmentsList');
+            
+            if (!subject1Id && !subject2Id) {
+                additionalDepartmentsRow.style.display = 'none';
+                return;
+            }
+            
+            // Get departments for selected subjects
+            const subjectDepartments = new Set();
+            
+            if (subject1Id) {
+                const subject1 = subjects.find(s => s.id === subject1Id);
+                if (subject1 && subject1.departmentId) {
+                    subjectDepartments.add(subject1.departmentId);
+                }
+            }
+            
+            if (subject2Id) {
+                const subject2 = subjects.find(s => s.id === subject2Id);
+                if (subject2 && subject2.departmentId) {
+                    subjectDepartments.add(subject2.departmentId);
+                }
+            }
+            
+            // Remove primary department from additional departments
+            const primaryDepartmentId = document.getElementById('department').value;
+            subjectDepartments.delete(primaryDepartmentId);
+            
+            if (subjectDepartments.size > 0) {
+                additionalDepartmentsList.innerHTML = '';
+                subjectDepartments.forEach(deptId => {
+                    const dept = departments.find(d => d.id === deptId);
+                    if (dept) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-info me-2 mb-2';
+                        badge.textContent = dept.name;
+                        additionalDepartmentsList.appendChild(badge);
+                    }
+                });
+                additionalDepartmentsRow.style.display = 'block';
+            } else {
+                additionalDepartmentsRow.style.display = 'none';
+            }
+        }
+        
+        // Handle role change
+        function handleRoleChange() {
+            const role = document.getElementById('user-role').value;
+            const subjectsRow = document.getElementById('subjectsRow');
+            const classRow = document.getElementById('classRow');
+            
+            if (role === 'bursar' || role === 'system_admin') {
+                subjectsRow.style.display = 'none';
+                classRow.style.display = 'none';
+            } else {
+                subjectsRow.style.display = 'block';
+                if (role === 'class_teacher') {
+                    classRow.style.display = 'block';
+                } else {
+                    classRow.style.display = 'none';
+                }
+            }
+            
+            handleDepartmentChange();
+        }
+
         // Load all users from Firebase
         async function loadAllUsers() {
             try {
@@ -960,6 +1203,19 @@
             const staffIdColor = user.staffId ? 'primary' : 'secondary';
             const department = user.academicInfo?.department || user.personalInfo?.department || 'Not specified';
             
+            // Prepare subjects and departments display
+            const subjectsDisplay = user.academicInfo?.subjects ? 
+                user.academicInfo.subjects.map(s => `<span class="badge bg-info me-1">${s.name}</span>`).join('') : 
+                '<span class="text-muted">No subjects</span>';
+            
+            const departmentsDisplay = user.academicInfo?.departmentNames ? 
+                user.academicInfo.departmentNames.map(d => `<span class="badge bg-secondary me-1">${d}</span>`).join('') : 
+                '<span class="text-muted">No departments</span>';
+            
+            const assignedClassDisplay = user.academicInfo?.assignedClass ? 
+                `<span class="badge bg-success">${user.academicInfo.assignedClass}</span>` : 
+                '<span class="text-muted">Not assigned</span>';
+
             row.innerHTML = `
                 <td>
                     <div class="d-flex align-items-center">
@@ -976,6 +1232,9 @@
                 <td>${user.email}</td>
                 <td>${fullName}</td>
                 <td><span class="badge bg-primary">${user.role.replace('_', ' ').toUpperCase()}</span></td>
+                <td>${subjectsDisplay}</td>
+                <td>${departmentsDisplay}</td>
+                <td>${assignedClassDisplay}</td>
                 <td>${lastLogin}</td>
                 <td><span class="badge bg-${statusColor}">${status.toUpperCase()}</span></td>
                 <td>
@@ -1108,10 +1367,28 @@
             const role = document.getElementById('user-role').value;
             const phone = document.getElementById('phone').value;
             const address = document.getElementById('address').value;
-            const department = document.getElementById('department').value;
+            const departmentId = document.getElementById('department').value;
+            const subject1Id = document.getElementById('subject1').value;
+            const subject2Id = document.getElementById('subject2').value;
+            const assignedClassId = document.getElementById('assignedClass').value;
+            const classStream = document.getElementById('classStream').value;
             
             if (!email || !password || !confirmPassword || !fullName || !role) {
                 showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Validate subjects for teaching roles
+            if (role !== 'bursar' && role !== 'system_admin') {
+                if (!subject1Id) {
+                    showError('Please select at least one subject for teaching roles.');
+                    return;
+                }
+            }
+            
+            // Validate class assignment for class teachers
+            if (role === 'class_teacher' && !assignedClassId) {
+                showError('Please select a class for class teachers.');
                 return;
             }
             
@@ -1203,6 +1480,51 @@
                     // Continue with user creation even if profile update fails
                 }
                 
+                // Prepare subjects and departments data
+                const userSubjects = [];
+                const userDepartments = new Set();
+                
+                if (subject1Id) {
+                    const subject1 = subjects.find(s => s.id === subject1Id);
+                    if (subject1) {
+                        userSubjects.push({
+                            id: subject1Id,
+                            name: subject1.name,
+                            code: subject1.code,
+                            isPrimary: true
+                        });
+                        if (subject1.departmentId) {
+                            userDepartments.add(subject1.departmentId);
+                        }
+                    }
+                }
+                
+                if (subject2Id) {
+                    const subject2 = subjects.find(s => s.id === subject2Id);
+                    if (subject2) {
+                        userSubjects.push({
+                            id: subject2Id,
+                            name: subject2.name,
+                            code: subject2.code,
+                            isPrimary: false
+                        });
+                        if (subject2.departmentId) {
+                            userDepartments.add(subject2.departmentId);
+                        }
+                    }
+                }
+                
+                // Add primary department if specified
+                if (departmentId) {
+                    userDepartments.add(departmentId);
+                }
+                
+                // Get department names
+                const departmentNames = Array.from(userDepartments).map(deptId => {
+                    const dept = departments.find(d => d.id === deptId);
+                    return dept ? dept.name : '';
+                }).filter(name => name);
+                
                 // Create user document in Firestore with retry logic
                 console.log('📄 Creating Firestore document...');
                 const userDocData = {
@@ -1217,17 +1539,20 @@
                         email: email,
                         phone: phone || '',
                         address: address || '',
-                        department: department || ''
+                        department: departmentId || ''
                     },
                     academicInfo: {
-                        department: department || '',
-                        subjects: [], // Will be populated later if needed
-                        departments: department ? [department] : []
+                        department: departmentId || '',
+                        departments: Array.from(userDepartments),
+                        departmentNames: departmentNames,
+                        subjects: userSubjects,
+                        assignedClass: role === 'class_teacher' ? assignedClassId : null,
+                        classStream: role === 'class_teacher' ? classStream : null
                     },
                     employmentInfo: {
                         staffId: staffId,
                         position: role,
-                        department: department || '',
+                        department: departmentId || '',
                         startDate: firebase.firestore.FieldValue.serverTimestamp()
                     },
                     status: 'active',
@@ -1296,50 +1621,35 @@
             }
         }
         
-        // Edit user
+        // Edit user - Enhanced with role change functionality
         async function editUser(userId) {
             const user = allUsers.find(u => u.id === userId);
             if (!user) return;
             
-            const currentFullName = getUserName(user);
-            const newFullName = prompt('Enter new full name:', currentFullName);
-            const newPhone = prompt('Enter new phone:', user.personalInfo?.phone || '');
-            const newAddress = prompt('Enter new address:', user.personalInfo?.address || '');
-            const newRole = prompt('Enter new role:', user.role);
-            const newDepartment = prompt('Enter new department:', user.academicInfo?.department || user.personalInfo?.department || '');
+            // Show enhanced edit modal with role change options
+            const newRole = prompt(`Change role for ${getUserName(user)}:\n\nCurrent role: ${user.role}\n\nEnter new role:\n- system_admin\n- head_teacher\n- bursar\n- class_teacher\n- subject_teacher\n- hod\n- dos`, user.role);
             
-            if (newFullName && newRole) {
-                try {
-                    const updateData = {
-                        role: newRole,
-                        personalInfo: {
-                            ...user.personalInfo,
-                            fullName: newFullName,
-                            phone: newPhone,
-                            address: newAddress,
-                            department: newDepartment
-                        },
-                        academicInfo: {
-                            ...user.academicInfo,
-                            department: newDepartment,
-                            departments: newDepartment ? [newDepartment] : []
-                        },
-                        employmentInfo: {
-                            ...user.employmentInfo,
-                            department: newDepartment,
-                            position: newRole
-                        },
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedBy: currentUser.uid
-                    };
-                    
-                    await db.collection('users').doc(userId).update(updateData);
-                    
-                    showSuccess('User updated successfully!');
-                    loadAllUsers();
-                } catch (error) {
-                    console.error('Error updating user:', error);
-                    showError('Error updating user: ' + error.message);
+            if (newRole && newRole !== user.role) {
+                if (confirm(`Are you sure you want to change ${getUserName(user)}'s role from ${user.role} to ${newRole}?`)) {
+                    try {
+                        const updateData = {
+                            role: newRole,
+                            employmentInfo: {
+                                ...user.employmentInfo,
+                                position: newRole
+                            },
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            updatedBy: currentUser.uid
+                        };
+                        
+                        await db.collection('users').doc(userId).update(updateData);
+                        
+                        showSuccess(`User role changed from ${user.role} to ${newRole} successfully!`);
+                        loadAllUsers();
+                    } catch (error) {
+                        console.error('Error updating user role:', error);
+                        showError('Error updating user role: ' + error.message);
+                    }
                 }
             }
         }
@@ -1669,11 +1979,17 @@
             existingAlerts.forEach(alert => alert.remove());
         }
         
-        // Add event listener for modal show
+        // Add event listeners for modal show and role changes
         document.addEventListener('DOMContentLoaded', function() {
             const createUserModal = document.getElementById('createUserModal');
             if (createUserModal) {
                 createUserModal.addEventListener('show.bs.modal', clearCreateUserForm);
+            }
+            
+            // Add role change event listener
+            const roleSelect = document.getElementById('user-role');
+            if (roleSelect) {
+                roleSelect.addEventListener('change', handleRoleChange);
             }
         });
         
@@ -1690,6 +2006,9 @@
         window.logout = logout;
         window.getUserName = getUserName;
         window.getUserStaffId = getUserStaffId;
+        window.handleDepartmentChange = handleDepartmentChange;
+        window.handleSubjectChange = handleSubjectChange;
+        window.handleRoleChange = handleRoleChange;
     </script>
 </body>
 </html>
