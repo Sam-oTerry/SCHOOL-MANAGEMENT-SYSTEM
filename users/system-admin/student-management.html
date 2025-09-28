@@ -661,8 +661,8 @@
 
         async function initializeStudentManagement() {
             try {
-                // Wait for authentication
-                await waitForAuth(); // From system-admin-utils.js
+                // Wait for authentication and get the user
+                currentUser = await waitForAuth(); // From system-admin-utils.js
                 
                 // Load user data using utility function
                 const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js

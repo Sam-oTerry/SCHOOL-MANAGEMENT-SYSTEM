@@ -29,7 +29,13 @@ function getUserStaffId(userData) {
 // Centralized System Admin user data loading
 async function loadSystemAdminUserData(db, currentUser) {
     try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        // Use window.currentUser if currentUser parameter is null
+        const user = currentUser || window.currentUser;
+        if (!user) {
+            return { success: false, error: 'No authenticated user found. Please login again.' };
+        }
+
+        const userDoc = await db.collection('users').doc(user.uid).get();
         if (!userDoc.exists) {
             return { success: false, error: 'User profile not found. Please contact administrator.' };
         }

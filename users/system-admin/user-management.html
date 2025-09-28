@@ -786,8 +786,8 @@
 
         async function initializeUserManagement() {
             try {
-                // Wait for authentication
-                await waitForAuth();
+                // Wait for authentication and get the user
+                currentUser = await waitForAuth();
                 
                 // Load user data and check role
                 const userResult = await loadSystemAdminUserData(db, currentUser);
