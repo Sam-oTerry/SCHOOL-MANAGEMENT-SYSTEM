@@ -120,9 +120,6 @@
         }
         
         
-        .main-content {
-        }
-        
         .header {
             background-color: white;
             padding: 15px 20px;
@@ -242,7 +239,7 @@
                             <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
                         </div>
                         <h5 class="text-white">Director of Studies</h5>
-                        <p class="small text-white-50">Staff ID: DOS1234</p>
+                        <small class="text-muted" id="sidebar-staff-id">Staff ID: Loading...</small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -304,7 +301,7 @@
                         <span class="role-badge">Academic Management</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -314,28 +311,28 @@
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-user-graduate"></i>
-                            <div class="number">1,248</div>
+                            <div class="number" id="statTotalStudents">0</div>
                             <div class="label">Total Students</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-chalkboard-teacher"></i>
-                            <div class="number">45</div>
+                            <div class="number" id="statTotalClasses">0</div>
                             <div class="label">Total Classes</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                             <div class="card stat-card">
                             <i class="fas fa-chart-line"></i>
-                            <div class="number">78%</div>
+                            <div class="number" id="statAvgPerformance">0%</div>
                             <div class="label">Average Performance</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-graduation-cap"></i>
-                            <div class="number">85%</div>
+                            <div class="number" id="statPassRate">0%</div>
                             <div class="label">Pass Rate</div>
                         </div>
                     </div>
@@ -364,71 +361,10 @@
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="academicProgressTbody">
                                             <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="feature-icon me-2">
-                                                            <i class="fas fa-chalkboard-teacher"></i>
-                                                        </div>
-                                                        <div>
-                                                            <strong>S.4 Science A</strong><br>
-                                                            <small class="text-muted">Senior 4</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>35</td>
-                                                <td>82.3%</td>
-                                                <td>91.4%</td>
-                                                <td>Mukasa John</td>
-                                                <td><span class="badge bg-success">Excellent</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="feature-icon me-2">
-                                                            <i class="fas fa-chalkboard-teacher"></i>
-                                                        </div>
-                                                        <div>
-                                                            <strong>S.4 Science B</strong><br>
-                                                            <small class="text-muted">Senior 4</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>32</td>
-                                                <td>79.8%</td>
-                                                <td>87.5%</td>
-                                                <td>Nakato Mary</td>
-                                                <td><span class="badge bg-success">Very Good</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="feature-icon me-2">
-                                                            <i class="fas fa-chalkboard-teacher"></i>
-                                                        </div>
-                                                        <div>
-                                                            <strong>S.3 Science</strong><br>
-                                                            <small class="text-muted">Senior 3</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>38</td>
-                                                <td>76.2%</td>
-                                                <td>84.2%</td>
-                                                <td>Okot David</td>
-                                                <td><span class="badge bg-warning">Good</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                <td colspan="7" class="text-center text-muted py-4">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i> Loading academic progress...
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -462,38 +398,10 @@
                         
                         <div class="card mt-3">
                             <div class="card-header">Recent Activity</div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-file-alt"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Report Cards Printed</h6>
-                                        <p class="text-muted mb-0">S.4 Science A - 35 students</p>
-                                        <small class="text-muted">2 hours ago</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-bullhorn"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Announcement Created</h6>
-                                        <p class="text-muted mb-0">Exam schedule published</p>
-                                        <small class="text-muted">1 day ago</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex align-items-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-calendar"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Timetable Updated</h6>
-                                        <p class="text-muted mb-0">New schedule for S.3</p>
-                                        <small class="text-muted">3 days ago</small>
-                                    </div>
+                            <div class="card-body" id="recent-activity-container">
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    Loading recent activity...
                                 </div>
                             </div>
                         </div>
@@ -510,45 +418,21 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Upcoming Events</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <td><strong>Mid-term Exams:</strong></td>
-                                        <td>Oct 25-30, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Parent-Teacher Meeting:</strong></td>
-                                        <td>Nov 5, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>End of Term:</strong></td>
-                                        <td>Dec 15, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Holiday Break:</strong></td>
-                                        <td>Dec 16 - Jan 8, 2024</td>
-                                    </tr>
-                                </table>
+                                <div id="upcoming-events-container">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Loading upcoming events...
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <h6>Deadlines</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <td><strong>Grade Entry Deadline:</strong></td>
-                                        <td>Oct 20, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Report Card Approval:</strong></td>
-                                        <td>Nov 10, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Student ID Printing:</strong></td>
-                                        <td>Nov 15, 2023</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Academic Year End:</strong></td>
-                                        <td>Dec 31, 2023</td>
-                                    </tr>
-                                </table>
+                                <div id="deadlines-container">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Loading deadlines...
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -558,11 +442,634 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
+        // DOS Dashboard Functionality
+        let isInitialized = false;
+        let isDataLoaded = false;
+        let dashboardData = {};
+        
+        async function initializeDOSDashboard() {
+            console.log('initializeDOSDashboard called');
+            try {
+                // Wait for authentication
+                console.log('Waiting for auth...');
+                await waitForAuth();
+                console.log('Auth completed, currentUser:', window.currentUser);
+                
+                // Load user data
+                console.log('Loading user data...');
+                const userResult = await loadDOSUserData();
+                if (!userResult.success) {
+                    showError(userResult.error);
+                    return;
+                }
+                
+                // Update UI with user data
+                console.log('Updating user display...');
+                updateDOSUserDisplay(userResult);
+                
+                // Load dynamic data
+                console.log('Loading dynamic data...');
+                await loadAcademicData();
+                await loadRecentActivity();
+                await loadAcademicCalendar();
+                
+                isDataLoaded = true;
+                console.log('DOS dashboard initialization completed successfully');
+                
+            } catch (error) {
+                console.error('Error initializing DOS dashboard:', error);
+                showError('Failed to initialize dashboard. Please refresh and try again.');
+            }
+        }
+
+        function waitForAuth() {
+            return new Promise((resolve, reject) => {
+                const unsubscribe = window.auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    window.currentUser = user;
+                    if (user) {
+                        resolve();
+                    } else {
+                        reject(new Error('User not authenticated'));
+                    }
+                });
+            });
+        }
+
+        async function loadDOSUserData() {
+            try {
+                if (!window.currentUser) {
+                    return { success: false, error: 'User not authenticated' };
+                }
+
+                const userDoc = await window.db.collection('users')
+                    .doc(window.currentUser.uid)
+                    .get();
+
+                if (!userDoc.exists) {
+                    return { success: false, error: 'User profile not found' };
+                }
+
+                const userData = userDoc.data();
+                return {
+                    success: true,
+                    userData: userData,
+                    userName: userData.personalInfo?.fullName || userData.displayName || 'Director of Studies',
+                    staffId: userData.staffId || 'N/A',
+                    role: userData.role || 'dos'
+                };
+            } catch (error) {
+                console.error('Error loading DOS user data:', error);
+                return { success: false, error: 'Failed to load user data' };
+            }
+        }
+
+        function updateDOSUserDisplay(userResult) {
+            try {
+                // Update current user display
+                const currentUserEl = document.getElementById('current-user');
+                if (currentUserEl) {
+                    currentUserEl.textContent = userResult.userName;
+                }
+
+                // Update sidebar staff ID
+                const staffIdEl = document.getElementById('sidebar-staff-id');
+                if (staffIdEl) {
+                    staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
+                }
+
+                console.log('DOS user loaded:', {
+                    name: userResult.userName,
+                    staffId: userResult.staffId,
+                    role: userResult.role
+                });
+            } catch (error) {
+                console.error('Error updating user display:', error);
+            }
+        }
+
+        async function loadAcademicData() {
+            console.log('Loading academic data...');
+            try {
+                // Load all academic data in parallel
+                const [studentsSnapshot, classesSnapshot, gradesSnapshot, subjectsSnapshot] = await Promise.all([
+                    window.db.collection('students').get(),
+                    window.db.collection('classes').get(),
+                    window.db.collection('grades').limit(1000).get(),
+                    window.db.collection('subjects').get()
+                ]);
+
+                // Process students
+                const students = [];
+                studentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    students.push({
+                        id: doc.id,
+                        name: data.personalInfo?.fullName || data.displayName || 'Unknown Student',
+                        class: data.academicInfo?.currentClass || data.class,
+                        subjects: data.subjects || []
+                    });
+                });
+
+                // Process classes
+                const classes = [];
+                classesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        name: data.name || data.className || 'Unknown Class',
+                        level: data.level || data.classLevel,
+                        stream: data.stream,
+                        department: data.department
+                    });
+                });
+
+                // Process grades for performance calculation
+                const grades = [];
+                gradesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    grades.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now())
+                    });
+                });
+
+                // Process subjects
+                const subjects = [];
+                subjectsSnapshot.forEach(doc => {
+                    subjects.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Calculate statistics
+                const totalStudents = students.length;
+                const totalClasses = classes.length;
+
+                // Calculate average performance from grades
+                const validGrades = grades.filter(g => {
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                    if (typeof g.finalGrade === 'number') return true;
+                    if (typeof g.finalScore === 'number') return true;
+                    if (typeof g.totalScore === 'number') return true;
+                    return false;
+                });
+
+                const avgPerformance = validGrades.length > 0 
+                    ? validGrades.reduce((sum, g) => {
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                        if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                        if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                        if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                        return sum;
+                    }, 0) / validGrades.length 
+                    : 0;
+
+                const passRate = validGrades.length > 0 
+                    ? (validGrades.filter(g => {
+                        let score = 0;
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                        else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                        else if (typeof g.finalScore === 'number') score = g.finalScore;
+                        else if (typeof g.totalScore === 'number') score = g.totalScore;
+                        return score >= 50;
+                    }).length / validGrades.length) * 100 
+                    : 0;
+
+                // Store dashboard data
+                dashboardData = {
+                    students,
+                    classes,
+                    grades,
+                    subjects,
+                    totalStudents,
+                    totalClasses,
+                    avgPerformance,
+                    passRate
+                };
+
+                // Update UI
+                updateStatsUI();
+                updateAcademicProgressTable();
+
+                console.log('Academic data loaded successfully:', {
+                    totalStudents,
+                    totalClasses,
+                    avgPerformance: avgPerformance.toFixed(1),
+                    passRate: passRate.toFixed(1)
+                });
+
+            } catch (error) {
+                console.error('Error loading academic data:', error);
+                showError('Failed to load academic data. Please refresh and try again.');
+            }
+        }
+
+        function updateStatsUI() {
+            console.log('Updating stats UI');
+            document.getElementById('statTotalStudents').textContent = dashboardData.totalStudents.toLocaleString();
+            document.getElementById('statTotalClasses').textContent = dashboardData.totalClasses;
+            document.getElementById('statAvgPerformance').textContent = `${dashboardData.avgPerformance.toFixed(1)}%`;
+            document.getElementById('statPassRate').textContent = `${dashboardData.passRate.toFixed(1)}%`;
+        }
+
+        function updateAcademicProgressTable() {
+            console.log('Updating academic progress table');
+            const tbody = document.getElementById('academicProgressTbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            
+            if (dashboardData.classes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i><br>
+                            No classes found<br>
+                            <small>Classes will appear here when they are created.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Calculate performance for each class
+            dashboardData.classes.forEach(classItem => {
+                const classGrades = dashboardData.grades.filter(g => 
+                    g.class === classItem.name || 
+                    g.className === classItem.name ||
+                    g.classId === classItem.id
+                );
+
+                const validClassGrades = classGrades.filter(g => {
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                    if (typeof g.finalGrade === 'number') return true;
+                    if (typeof g.finalScore === 'number') return true;
+                    if (typeof g.totalScore === 'number') return true;
+                    return false;
+                });
+
+                const classAvgScore = validClassGrades.length > 0 
+                    ? validClassGrades.reduce((sum, g) => {
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                        if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                        if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                        if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                        return sum;
+                    }, 0) / validClassGrades.length 
+                    : 0;
+
+                const classPassRate = validClassGrades.length > 0 
+                    ? (validClassGrades.filter(g => {
+                        let score = 0;
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                        else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                        else if (typeof g.finalScore === 'number') score = g.finalScore;
+                        else if (typeof g.totalScore === 'number') score = g.totalScore;
+                        return score >= 50;
+                    }).length / validClassGrades.length) * 100 
+                    : 0;
+
+                // Count students in this class
+                const studentsInClass = dashboardData.students.filter(s => 
+                    s.class === classItem.name
+                ).length;
+
+                // Find top performer (simplified)
+                const topPerformer = studentsInClass > 0 ? 'Student Name' : 'N/A';
+
+                // Determine status based on performance
+                let statusClass, statusText;
+                if (classAvgScore >= 80) {
+                    statusClass = 'bg-success';
+                    statusText = 'Excellent';
+                } else if (classAvgScore >= 70) {
+                    statusClass = 'bg-success';
+                    statusText = 'Very Good';
+                } else if (classAvgScore >= 60) {
+                    statusClass = 'bg-warning';
+                    statusText = 'Good';
+                } else {
+                    statusClass = 'bg-danger';
+                    statusText = 'Needs Improvement';
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-2">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>
+                                <strong>${classItem.name}</strong><br>
+                                <small class="text-muted">${classItem.level || 'Class'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${studentsInClass}</td>
+                    <td>${classAvgScore.toFixed(1)}%</td>
+                    <td>${classPassRate.toFixed(1)}%</td>
+                    <td>${topPerformer}</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${classItem.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editClassDetails('${classItem.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadRecentActivity() {
+            console.log('Loading recent activity...');
+            try {
+                const container = document.getElementById('recent-activity-container');
+                if (!container) return;
+
+                // Load recent activities from various collections
+                const [announcementsSnapshot, resultsSnapshot, timetablesSnapshot] = await Promise.all([
+                    window.db.collection('announcements')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get(),
+                    window.db.collection('results')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get(),
+                    window.db.collection('timetables')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get()
+                ]);
+
+                const activities = [];
+
+                // Process announcements
+                announcementsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'announcement',
+                        icon: 'fas fa-bullhorn',
+                        title: 'Announcement Created',
+                        description: data.title || 'New announcement posted',
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-primary'
+                    });
+                });
+
+                // Process results
+                resultsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'result',
+                        icon: 'fas fa-file-alt',
+                        title: 'Report Cards Updated',
+                        description: `${data.subjectName || 'Subject'} results processed`,
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-success'
+                    });
+                });
+
+                // Process timetables
+                timetablesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'timetable',
+                        icon: 'fas fa-calendar',
+                        title: 'Timetable Updated',
+                        description: data.title || 'Schedule updated',
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-info'
+                    });
+                });
+
+                // Sort by timestamp and take top 3
+                activities.sort((a, b) => b.timestamp - a.timestamp);
+                const recentActivities = activities.slice(0, 3);
+
+                // Display activities
+                if (recentActivities.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-history fa-2x mb-2"></i><br>
+                            No recent activity<br>
+                            <small>Activity will appear here as it happens.</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = recentActivities.map(activity => {
+                    const timeAgo = getTimeAgo(activity.timestamp);
+                    return `
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon">
+                                <i class="${activity.icon}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">${activity.title}</h6>
+                                <p class="text-muted mb-0">${activity.description}</p>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                const container = document.getElementById('recent-activity-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                            Failed to load recent activity<br>
+                            <small>Please refresh the page.</small>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        async function loadAcademicCalendar() {
+            console.log('Loading academic calendar...');
+            try {
+                // Load events and deadlines from Firestore
+                const [eventsSnapshot, deadlinesSnapshot] = await Promise.all([
+                    window.db.collection('academicEvents')
+                        .where('type', '==', 'event')
+                        .orderBy('date', 'asc')
+                        .limit(5)
+                        .get(),
+                    window.db.collection('academicEvents')
+                        .where('type', '==', 'deadline')
+                        .orderBy('date', 'asc')
+                        .limit(5)
+                        .get()
+                ]);
+
+                // Process events
+                const events = [];
+                eventsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    events.push({
+                        id: doc.id,
+                        title: data.title,
+                        date: data.date?.toDate?.() || new Date(data.date || Date.now()),
+                        description: data.description
+                    });
+                });
+
+                // Process deadlines
+                const deadlines = [];
+                deadlinesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    deadlines.push({
+                        id: doc.id,
+                        title: data.title,
+                        date: data.date?.toDate?.() || new Date(data.date || Date.now()),
+                        description: data.description
+                    });
+                });
+
+                // Update events container
+                const eventsContainer = document.getElementById('upcoming-events-container');
+                if (eventsContainer) {
+                    if (events.length === 0) {
+                        eventsContainer.innerHTML = `
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                                No upcoming events<br>
+                                <small>Events will appear here when scheduled.</small>
+                            </div>
+                        `;
+                    } else {
+                        eventsContainer.innerHTML = `
+                            <table class="table table-sm">
+                                ${events.map(event => `
+                                    <tr>
+                                        <td><strong>${event.title}:</strong></td>
+                                        <td>${formatDate(event.date)}</td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        `;
+                    }
+                }
+
+                // Update deadlines container
+                const deadlinesContainer = document.getElementById('deadlines-container');
+                if (deadlinesContainer) {
+                    if (deadlines.length === 0) {
+                        deadlinesContainer.innerHTML = `
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-clock fa-2x mb-2"></i><br>
+                                No upcoming deadlines<br>
+                                <small>Deadlines will appear here when set.</small>
+                            </div>
+                        `;
+                    } else {
+                        deadlinesContainer.innerHTML = `
+                            <table class="table table-sm">
+                                ${deadlines.map(deadline => `
+                                    <tr>
+                                        <td><strong>${deadline.title}:</strong></td>
+                                        <td>${formatDate(deadline.date)}</td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        `;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading academic calendar:', error);
+                // Show fallback content
+                const eventsContainer = document.getElementById('upcoming-events-container');
+                const deadlinesContainer = document.getElementById('deadlines-container');
+                
+                if (eventsContainer) {
+                    eventsContainer.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                            Failed to load events<br>
+                            <small>Please refresh the page.</small>
+                        </div>
+                    `;
+                }
+                
+                if (deadlinesContainer) {
+                    deadlinesContainer.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                            Failed to load deadlines<br>
+                            <small>Please refresh the page.</small>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 60) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            } else if (hours < 24) {
+                return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            } else {
+                return `${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function viewClassDetails(classId) {
+            console.log('View class details:', classId);
+            alert(`View class details for ID: ${classId}`);
+        }
+
+        function editClassDetails(classId) {
+            console.log('Edit class details:', classId);
+            alert(`Edit class details for ID: ${classId}`);
+        }
+
+        function showError(message) {
+            console.error(message);
+            alert(message);
+        }
+
         // Mobile Sidebar Functionality
         document.addEventListener('DOMContentLoaded', function() {
+            if (!isInitialized) {
+                isInitialized = true;
+                initializeDOSDashboard();
+                setupMobileSidebar();
+            }
+        });
+
+        function setupMobileSidebar() {
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -597,7 +1104,7 @@
                     sidebarOverlay.classList.remove('show');
                 }
             });
-        });
+        }
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
