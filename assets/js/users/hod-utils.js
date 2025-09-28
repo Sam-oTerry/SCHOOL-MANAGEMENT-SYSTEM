@@ -1,8 +1,7 @@
 // HOD Utility Functions
 // Shared utilities for all Head of Department pages
 
-// Global variables
-let currentUser = null;
+// Note: currentUser is declared globally in system-admin-utils.js
 
 // Wait for authentication
 function waitForAuth() {
@@ -15,7 +14,6 @@ function waitForAuth() {
             unsubscribe();
             if (user) {
                 window.currentUser = user; // Set global currentUser
-                currentUser = user;
                 resolve(user);
             } else {
                 window.location.href = '../../index.html'; // Redirect to login if not authenticated
@@ -39,7 +37,7 @@ async function loadHODUserData(db, currentUser) {
         }
 
         const departmentId = getUserDepartment(userData);
-        const departmentName = departmentId ? await getDepartmentName(db, departmentId) : 'Unknown Department';
+        const departmentName = await getUserDepartmentName(db, userData);
 
         return {
             success: true,
@@ -64,6 +62,32 @@ function getUserDepartment(userData) {
            userData.personalInfo?.department || 
            userData.department || 
            userData.departmentId;
+}
+
+// Utility function to get user department name (resolves ID to name)
+async function getUserDepartmentName(db, userData) {
+    if (!userData) return 'Unknown Department';
+    
+    const departmentId = getUserDepartment(userData);
+    if (!departmentId) return 'Unknown Department';
+    
+    try {
+        // Check if it's already a name (not an ID)
+        if (departmentId.length < 20 && !departmentId.match(/^[a-zA-Z0-9]{20,}$/)) {
+            return departmentId; // It's already a name
+        }
+        
+        // It's an ID, resolve it to a name
+        const deptDoc = await db.collection('departments').doc(departmentId).get();
+        if (deptDoc.exists) {
+            return deptDoc.data().name || departmentId;
+        } else {
+            return departmentId; // Fallback to ID if department not found
+        }
+    } catch (error) {
+        console.error('Error resolving department name:', error);
+        return departmentId; // Fallback to ID
+    }
 }
 
 // Utility function to get user name (can be used across the application)
@@ -256,6 +280,7 @@ function logout(auth) {
 window.waitForAuth = waitForAuth;
 window.loadHODUserData = loadHODUserData;
 window.getUserDepartment = getUserDepartment;
+window.getUserDepartmentName = getUserDepartmentName;
 window.getUserName = getUserName;
 window.getUserStaffId = getUserStaffId;
 window.getUserEmail = getUserEmail;

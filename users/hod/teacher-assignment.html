@@ -909,6 +909,15 @@
             
             select.innerHTML = '<option value="">Select Teacher</option>';
             
+            // Add HOD themselves as an option
+            if (window.currentUser && window.currentUser.email) {
+                const hodOption = document.createElement('option');
+                hodOption.value = window.currentUser.uid;
+                hodOption.textContent = `${window.currentUser.displayName || 'HOD'} - Head of Department (Me)`;
+                hodOption.style.fontWeight = 'bold';
+                select.appendChild(hodOption);
+            }
+            
             // Filter teachers by current department (case-insensitive)
             const departmentTeachers = teachers.filter(teacher => {
                 const teacherDept = (teacher.department || '').toLowerCase();
@@ -1666,6 +1675,18 @@
                 const staffIdEl = document.querySelector('.sidebar small');
                 if (staffIdEl) {
                     staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
+                }
+                
+                // Update department badge
+                const departmentBadge = document.getElementById('detected-department');
+                if (departmentBadge) {
+                    departmentBadge.textContent = userResult.departmentName || 'Unknown Department';
+                }
+                
+                // Update role badge
+                const roleBadge = document.getElementById('department-badge');
+                if (roleBadge) {
+                    roleBadge.textContent = `${userResult.departmentName || 'Department'} Management`;
                 }
                 
                 console.log('Teacher Assignment user loaded:', {
