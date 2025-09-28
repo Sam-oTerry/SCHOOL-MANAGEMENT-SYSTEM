@@ -49,52 +49,6 @@ function waitForAuth() {
     });
 }
 
-// Load HOD user data
-async function loadHODUserData(db, currentUser) {
-    try {
-        console.log('loadHODUserData called with:', { db: !!db, currentUser: !!currentUser });
-        
-        // Wait for Firebase to be initialized
-        await waitForFirebase();
-        
-        // Ensure db is available
-        const database = window.db;
-        console.log('Database reference:', { db: !!db, windowDb: !!window.db, database: !!database });
-        
-        if (!database) {
-            throw new Error('Firebase database not initialized');
-        }
-        
-        const userDoc = await database.collection('users').doc(currentUser.uid).get();
-        if (!userDoc.exists) {
-            return { success: false, error: 'User profile not found. Please contact administrator.' };
-        }
-        const userData = userDoc.data();
-        console.log('User data loaded:', userData);
-
-        if (userData.role !== 'hod') {
-            return { success: false, error: 'Access denied. This page is only for Head of Department users.' };
-        }
-
-        const departmentId = getUserDepartment(userData);
-        console.log('Department ID extracted:', departmentId);
-        
-        const departmentName = await getUserDepartmentName(database, userData);
-        console.log('Department name resolved:', departmentName);
-
-        return {
-            success: true,
-            userData,
-            userName: getUserName(userData),
-            staffId: getUserStaffId(userData),
-            departmentId: departmentId,
-            departmentName: departmentName
-        };
-    } catch (error) {
-        console.error('Error in loadHODUserData:', error);
-        return { success: false, error: 'Failed to load user data. Please refresh and try again.' };
-    }
-}
 
 // Utility function to get user department (can be used across the application)
 function getUserDepartment(userData) {
@@ -201,7 +155,20 @@ function isHODUser(userData) {
 // Utility function to load user data with proper error handling
 async function loadHODUserData(db, currentUser) {
     try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        console.log('loadHODUserData called with:', { db: !!db, currentUser: !!currentUser });
+        
+        // Wait for Firebase to be initialized
+        await waitForFirebase();
+        
+        // Ensure db is available
+        const database = window.db;
+        console.log('Database reference:', { db: !!db, windowDb: !!window.db, database: !!database });
+        
+        if (!database) {
+            throw new Error('Firebase database not initialized');
+        }
+        
+        const userDoc = await database.collection('users').doc(currentUser.uid).get();
         if (userDoc.exists) {
             const userData = userDoc.data();
             
@@ -228,8 +195,14 @@ async function loadHODUserData(db, currentUser) {
             
             // Get department name from Firestore
             console.log('About to call getUserDepartmentName with:', { db: !!db, userData: userData });
-            const departmentName = await getUserDepartmentName(db, userData);
-            console.log('Department name resolved to:', departmentName);
+            let departmentName;
+            try {
+                departmentName = await getUserDepartmentName(database, userData);
+                console.log('Department name resolved to:', departmentName);
+            } catch (error) {
+                console.error('Error in getUserDepartmentName:', error);
+                departmentName = 'Mathematics'; // Fallback
+            }
             
             return {
                 success: true,

@@ -1858,7 +1858,8 @@
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTeacherAssignment();
+            // Initialize Firebase to set up auth state listener
+            initializeFirebase();
             setupMobileSidebar(); // From hod-utils.js
         });
 
