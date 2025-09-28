@@ -551,25 +551,6 @@
         console.log('window.loadHODUserData available:', typeof window.loadHODUserData);
         console.log('window.updateUserDisplay available:', typeof window.updateUserDisplay);
         
-        // Test function to see what's happening
-        async function testLoadHODUserData() {
-            try {
-                console.log('Testing loadHODUserData function...');
-                const testResult = await window.loadHODUserData(window.db, currentUser);
-                console.log('Test result:', testResult);
-                return testResult;
-            } catch (error) {
-                console.error('Test error:', error);
-                return null;
-            }
-        }
-        
-        // Check if there's another function loading user data
-        function checkForOtherLoaders() {
-            console.log('Checking for other user data loaders...');
-            console.log('All functions on window:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('load') || key.includes('user') || key.includes('hod')));
-        }
-        
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
@@ -588,14 +569,8 @@
                 // Check if loadHODUserData function is available
                 console.log('loadHODUserData function available:', typeof window.loadHODUserData);
                 
-                // Check for other loaders
-                checkForOtherLoaders();
-                
                 // Load user data using utility function
                 console.log('About to call loadHODUserData...');
-                console.log('Function being called:', window.loadHODUserData.toString().substring(0, 100));
-                const testResult = await testLoadHODUserData();
-                console.log('Test function returned:', testResult);
                 const userResult = await window.loadHODUserData(window.db, currentUser);
                 console.log('loadHODUserData returned:', userResult);
                 if (!userResult.success) {
@@ -775,56 +750,6 @@
             }
         }
 
-        async function resolveDepartment(user) {
-            console.log('resolveDepartment called with user:', user);
-            try {
-                // Try from user profile first
-                const userDoc = await window.db.collection('users').doc(user.uid).get();
-                let deptValue = null;
-                if (userDoc.exists) {
-                    const u = userDoc.data();
-                    deptValue = (u.academicInfo && u.academicInfo.department) || (u.roleInfo && u.roleInfo.department) || null;
-                }
-                console.log('resolveDepartment deptValue:', deptValue);
-                // If deptValue looks like a document id, fetch the department doc
-                if (deptValue) {
-                    const byId = await window.db.collection('departments').doc(deptValue).get();
-                    if (byId.exists) {
-                        const result = { id: byId.id, name: byId.data().name || byId.data().departmentName || deptValue };
-                        console.log('resolveDepartment returning:', result);
-                        return result;
-                    }
-                    // Or match by name
-                    const byName = await window.db.collection('departments').where('name', '==', deptValue).limit(1).get();
-                    if (!byName.empty) {
-                        const d = byName.docs[0];
-                        const result = { id: d.id, name: d.data().name || deptValue };
-                        console.log('resolveDepartment returning (by name):', result);
-                        return result;
-                    }
-                }
-                // Fallbacks: match by head or members
-                const byHead = await window.db.collection('departments').where('headId', '==', user.uid).limit(1).get();
-                if (!byHead.empty) {
-                    const d = byHead.docs[0];
-                    const result = { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
-                    console.log('resolveDepartment returning (by head):', result);
-                    return result;
-                }
-                const byMember = await window.db.collection('departments').where('members', 'array-contains', user.uid).limit(1).get();
-                if (!byMember.empty) {
-                    const d = byMember.docs[0];
-                    const result = { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
-                    console.log('resolveDepartment returning (by member):', result);
-                    return result;
-                }
-            } catch (e) {
-                console.warn('resolveDepartment fallback used:', e);
-            }
-            const fallback = { id: null, name: 'Mathematics' }; // safe default
-            console.log('resolveDepartment returning fallback:', fallback);
-            return fallback;
-        }
 
 
     </script>
