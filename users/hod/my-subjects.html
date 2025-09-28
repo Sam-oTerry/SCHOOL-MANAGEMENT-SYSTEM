@@ -516,28 +516,15 @@
         }
 
         function updateUserDisplay(userResult) {
-            try {
-                // Update current user display
-                const currentUserEl = document.getElementById('current-user');
-                if (currentUserEl) {
-                    currentUserEl.textContent = userResult.userName;
-                }
-                
-                // Update sidebar staff ID
-                const staffIdEl = document.getElementById('staff-id');
-                if (staffIdEl) {
-                    staffIdEl.textContent = userResult.staffId;
-                }
-                
-                console.log('My Subjects user loaded:', {
-                    name: userResult.userName,
-                    department: userResult.departmentId,
-                    departmentName: userResult.departmentName,
-                    staffId: userResult.staffId
-                });
-            } catch (error) {
-                console.error('Error updating user display:', error);
-            }
+            // Use the standardized updateUserDisplay function from hod-utils.js
+            window.updateUserDisplay(userResult);
+            
+            console.log('My Subjects user loaded:', {
+                name: userResult.userName,
+                department: userResult.departmentId,
+                departmentName: userResult.departmentName,
+                staffId: userResult.staffId
+            });
         }
     </script>
     <script>

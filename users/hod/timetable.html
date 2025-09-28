@@ -648,22 +648,15 @@
         }
 
         function updateUserDisplay(userResult) {
-            try {
-                // Update staff ID display
-                const staffIdEl = document.getElementById('sidebar-staff-id');
-                if (staffIdEl) {
-                    staffIdEl.textContent = userResult.staffId;
-                }
-                
-                console.log('Timetable user loaded:', {
-                    name: userResult.userName,
-                    department: userResult.departmentId,
-                    departmentName: userResult.departmentName,
-                    staffId: userResult.staffId
-                });
-            } catch (error) {
-                console.error('Error updating user display:', error);
-            }
+            // Use the standardized updateUserDisplay function from hod-utils.js
+            window.updateUserDisplay(userResult);
+            
+            console.log('Timetable user loaded:', {
+                name: userResult.userName,
+                department: userResult.departmentId,
+                departmentName: userResult.departmentName,
+                staffId: userResult.staffId
+            });
         }
     </script>
     
