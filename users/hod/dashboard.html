@@ -561,8 +561,13 @@
                 console.log('Database available:', !!window.db);
                 console.log('Current user:', currentUser);
                 
+                // Check if loadHODUserData function is available
+                console.log('loadHODUserData function available:', typeof window.loadHODUserData);
+                
                 // Load user data using utility function
-                const userResult = await loadHODUserData(window.db, currentUser);
+                console.log('About to call loadHODUserData...');
+                const userResult = await window.loadHODUserData(window.db, currentUser);
+                console.log('loadHODUserData returned:', userResult);
                 if (!userResult.success) {
                     showError(userResult.error);
                     return;
