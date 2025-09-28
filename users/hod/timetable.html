@@ -214,7 +214,7 @@
                         <span class="role-badge">Head of Department</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -266,7 +266,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h5>Weekly Timetable</h5>
-                        <small class="text-muted">Week of October 16-20, 2023</small>
+                        <small class="text-muted" id="current-week-display">Loading week...</small>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -375,31 +375,71 @@
         let timetableData = [];
         let upcomingClasses = [];
         let currentWeek = 'current';
-        let currentUser = null;
+        // Note: currentUser is declared globally in system-admin-utils.js
         let subjectsIndex = {};
+        let isInitialized = false;
+        let isDataLoaded = false;
 
         async function loadAssignedSubjects(uid) {
-            const doc = await db.collection('users').doc(uid).get();
+            console.log('Loading assigned subjects for user:', uid);
+            try {
+                const doc = await window.db.collection('users').doc(uid).get();
             const data = doc.exists ? doc.data() : {};
             const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
             const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
-            const ids = Array.from(new Set([...(a||[]), ...(b||[])]));
+                
+                // Extract IDs from subjects (handle both string IDs and object subjects)
+                const extractIds = (subjects) => {
+                    return subjects.map(subject => {
+                        if (typeof subject === 'string') {
+                            return subject;
+                        } else if (typeof subject === 'object' && subject.id) {
+                            return subject.id;
+                        } else if (typeof subject === 'object' && subject.subjectId) {
+                            return subject.subjectId;
+                        }
+                        return null;
+                    }).filter(Boolean);
+                };
+                
+                const employmentIds = extractIds(a);
+                const academicIds = extractIds(b);
+                const ids = Array.from(new Set([...employmentIds, ...academicIds]));
+                
+                console.log('Extracted subject IDs:', ids);
+                
             const sel = document.getElementById('subject-filter');
-            if (ids.length === 0) { sel.innerHTML = '<option value="">All Subjects</option>'; return []; }
+                if (ids.length === 0) { 
+                    sel.innerHTML = '<option value="">All Subjects</option>'; 
+                    return []; 
+                }
+                
             const chunks = [];
             for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
-            const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
+                const snaps = await Promise.all(chunks.map(ch => window.db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()));
             const list = [];
             snaps.forEach(snap => snap.forEach(doc => list.push({ id: doc.id, ...doc.data() })));
             subjectsIndex = {};
             list.forEach(s => { subjectsIndex[s.id] = s.name || s.subjectName || 'Subject'; });
             sel.innerHTML = '<option value="">All Subjects</option>' + list.map(s => `<option value="${s.id}">${s.name || s.subjectName || 'Subject'}</option>`).join('');
+                
+                console.log('Assigned subjects loaded:', list.length);
             return list;
+                
+            } catch (error) {
+                console.error('Error loading assigned subjects:', error);
+                const sel = document.getElementById('subject-filter');
+                sel.innerHTML = '<option value="">Error loading subjects</option>';
+                return [];
+            }
         }
 
         async function loadTimetable() {
-            const snap = await db.collection('timetables').where('teacherId', '==', currentUser.uid).limit(1).get();
+            console.log('Loading timetable for user:', window.currentUser.uid);
+            try {
+                const snap = await window.db.collection('timetables').where('teacherId', '==', window.currentUser.uid).limit(1).get();
             if (snap.empty) {
+                    console.log('No timetable found for user');
                 timetableData = [];
                 displayTimetable();
                 displayUpcomingClasses([]);
@@ -410,26 +450,51 @@
                 }
                 return;
             }
+                
             const data = snap.docs[0].data();
+                console.log('Timetable data loaded:', data);
+                
             const schedule = data.schedule || {};
             const times = data.times || ['08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','13:00-14:00'];
             timetableData = times.map(time => ({
                 time,
-                monday: schedule.monday && schedule.monday[time] ? schedule.monday[time] : { subject: 'Break', class: '', room: '' },
+                    monday: schedule.monday && schedule.monday[time] ? schedule.monday[time] : { subject: '', class: '', room: '' },
                 tuesday: schedule.tuesday && schedule.tuesday[time] ? schedule.tuesday[time] : { subject: '', class: '', room: '' },
                 wednesday: schedule.wednesday && schedule.wednesday[time] ? schedule.wednesday[time] : { subject: '', class: '', room: '' },
                 thursday: schedule.thursday && schedule.thursday[time] ? schedule.thursday[time] : { subject: '', class: '', room: '' },
                 friday: schedule.friday && schedule.friday[time] ? schedule.friday[time] : { subject: '', class: '', room: '' }
             }));
+                
             displayTimetable();
             const upcoming = Array.isArray(data.upcoming) ? data.upcoming.slice(0, 8) : [];
             displayUpcomingClasses(upcoming);
             updateTeachingScheduleStats();
+                
+                console.log('Timetable loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading timetable:', error);
+                showError('Failed to load timetable. Please refresh and try again.');
+            }
         }
         
         function displayTimetable() {
+            console.log('Displaying timetable with', timetableData.length, 'time slots');
             const tbody = document.getElementById('timetable-tbody');
             tbody.innerHTML = '';
+            
+            if (!timetableData || timetableData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                            No timetable data available.<br>
+                            <small>Your timetable will be created by the Director of Studies.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             timetableData.forEach(slot => {
                 const row = document.createElement('tr');
@@ -446,20 +511,22 @@
         }
         
         function formatTimetableCell(cell) {
-            if (!cell.subject || cell.subject === 'Break') {
-                return `<div class="timetable-cell break"><i class="fas fa-coffee"></i><br><span class="text-muted">${cell.subject || 'Free'}</span></div>`;
+            if (!cell || !cell.subject || cell.subject === 'Break' || cell.subject === '') {
+                return `<div class="timetable-cell break"><i class="fas fa-coffee"></i><br><span class="text-muted">${cell?.subject || 'Free'}</span></div>`;
             }
             
             return `
                 <div class="timetable-cell">
-                    <div class="fw-bold mb-2">${cell.class}</div>
+                    <div class="fw-bold mb-2">${cell.class || 'TBD'}</div>
                     <div class="subject-badge mb-1">${cell.subject}</div>
-                    <div class="room-badge"><i class="fas fa-map-marker-alt"></i> ${cell.room}</div>
+                    <div class="room-badge"><i class="fas fa-map-marker-alt"></i> ${cell.room || 'TBD'}</div>
                 </div>
             `;
         }
 
         async function updateTeachingScheduleStats() {
+            console.log('Updating teaching schedule stats');
+            try {
             // Compute hours from non-empty slots (1 hour per slot by default)
             let hours = 0;
             const subjectsSet = new Set();
@@ -468,7 +535,7 @@
             timetableData.forEach(slot => {
                 ['monday','tuesday','wednesday','thursday','friday'].forEach(day => {
                     const cell = slot[day];
-                    if (cell && cell.subject && cell.subject !== 'Break') {
+                        if (cell && cell.subject && cell.subject !== 'Break' && cell.subject !== '') {
                         hours += 1;
                         if (cell.subjectId) subjectsSet.add(cell.subjectId); else subjectsSet.add(cell.subject);
                         if (cell.class) classesSet.add(cell.class);
@@ -481,37 +548,67 @@
             try {
                 const classNames = Array.from(classesSet).slice(0, 10); // limit to avoid massive queries
                 if (classNames.length > 0) {
-                    const snaps = await Promise.all(classNames.map(cn => db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
+                        const snaps = await Promise.all(classNames.map(cn => window.db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
                     snaps.forEach(snap => { students += snap.size; });
+                    }
+                } catch (e) {
+                    console.log('Could not load student count:', e);
                 }
-            } catch (e) {}
 
-            document.getElementById('stat-hours').textContent = hours;
-            document.getElementById('stat-subjects').textContent = subjectsSet.size;
-            document.getElementById('stat-classes').textContent = classesSet.size;
-            document.getElementById('stat-students').textContent = students;
+                // Update stats display
+                const statHours = document.getElementById('stat-hours');
+                const statSubjects = document.getElementById('stat-subjects');
+                const statClasses = document.getElementById('stat-classes');
+                const statStudents = document.getElementById('stat-students');
+
+                if (statHours) statHours.textContent = hours;
+                if (statSubjects) statSubjects.textContent = subjectsSet.size;
+                if (statClasses) statClasses.textContent = classesSet.size;
+                if (statStudents) statStudents.textContent = students;
+
+                console.log('Teaching schedule stats updated:', { hours, subjects: subjectsSet.size, classes: classesSet.size, students });
+                
+            } catch (error) {
+                console.error('Error updating teaching schedule stats:', error);
+            }
         }
         
-        function displayUpcomingClasses() {
+        function displayUpcomingClasses(classes = []) {
+            console.log('Displaying upcoming classes:', classes.length);
             const tbody = document.getElementById('upcoming-classes-tbody');
             tbody.innerHTML = '';
             
-            upcomingClasses.forEach(cls => {
+            if (!classes || classes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                            No upcoming classes scheduled.<br>
+                            <small>Your timetable will be updated by the Director of Studies.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            upcomingClasses = classes; // Store for other functions
+            
+            classes.forEach(cls => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <strong>${cls.date}</strong><br>
-                        <small class="text-muted">${cls.time}</small>
+                        <strong>${cls.date || 'TBD'}</strong><br>
+                        <small class="text-muted">${cls.time || 'TBD'}</small>
                     </td>
-                    <td>${cls.subject}</td>
-                    <td>${cls.class}</td>
-                    <td>${cls.room}</td>
-                    <td>${cls.duration}</td>
+                    <td>${cls.subject || 'TBD'}</td>
+                    <td>${cls.class || 'TBD'}</td>
+                    <td>${cls.room || 'TBD'}</td>
+                    <td>${cls.duration || 'TBD'}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${cls.date}', '${cls.time}')">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${cls.date || ''}', '${cls.time || ''}')">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="startClass('${cls.date}', '${cls.time}')">
+                        <button class="btn btn-sm btn-outline-success" onclick="startClass('${cls.date || ''}', '${cls.time || ''}')">
                             <i class="fas fa-play"></i> Start
                         </button>
                     </td>
@@ -589,8 +686,8 @@
             console.log('🔄 Setting up real-time timetable listeners...');
             
             // Listen for timetable changes for the current teacher
-            if (currentUser) {
-                db.collection('timetables').doc(currentUser.uid).onSnapshot((doc) => {
+            if (window.currentUser) {
+                window.db.collection('timetables').doc(window.currentUser.uid).onSnapshot((doc) => {
                     console.log('📅 Timetable updated in real-time');
                     if (doc.exists) {
                         loadTimetable();
@@ -603,41 +700,53 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            if (!isInitialized) {
+                isInitialized = true;
             initializeTimetable();
-            setupMobileSidebar();
+                setupMobileSidebar(); // From hod-utils.js
+            }
         });
 
         async function initializeTimetable() {
+            console.log('initializeTimetable called');
             try {
                 // Wait for authentication
-                await waitForAuth();
+                console.log('Waiting for auth...');
+                await waitForAuth(); // From hod-utils.js
+                console.log('Auth completed, currentUser:', window.currentUser);
                 
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser);
+                console.log('Loading user data...');
+                const userResult = await window.loadHODUserData(window.db, window.currentUser);
                 if (!userResult.success) {
-                    showError(userResult.error);
+                    showError(userResult.error); // From hod-utils.js
                     return;
                 }
                 
                 // Update UI with user data
-                updateUserDisplay(userResult);
+                console.log('Updating user display...');
+                updateTimetableUserDisplay(userResult);
                 
                 // Load timetable data
-                await loadAssignedSubjects(currentUser.uid);
+                console.log('Loading timetable data...');
+                await loadAssignedSubjects(window.currentUser.uid);
                 await loadTimetable();
                 setupRealTimeListeners();
                 
+                isDataLoaded = true;
+                console.log('Timetable initialization completed successfully');
+                
             } catch (error) {
                 console.error('Error initializing timetable:', error);
-                showError('Failed to initialize timetable. Please refresh and try again.');
+                showError('Failed to initialize timetable. Please refresh and try again.'); // From hod-utils.js
             }
         }
 
         function waitForAuth() {
             return new Promise((resolve, reject) => {
-                const unsubscribe = auth.onAuthStateChanged((user) => {
+                const unsubscribe = window.auth.onAuthStateChanged((user) => {
                     unsubscribe();
-                    currentUser = user;
+                    window.currentUser = user;
                     if (user) {
                         resolve();
                     } else {
@@ -647,16 +756,39 @@
             });
         }
 
-        function updateUserDisplay(userResult) {
+        function updateTimetableUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
-            console.log('Timetable user loaded:', {
-                name: userResult.userName,
-                department: userResult.departmentId,
-                departmentName: userResult.departmentName,
-                staffId: userResult.staffId
-            });
+            // Update current week display
+            updateCurrentWeekDisplay();
+                
+                console.log('Timetable user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
+        }
+        
+        function updateCurrentWeekDisplay() {
+            const weekDisplay = document.getElementById('current-week-display');
+            if (weekDisplay) {
+                const today = new Date();
+                const startOfWeek = new Date(today);
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
+                startOfWeek.setDate(diff);
+                
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 4); // Friday
+                
+                const formatDate = (date) => {
+                    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                };
+                
+                weekDisplay.textContent = `Week of ${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}, ${today.getFullYear()}`;
+            }
         }
     </script>
     
