@@ -936,43 +936,27 @@
             
             select.innerHTML = '<option value="">Select Class</option>';
             
-            // Filter classes by current department if classes have department field
-            let filteredClasses = classes;
+            // Generate S1-S6 classes with optional streams
+            const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+            const streams = ['A', 'B', 'C', 'D']; // Optional streams
             
-            // Check if classes have department information
-            const hasDepartmentInfo = classes.some(cls => cls.department);
-            
-            if (hasDepartmentInfo) {
-                filteredClasses = classes.filter(cls => {
-                    const classDept = (cls.department || '').toLowerCase();
-                    const currentDept = currentDepartment.toLowerCase();
-                    
-                    return classDept === currentDept || 
-                           classDept.includes(currentDept) || 
-                           currentDept.includes(classDept);
+            classLevels.forEach(level => {
+                // Add main class option (without stream)
+                const mainOption = document.createElement('option');
+                mainOption.value = level.toLowerCase();
+                mainOption.textContent = level;
+                select.appendChild(mainOption);
+                
+                // Add stream options for each level
+                streams.forEach(stream => {
+                    const streamOption = document.createElement('option');
+                    streamOption.value = `${level.toLowerCase()}_${stream.toLowerCase()}`;
+                    streamOption.textContent = `${level} ${stream}`;
+                    select.appendChild(streamOption);
                 });
-            }
-            
-            console.log(`Filtering classes for department: ${currentDepartment}`);
-            console.log(`Found ${filteredClasses.length} classes:`, filteredClasses);
-            
-            filteredClasses.forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls.id;
-                option.textContent = cls.name;
-                select.appendChild(option);
             });
             
-            // If no classes found and we filtered by department, show all classes
-            if (filteredClasses.length === 0 && hasDepartmentInfo) {
-                console.log('No department-specific classes found, showing all classes');
-                classes.forEach(cls => {
-                    const option = document.createElement('option');
-                    option.value = cls.id;
-                    option.textContent = cls.name;
-                    select.appendChild(option);
-                });
-            }
+            console.log(`Populated class dropdown with S1-S6 classes and streams`);
         }
         
         function populateTeacherDropdown(selectId) {
@@ -1416,8 +1400,69 @@
         
         function updateDepartmentStats() {
             try {
-                // Calculate stats from current data
-                const totalTeachers = teachers.length;
+                // Get subjects that belong to the current department
+                const currentDeptObj = departments.find(dept => 
+                    dept.name && dept.name.toLowerCase() === currentDepartment.toLowerCase()
+                );
+                const currentDeptId = currentDeptObj ? currentDeptObj.id : null;
+                
+                const departmentSubjects = subjects.filter(subject => {
+                    // Check by department ID first (most reliable)
+                    if (currentDeptId && (subject.departmentId === currentDeptId || subject.department === currentDeptId)) {
+                        return true;
+                    }
+                    
+                    // Check by department name (fallback)
+                    const subjectDept = (subject.department || subject.departmentName || '').toLowerCase();
+                    const currentDept = currentDepartment.toLowerCase();
+                    
+                    // Use exact match instead of includes to avoid false positives
+                    return subjectDept === currentDept;
+                });
+                
+                const departmentSubjectIds = departmentSubjects.map(subject => subject.id);
+                const departmentSubjectNames = departmentSubjects.map(subject => subject.name || subject.subjectName);
+                
+                // Calculate stats from current data - only count teachers who teach subjects in current department
+                const departmentTeachers = teachers.filter(teacher => {
+                    const teacherSubjects = teacher.subjects || teacher.academicInfo?.subjects || [];
+                    
+                    // Check if teacher teaches any subject that belongs to the current department
+                    const teachesDepartmentSubject = teacherSubjects.some(teacherSubject => {
+                        // Check by subject ID
+                        if (typeof teacherSubject === 'string' && departmentSubjectIds.includes(teacherSubject)) {
+                            return true;
+                        }
+                        // Check by subject name
+                        if (typeof teacherSubject === 'string') {
+                            return departmentSubjectNames.some(deptSubjectName => 
+                                deptSubjectName.toLowerCase().includes(teacherSubject.toLowerCase()) ||
+                                teacherSubject.toLowerCase().includes(deptSubjectName.toLowerCase())
+                            );
+                        }
+                        // Check by subject object
+                        if (typeof teacherSubject === 'object') {
+                            const subjectId = teacherSubject.id || teacherSubject.subjectId;
+                            const subjectName = teacherSubject.name || teacherSubject.subjectName;
+                            
+                            return departmentSubjectIds.includes(subjectId) ||
+                                   departmentSubjectNames.some(deptSubjectName => 
+                                       deptSubjectName.toLowerCase().includes(subjectName.toLowerCase()) ||
+                                       subjectName.toLowerCase().includes(deptSubjectName.toLowerCase())
+                                   );
+                        }
+                        return false;
+                    });
+                    
+                    // Also include HOD of the department
+                    const isHODOfDepartment = teacher.role === 'hod' && 
+                        (teacher.department === currentDepartment || 
+                         teacher.academicInfo?.department === currentDepartment);
+                    
+                    return teachesDepartmentSubject || isHODOfDepartment;
+                });
+                
+                const totalTeachers = departmentTeachers.length;
                 const assignedTeachers = new Set(assignments.map(a => a.teacherId)).size;
                 const unassignedTeachers = totalTeachers - assignedTeachers;
                 const totalClasses = classes.length;
