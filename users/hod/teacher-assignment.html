@@ -567,6 +567,15 @@
         
         // Load dynamic data from Firebase
         async function loadDynamicData() {
+            // Prevent multiple data loading
+            if (isDataLoaded) {
+                console.log('Data already loaded, skipping...');
+                return;
+            }
+            
+            isDataLoaded = true;
+            console.log('Loading dynamic data...');
+            
             try {
                 showNotification('Loading system data...', 'info');
                 
@@ -1047,6 +1056,9 @@
 
         // Firebase Integration
         let currentUser;
+        let isInitialized = false; // Flag to prevent multiple initializations
+        let isDataLoaded = false; // Flag to prevent multiple data loading
+        let isTeacherAssignmentInitialized = false; // Flag to prevent multiple teacher assignment initialization
         
         // Enhanced Firebase Functions
         function enableOfflineSupport() {
@@ -1086,6 +1098,15 @@
 
         // Initialize Firebase
         function initializeFirebase() {
+            // Prevent multiple initializations
+            if (isInitialized) {
+                console.log('Firebase already initialized, skipping...');
+                return;
+            }
+            
+            isInitialized = true;
+            console.log('Initializing Firebase...');
+            
             // Use the global db instance instead of creating a new one
             // db = firebase.firestore(); // Remove this line to avoid conflicts
             
@@ -1101,7 +1122,7 @@
                     currentUser = user;
                     console.log('User authenticated:', user.email);
                     await loadDynamicData();
-                    await initializeTeacherAssignment();
+                    // Don't call initializeTeacherAssignment here to avoid loop
                 } else {
                     console.log('User not authenticated, redirecting to login');
                     window.location.href = '../../index.html';
@@ -1297,9 +1318,37 @@
         const sampleAssignments = [];
         
         async function initializeTeacherAssignment() {
-            // Load from Firebase instead of sample data
-            await loadAssignmentsFromFirebase();
-            setupRealtimeListener();
+            // Prevent multiple initializations
+            if (isTeacherAssignmentInitialized) {
+                console.log('Teacher assignment already initialized, skipping...');
+                return;
+            }
+            
+            isTeacherAssignmentInitialized = true;
+            console.log('Initializing teacher assignment...');
+            
+            try {
+                // Wait for authentication
+                await waitForAuth(); // From hod-utils.js
+                
+                // Load user data using utility function
+                const userResult = await window.loadHODUserData(window.db, window.currentUser); // From hod-utils.js
+                if (!userResult.success) {
+                    showError(userResult.error); // From hod-utils.js
+                    return;
+                }
+                
+                // Update UI with user data
+                updateHODUserDisplay(userResult);
+                
+                // Load from Firebase instead of sample data
+                await loadAssignmentsFromFirebase();
+                setupRealtimeListener();
+                
+            } catch (error) {
+                console.error('Error initializing teacher assignment:', error);
+                showError('Failed to initialize teacher assignment. Please refresh and try again.'); // From hod-utils.js
+            }
         }
         
         function updateDepartmentStats() {
@@ -1770,29 +1819,6 @@
             setupMobileSidebar(); // From hod-utils.js
         });
 
-        async function initializeTeacherAssignment() {
-            try {
-                // Wait for authentication
-                await waitForAuth(); // From hod-utils.js
-                
-                // Load user data using utility function
-                const userResult = await window.loadHODUserData(window.db, window.currentUser); // From hod-utils.js
-                if (!userResult.success) {
-                    showError(userResult.error); // From hod-utils.js
-                    return;
-                }
-                
-                // Update UI with user data
-                updateHODUserDisplay(userResult);
-                
-                // Initialize Firebase data
-                initializeFirebase();
-                
-            } catch (error) {
-                console.error('Error initializing teacher assignment:', error);
-                showError('Failed to initialize teacher assignment. Please refresh and try again.'); // From hod-utils.js
-            }
-        }
 
         function updateHODUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
