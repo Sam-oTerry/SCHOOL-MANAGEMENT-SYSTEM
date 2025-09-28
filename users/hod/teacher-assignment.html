@@ -647,24 +647,39 @@
         
         async function loadUserProfile() {
             try {
-                const userProfileSnapshot = await window.db.collection('userProfiles')
-                    .where('email', '==', currentUser.email)
-                    .get();
-                
-                if (!userProfileSnapshot.empty) {
-                    const userProfile = userProfileSnapshot.docs[0].data();
-                    currentDepartment = userProfile.department || userProfile.subject || 'Mathematics';
+                // Get user data from users collection (more reliable than userProfiles)
+                const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
                     
-                    // Log the detected department for debugging
-                    console.log('User department detected:', currentDepartment);
-                    console.log('User profile data:', userProfile);
+                    // Get department ID from academic info
+                    const departmentId = userData.academicInfo?.department || userData.department;
+                    
+                    if (departmentId) {
+                        // Find department name by ID
+                        const deptDoc = await window.db.collection('departments').doc(departmentId).get();
+                        if (deptDoc.exists) {
+                            const deptData = deptDoc.data();
+                            currentDepartment = deptData.name || deptData.departmentName || 'Mathematics';
+                        } else {
+                            currentDepartment = 'Mathematics'; // Default fallback
+                        }
+                    } else {
+                        currentDepartment = 'Mathematics'; // Default fallback
+                    }
+                    
+                    console.log('Department from user document:', currentDepartment);
+                    console.log('Department ID:', departmentId);
                 } else {
-                    // Try to get department from user's role or custom claims
-                    const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        currentDepartment = userData.department || userData.subject || 'Mathematics';
-                        console.log('Department from user document:', currentDepartment);
+                    // Fallback to userProfiles collection
+                    const userProfileSnapshot = await window.db.collection('userProfiles')
+                        .where('email', '==', currentUser.email)
+                        .get();
+                    
+                    if (!userProfileSnapshot.empty) {
+                        const userProfile = userProfileSnapshot.docs[0].data();
+                        currentDepartment = userProfile.department || userProfile.subject || 'Mathematics';
+                        console.log('User department detected:', currentDepartment);
                     } else {
                         currentDepartment = 'Mathematics'; // Default fallback
                         console.log('Using default department:', currentDepartment);
@@ -856,16 +871,26 @@
             // Clear existing options except first
             select.innerHTML = '<option value="">Select Subject</option>';
             
-            // Filter subjects by current department (case-insensitive)
+            // Filter subjects by current department using improved logic
+            // First, find the department ID for the current department name
+            const currentDeptObj = departments.find(dept => 
+                dept.name && dept.name.toLowerCase() === currentDepartment.toLowerCase()
+            );
+            
+            const currentDeptId = currentDeptObj ? currentDeptObj.id : null;
+            
             const departmentSubjects = subjects.filter(subject => {
-                const subjectDept = (subject.department || '').toLowerCase();
+                // Check by department ID first (most reliable)
+                if (currentDeptId && (subject.departmentId === currentDeptId || subject.department === currentDeptId)) {
+                    return true;
+                }
+                
+                // Check by department name (fallback)
+                const subjectDept = (subject.department || subject.departmentName || '').toLowerCase();
                 const currentDept = currentDepartment.toLowerCase();
                 
-                // Check for exact match or if subject department contains current department
-                return subjectDept === currentDept || 
-                       subjectDept.includes(currentDept) || 
-                       currentDept.includes(subjectDept) ||
-                       subject.name.toLowerCase().includes(currentDept);
+                // Use exact match instead of includes to avoid false positives
+                return subjectDept === currentDept;
             });
             
             console.log(`Filtering subjects for department: ${currentDepartment}`);
@@ -951,12 +976,25 @@
             }
             
             // Get subjects that belong to the current department
+            // First, find the department ID for the current department name
+            const currentDeptObj = departments.find(dept => 
+                dept.name && dept.name.toLowerCase() === currentDepartment.toLowerCase()
+            );
+            
+            const currentDeptId = currentDeptObj ? currentDeptObj.id : null;
+            
             const departmentSubjects = subjects.filter(subject => {
-                const subjectDept = (subject.department || subject.departmentId || '').toLowerCase();
+                // Check by department ID first (most reliable)
+                if (currentDeptId && (subject.departmentId === currentDeptId || subject.department === currentDeptId)) {
+                    return true;
+                }
+                
+                // Check by department name (fallback)
+                const subjectDept = (subject.department || subject.departmentName || '').toLowerCase();
                 const currentDept = currentDepartment.toLowerCase();
-                return subjectDept === currentDept || 
-                       subjectDept.includes(currentDept) || 
-                       currentDept.includes(subjectDept);
+                
+                // Use exact match instead of includes to avoid false positives
+                return subjectDept === currentDept;
             });
             
             const departmentSubjectIds = departmentSubjects.map(subject => subject.id);
