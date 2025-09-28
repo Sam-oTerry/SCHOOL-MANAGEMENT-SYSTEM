@@ -561,36 +561,41 @@
             try {
                 showNotification('Loading system data...', 'info');
                 
+                // Ensure database is available
+                if (!window.db) {
+                    throw new Error('Database not initialized');
+                }
+                
                 // Load departments
-                const departmentsSnapshot = await db.collection('departments').get();
+                const departmentsSnapshot = await window.window.db.collection('departments').get();
                 departments = [];
                 departmentsSnapshot.forEach(doc => {
                     departments.push({ id: doc.id, ...doc.data() });
                 });
                 
                 // Load subjects
-                const subjectsSnapshot = await db.collection('subjects').get();
+                const subjectsSnapshot = await window.db.collection('subjects').get();
                 subjects = [];
                 subjectsSnapshot.forEach(doc => {
                     subjects.push({ id: doc.id, ...doc.data() });
                 });
                 
                 // Load classes
-                const classesSnapshot = await db.collection('classes').get();
+                const classesSnapshot = await window.db.collection('classes').get();
                 classes = [];
                 classesSnapshot.forEach(doc => {
                     classes.push({ id: doc.id, ...doc.data() });
                 });
                 
                 // Load teachers
-                const teachersSnapshot = await db.collection('teachers').get();
+                const teachersSnapshot = await window.db.collection('teachers').get();
                 teachers = [];
                 teachersSnapshot.forEach(doc => {
                     teachers.push({ id: doc.id, ...doc.data() });
                 });
                 
                 // Load terms
-                const termsSnapshot = await db.collection('terms').get();
+                const termsSnapshot = await window.db.collection('terms').get();
                 terms = [];
                 termsSnapshot.forEach(doc => {
                     terms.push({ id: doc.id, ...doc.data() });
@@ -615,7 +620,7 @@
         
         async function loadUserProfile() {
             try {
-                const userProfileSnapshot = await db.collection('userProfiles')
+                const userProfileSnapshot = await window.db.collection('userProfiles')
                     .where('email', '==', currentUser.email)
                     .get();
                 
@@ -628,7 +633,7 @@
                     console.log('User profile data:', userProfile);
                 } else {
                     // Try to get department from user's role or custom claims
-                    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                    const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
                     if (userDoc.exists) {
                         const userData = userDoc.data();
                         currentDepartment = userData.department || userData.subject || 'Mathematics';
@@ -972,13 +977,12 @@
         }
 
         // Firebase Integration
-        let db;
         let currentUser;
         
         // Enhanced Firebase Functions
         function enableOfflineSupport() {
             // Enable offline persistence
-            db.enablePersistence({
+            window.db.enablePersistence({
                 synchronizeTabs: true
             }).catch((err) => {
                 if (err.code == 'failed-precondition') {
@@ -995,7 +999,7 @@
         }
         
         function addAssignmentAuditLog(assignmentId, action, details) {
-            const auditRef = db.collection('assignmentAuditLog').doc();
+            const auditRef = window.db.collection('assignmentAuditLog').doc();
             auditRef.set({
                 assignmentId: assignmentId,
                 action: action,
@@ -1041,7 +1045,7 @@
                 showNotification('Loading assignments...', 'info');
                 
                 const department = getDepartmentFromUser();
-                const assignmentsRef = db.collection('teacherAssignments');
+                const assignmentsRef = window.db.collection('teacherAssignments');
                 const snapshot = await assignmentsRef
                     .where('department', '==', department)
                     .orderBy('createdAt', 'desc')
@@ -1076,7 +1080,7 @@
         
         async function saveAssignmentToFirebase(assignmentData) {
             try {
-                const assignmentRef = db.collection('teacherAssignments').doc();
+                const assignmentRef = window.db.collection('teacherAssignments').doc();
                 const department = getDepartmentFromUser();
                 
                 const assignment = {
@@ -1117,7 +1121,7 @@
         
         async function updateAssignmentInFirebase(assignmentId, updateData) {
             try {
-                const assignmentRef = db.collection('teacherAssignments').doc(assignmentId);
+                const assignmentRef = window.db.collection('teacherAssignments').doc(assignmentId);
                 
                 const updateFields = {
                     teacher: updateData.teacher,
@@ -1148,7 +1152,7 @@
                 // Get assignment details before deletion for audit log
                 const assignment = assignments.find(a => a.id === assignmentId);
                 
-                await db.collection('teacherAssignments').doc(assignmentId).delete();
+                await window.db.collection('teacherAssignments').doc(assignmentId).delete();
                 
                 // Log audit trail
                 if (assignment) {
@@ -1169,7 +1173,7 @@
         // Real-time listener for assignments
         function setupRealtimeListener() {
             const department = getDepartmentFromUser();
-            const assignmentsRef = db.collection('teacherAssignments')
+            const assignmentsRef = window.db.collection('teacherAssignments')
                 .where('department', '==', department)
                 .orderBy('createdAt', 'desc');
             
@@ -1691,16 +1695,13 @@
                 console.error('Error updating HOD-specific display:', error);
             }
         }
-    </script>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="../../assets/js/firebase-init-compat.js"></script>
-    <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/users/hod-utils.js"></script>
+        // Make functions globally accessible
+        window.searchAssignments = searchAssignments;
+        window.assignTeacher = assignTeacher;
+        window.editAssignment = editAssignment;
+        window.deleteAssignment = deleteAssignment;
+        window.exportAssignments = exportAssignments;
+    </script>
 </body>
 </html>

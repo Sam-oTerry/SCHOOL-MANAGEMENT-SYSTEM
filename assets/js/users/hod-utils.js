@@ -7,8 +7,7 @@ console.log('HOD Utils loaded successfully');
 // Note: currentUser is declared globally in system-admin-utils.js
 
 // Get Firebase instances from global scope
-const db = window.db;
-const auth = window.auth;
+// Use window.db and window.auth directly to avoid redeclaration issues
 
 // Wait for Firebase to be fully initialized
 function waitForFirebase() {
@@ -59,7 +58,7 @@ async function loadHODUserData(db, currentUser) {
         await waitForFirebase();
         
         // Ensure db is available
-        const database = db || window.db;
+        const database = window.db;
         console.log('Database reference:', { db: !!db, windowDb: !!window.db, database: !!database });
         
         if (!database) {
@@ -125,7 +124,7 @@ async function getUserDepartmentName(db, userData) {
         }
         
         // It's an ID, resolve it to a name
-        const database = db || window.db;
+        const database = window.db;
         if (!database) {
             throw new Error('Firebase database not initialized');
         }
@@ -250,7 +249,7 @@ async function loadHODUserData(db, currentUser) {
 // Utility function to get department name from Firestore
 async function getDepartmentName(db, departmentId) {
     try {
-        const database = db || window.db;
+        const database = window.db;
         if (!database) {
             throw new Error('Firebase database not initialized');
         }
