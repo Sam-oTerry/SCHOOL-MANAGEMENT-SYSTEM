@@ -556,7 +556,7 @@
                 }
                 
                 // Update UI with user data
-                updateUserDisplay(userResult);
+                updateStudentListsUserDisplay(userResult);
                 
                 // Load student data
                 await loadAssignedSubjects(window.currentUser.uid);
@@ -571,7 +571,7 @@
             }
         }
 
-        function updateUserDisplay(userResult) {
+        function updateStudentListsUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
