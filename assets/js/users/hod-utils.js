@@ -50,11 +50,15 @@ function waitForAuth() {
 // Load HOD user data
 async function loadHODUserData(db, currentUser) {
     try {
+        console.log('loadHODUserData called with:', { db: !!db, currentUser: !!currentUser });
+        
         // Wait for Firebase to be initialized
         await waitForFirebase();
         
         // Ensure db is available
         const database = db || window.db;
+        console.log('Database reference:', { db: !!db, windowDb: !!window.db, database: !!database });
+        
         if (!database) {
             throw new Error('Firebase database not initialized');
         }
@@ -64,6 +68,7 @@ async function loadHODUserData(db, currentUser) {
             return { success: false, error: 'User profile not found. Please contact administrator.' };
         }
         const userData = userDoc.data();
+        console.log('User data loaded:', userData);
 
         if (userData.role !== 'hod') {
             return { success: false, error: 'Access denied. This page is only for Head of Department users.' };
@@ -123,20 +128,28 @@ async function getUserDepartmentName(db, userData) {
         }
         
         console.log('Fetching department document for ID:', departmentId);
-        const deptDoc = await database.collection('departments').doc(departmentId).get();
         
-        if (deptDoc.exists) {
-            const deptData = deptDoc.data();
-            console.log('Department document found:', deptData);
-            const deptName = deptData.name || deptData.code || departmentId;
-            console.log('Returning department name:', deptName);
-            return deptName;
-        } else {
-            console.log('Department document not found for ID:', departmentId);
-            // Try to get all departments to see what's available
-            const allDepts = await database.collection('departments').get();
-            console.log('Available departments:', allDepts.docs.map(doc => ({ id: doc.id, data: doc.data() })));
-            return departmentId; // Fallback to ID if department not found
+        // Test direct query to the specific document
+        try {
+            const deptDoc = await database.collection('departments').doc(departmentId).get();
+            console.log('Department document query result:', { exists: deptDoc.exists, id: deptDoc.id });
+            
+            if (deptDoc.exists) {
+                const deptData = deptDoc.data();
+                console.log('Department document found:', deptData);
+                const deptName = deptData.name || deptData.code || departmentId;
+                console.log('Returning department name:', deptName);
+                return deptName;
+            } else {
+                console.log('Department document not found for ID:', departmentId);
+                // Try to get all departments to see what's available
+                const allDepts = await database.collection('departments').get();
+                console.log('Available departments:', allDepts.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+                return departmentId; // Fallback to ID if department not found
+            }
+        } catch (queryError) {
+            console.error('Error querying department document:', queryError);
+            return departmentId;
         }
     } catch (error) {
         console.error('Error resolving department name:', error);

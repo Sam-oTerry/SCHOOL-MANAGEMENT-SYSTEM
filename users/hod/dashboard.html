@@ -627,11 +627,11 @@
 
                 // 1) Teachers in department (support single or multiple departments)
                 const [teachersByDept, teachersByDepts] = await Promise.all([
-                    db.collection('users')
+                    window.db.collection('users')
                         .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
                         .where('academicInfo.department', '==', departmentId)
                         .get(),
-                    db.collection('users')
+                    window.db.collection('users')
                         .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
                         .where('academicInfo.departments', 'array-contains', departmentId)
                         .get()
@@ -642,10 +642,10 @@
 
                 // 2) Subjects in department (support multi-department subjects)
                 const [subjectsByDept, subjectsByDepts] = await Promise.all([
-                    db.collection('subjects')
+                    window.db.collection('subjects')
                         .where('academicInfo.department', '==', departmentId)
                         .get(),
-                    db.collection('subjects')
+                    window.db.collection('subjects')
                         .where('academicInfo.departments', 'array-contains', departmentId)
                         .get()
                 ]);
@@ -654,12 +654,12 @@
                 const subjects = Array.from(subjMap.values());
 
                 // 3) Classes and Students
-                const classesSnap = await db.collection('classes')
+                const classesSnap = await window.db.collection('classes')
                     .where('academicInfo.department', '==', departmentId)
                     .get();
                 const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                const studentsSnap = await db.collection('students').get();
+                const studentsSnap = await window.db.collection('students').get();
                 const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
                 // Compute stats
@@ -743,7 +743,7 @@
         async function resolveDepartment(user) {
             try {
                 // Try from user profile first
-                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userDoc = await window.db.collection('users').doc(user.uid).get();
                 let deptValue = null;
                 if (userDoc.exists) {
                     const u = userDoc.data();
@@ -751,24 +751,24 @@
                 }
                 // If deptValue looks like a document id, fetch the department doc
                 if (deptValue) {
-                    const byId = await db.collection('departments').doc(deptValue).get();
+                    const byId = await window.db.collection('departments').doc(deptValue).get();
                     if (byId.exists) {
                         return { id: byId.id, name: byId.data().name || byId.data().departmentName || deptValue };
                     }
                     // Or match by name
-                    const byName = await db.collection('departments').where('name', '==', deptValue).limit(1).get();
+                    const byName = await window.db.collection('departments').where('name', '==', deptValue).limit(1).get();
                     if (!byName.empty) {
                         const d = byName.docs[0];
                         return { id: d.id, name: d.data().name || deptValue };
                     }
                 }
                 // Fallbacks: match by head or members
-                const byHead = await db.collection('departments').where('headId', '==', user.uid).limit(1).get();
+                const byHead = await window.db.collection('departments').where('headId', '==', user.uid).limit(1).get();
                 if (!byHead.empty) {
                     const d = byHead.docs[0];
                     return { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
                 }
-                const byMember = await db.collection('departments').where('members', 'array-contains', user.uid).limit(1).get();
+                const byMember = await window.db.collection('departments').where('members', 'array-contains', user.uid).limit(1).get();
                 if (!byMember.empty) {
                     const d = byMember.docs[0];
                     return { id: d.id, name: d.data().name || d.data().departmentName || 'Department' };
