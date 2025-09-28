@@ -168,7 +168,9 @@ async function loadHODUserData(db, currentUser) {
             throw new Error('Firebase database not initialized');
         }
         
+        console.log('About to query user document with UID:', currentUser.uid, 'Type:', typeof currentUser.uid);
         const userDoc = await database.collection('users').doc(currentUser.uid).get();
+        console.log('User document query result:', { exists: userDoc.exists, id: userDoc.id });
         if (userDoc.exists) {
             const userData = userDoc.data();
             
