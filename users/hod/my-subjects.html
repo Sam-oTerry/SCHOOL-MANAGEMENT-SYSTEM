@@ -510,7 +510,7 @@
                 
                 // Update UI with user data
                 console.log('Updating user display...');
-                updateUserDisplay(userResult);
+                updateMySubjectsUserDisplay(userResult);
                 
                 // Load subjects
                 console.log('Loading subjects...');
@@ -526,7 +526,8 @@
             }
         }
 
-        function updateUserDisplay(userResult) {
+        function updateMySubjectsUserDisplay(userResult) {
+            console.log('updateMySubjectsUserDisplay called with:', userResult);
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
