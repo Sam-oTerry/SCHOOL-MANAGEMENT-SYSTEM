@@ -538,7 +538,7 @@
             return subjectsWithResolvedDepartments;
         }
 
-        function renderCounts(subjects) {
+        async function renderCounts(subjects) {
             const totalSubjectsEl = document.getElementById('total-subjects-count');
             const totalClassesEl = document.getElementById('total-classes-count');
             const totalStudentsEl = document.getElementById('total-students-count');
@@ -546,8 +546,12 @@
 
             totalSubjectsEl.textContent = subjects.length;
 
-            const allClasses = subjects.flatMap(s => Array.isArray(s.classes) ? s.classes : []);
-            totalClassesEl.textContent = allClasses.length ? uniq(allClasses).length : '—';
+            // Get teacher assignments to calculate total classes
+            const teacherAssignments = await getTeacherAssignments(window.currentUser.uid);
+            const assignedClasses = teacherAssignments.map(assignment => assignment.class).filter(Boolean);
+            const uniqueClasses = [...new Set(assignedClasses)];
+            
+            totalClassesEl.textContent = uniqueClasses.length;
 
             // Without a reliable mapping from subjects to students, leave as em dash
             totalStudentsEl.textContent = '—';
@@ -668,7 +672,7 @@
                 console.log('Loading subjects...');
                 const ids = await getAssignedSubjectIds(window.currentUser.uid);
                 const subjects = await getSubjectsByIds(ids);
-                renderCounts(subjects);
+                await renderCounts(subjects);
                 await renderSubjectsTable(subjects);
                 console.log('Initialization completed successfully');
                 
