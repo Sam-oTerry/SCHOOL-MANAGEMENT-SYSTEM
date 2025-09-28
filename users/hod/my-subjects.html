@@ -643,8 +643,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (!isInitialized) {
                 isInitialized = true;
-                initializeMySubjects();
-                setupMobileSidebar(); // From hod-utils.js
+            initializeMySubjects();
+            setupMobileSidebar(); // From hod-utils.js
             }
         });
 
@@ -686,13 +686,13 @@
             console.log('updateMySubjectsUserDisplay called with:', userResult);
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
-            
-            console.log('My Subjects user loaded:', {
-                name: userResult.userName,
-                department: userResult.departmentId,
-                departmentName: userResult.departmentName,
-                staffId: userResult.staffId
-            });
+                
+                console.log('My Subjects user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
         }
     </script>
     <script>

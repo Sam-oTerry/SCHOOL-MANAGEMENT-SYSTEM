@@ -678,13 +678,13 @@
                 } else {
                     // Fallback to userProfiles collection
                     const userProfileSnapshot = await window.db.collection('userProfiles')
-                        .where('email', '==', currentUser.email)
-                        .get();
-                    
-                    if (!userProfileSnapshot.empty) {
-                        const userProfile = userProfileSnapshot.docs[0].data();
-                        currentDepartment = userProfile.department || userProfile.subject || 'Mathematics';
-                        console.log('User department detected:', currentDepartment);
+                    .where('email', '==', currentUser.email)
+                    .get();
+                
+                if (!userProfileSnapshot.empty) {
+                    const userProfile = userProfileSnapshot.docs[0].data();
+                    currentDepartment = userProfile.department || userProfile.subject || 'Mathematics';
+                    console.log('User department detected:', currentDepartment);
                     } else {
                         currentDepartment = 'Mathematics'; // Default fallback
                         console.log('Using default department:', currentDepartment);
@@ -1126,11 +1126,11 @@
             // If no teachers found, show a message
             if (departmentTeachers.length === 0) {
                 console.log('No teachers found who teach subjects in this department');
-                const option = document.createElement('option');
+                    const option = document.createElement('option');
                 option.value = '';
                 option.textContent = 'No teachers available for this department';
                 option.disabled = true;
-                select.appendChild(option);
+                    select.appendChild(option);
             }
         }
         
@@ -1455,9 +1455,9 @@
                 // Update UI with user data
                 updateHODUserDisplay(userResult);
                 
-                // Load from Firebase instead of sample data
-                await loadAssignmentsFromFirebase();
-                setupRealtimeListener();
+            // Load from Firebase instead of sample data
+            await loadAssignmentsFromFirebase();
+            setupRealtimeListener();
                 
             } catch (error) {
                 console.error('Error initializing teacher assignment:', error);
@@ -1556,7 +1556,7 @@
                 console.error('Error updating department stats:', error);
             }
         }
-
+        
         function displayAssignments() {
             const tbody = document.getElementById('assignments-tbody');
             if (!tbody) return;

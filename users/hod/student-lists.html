@@ -93,10 +93,10 @@
                 <div class="header">
                     <div>
                         <h4>Student Lists</h4>
-                        <span class="role-badge">Subject Teacher</span>
+                        <span class="role-badge" id="department-badge">Loading Department...</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -252,7 +252,6 @@
         const studentsPerPage = 10;
         let subjectsIndex = {}; // id -> { id, name, classes }
         let assignedSubjectIds = [];
-        let currentUser = null;
         
         function initials(name) {
             return (name || '').split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase() || 'ST';
@@ -429,10 +428,30 @@
         async function loadAssignedSubjects(uid) {
             const userDoc = await db.collection('users').doc(uid).get();
             const data = userDoc.exists ? userDoc.data() : {};
-            const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
-            const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
-            const ids = Array.from(new Set([...(a||[]), ...(b||[])]));
+            const employmentSubjects = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
+            const academicSubjects = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
+            
+            // Extract IDs from subjects (handle both string IDs and object subjects)
+            const extractIds = (subjects) => {
+                return subjects.map(subject => {
+                    if (typeof subject === 'string') {
+                        return subject;
+                    } else if (typeof subject === 'object' && subject.id) {
+                        return subject.id;
+                    } else if (typeof subject === 'object' && subject.subjectId) {
+                        return subject.subjectId;
+                    }
+                    return null;
+                }).filter(Boolean);
+            };
+            
+            const employmentIds = extractIds(employmentSubjects);
+            const academicIds = extractIds(academicSubjects);
+            const ids = Array.from(new Set([...employmentIds, ...academicIds]));
+            
+            console.log('Extracted subject IDs for student lists:', ids);
             assignedSubjectIds = ids;
+            
             if (ids.length === 0) return [];
             const chunks = [];
             for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
@@ -465,7 +484,7 @@
                 snaps.forEach(snap => snap.forEach(doc => grades.push({ id: doc.id, ...doc.data() })));
             } else {
                 // Fallback: teacher’s own grades
-                const snap = await db.collection('grades').where('teacherId', '==', currentUser.uid).limit(1000).get();
+                const snap = await db.collection('grades').where('teacherId', '==', window.currentUser.uid).limit(1000).get();
                 snap.forEach(doc => grades.push({ id: doc.id, ...doc.data() }));
             }
             
@@ -530,7 +549,7 @@
                 await waitForAuth(); // From hod-utils.js
                 
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                const userResult = await window.loadHODUserData(window.db, window.currentUser); // From hod-utils.js
                 if (!userResult.success) {
                     showError(userResult.error); // From hod-utils.js
                     return;
@@ -540,7 +559,7 @@
                 updateUserDisplay(userResult);
                 
                 // Load student data
-                await loadAssignedSubjects(currentUser.uid);
+                await loadAssignedSubjects(window.currentUser.uid);
                 await loadStudentsAndGrades();
                 populateFilters();
                 displayStudents();
@@ -556,6 +575,12 @@
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
+            // Update department badge specifically for student lists
+            const departmentBadge = document.getElementById('department-badge');
+            if (departmentBadge && userResult.departmentName) {
+                departmentBadge.textContent = `${userResult.departmentName} Department`;
+            }
+                
             console.log('Student Lists user loaded:', {
                 name: userResult.userName,
                 department: userResult.departmentId,
