@@ -10,6 +10,122 @@
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/system-admin.css" rel="stylesheet">
+    
+    <style>
+        /* Custom styles for subject management */
+        .custom-department-section {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .custom-department-section .alert-info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .custom-department-section .alert-info h6 {
+            color: #0c5460;
+            font-weight: 600;
+        }
+        
+        .form-text {
+            font-size: 0.875em;
+            color: #6c757d;
+        }
+        
+        .subject-card {
+            transition: all 0.3s ease;
+        }
+        
+        .subject-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .paper-badge {
+            background-color: #17a2b8;
+            color: white;
+            font-size: 0.75em;
+            padding: 0.25em 0.5em;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        
+        .department-filter-section {
+            background-color: #f8f9fa;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Ensure custom department section is visible when shown */
+        #customDepartmentRow {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Style for paper information in subject cards */
+        .subject-paper-info {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        /* Enhanced form styling */
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        /* Card header styling */
+        .card-header {
+            font-weight: 600;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+        
+        /* Badge styling */
+        .badge {
+            font-size: 0.75em;
+            padding: 0.5em 0.75em;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -100,7 +216,7 @@
                 </div>
 
                 <!-- Search and Filter -->
-                <div class="row mb-4">
+                <div class="row mb-4 department-filter-section">
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -327,7 +443,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row" id="customDepartmentRow" style="display: none;">
+                        <div class="row custom-department-section" id="customDepartmentRow" style="display: none;">
                             <div class="col-12">
                                 <div class="alert alert-info">
                                     <h6><i class="fas fa-plus-circle"></i> Create New Department</h6>
@@ -716,7 +832,12 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">${subject.name}</h6>
-                            <small class="text-muted">Code: ${subject.code}${subject.paper ? ` (${subject.paper})` : ''} | Department: ${subject.departmentName || 'N/A'} | Hours: ${subject.hoursPerWeek || 'N/A'}</small>
+                            <small class="text-muted">
+                                Code: ${subject.code}
+                                ${subject.paper ? `<span class="paper-badge">${subject.paper}</span>` : ''} 
+                                | Department: ${subject.departmentName || 'N/A'} 
+                                | Hours: ${subject.hoursPerWeek || 'N/A'}
+                            </small>
                         </div>
                         <div>
                             <span class="badge bg-${typeColor}">${subject.type.toUpperCase()}</span>
