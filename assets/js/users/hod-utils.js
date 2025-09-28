@@ -3,30 +3,63 @@
 
 // Note: currentUser is declared globally in system-admin-utils.js
 
+// Get Firebase instances from global scope
+const db = window.db;
+const auth = window.auth;
+
+// Wait for Firebase to be fully initialized
+function waitForFirebase() {
+    return new Promise((resolve) => {
+        const checkFirebase = () => {
+            if (window.firebase && window.firebase.apps && window.firebase.apps.length > 0) {
+                resolve();
+            } else {
+                setTimeout(checkFirebase, 100);
+            }
+        };
+        checkFirebase();
+    });
+}
+
 // Wait for authentication
 function waitForAuth() {
     return new Promise((resolve, reject) => {
-        if (!window.auth) {
-            reject(new Error('Firebase Auth not initialized.'));
-            return;
-        }
-        const unsubscribe = window.auth.onAuthStateChanged((user) => {
-            unsubscribe();
-            if (user) {
-                window.currentUser = user; // Set global currentUser
-                resolve(user);
-            } else {
-                window.location.href = '../../index.html'; // Redirect to login if not authenticated
-                reject(new Error('User not authenticated'));
+        // Wait for Firebase to be initialized
+        const checkFirebase = () => {
+            if (!window.auth) {
+                setTimeout(checkFirebase, 100); // Check again in 100ms
+                return;
             }
-        });
+            
+            const unsubscribe = window.auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                if (user) {
+                    window.currentUser = user; // Set global currentUser
+                    resolve(user);
+                } else {
+                    window.location.href = '../../index.html'; // Redirect to login if not authenticated
+                    reject(new Error('User not authenticated'));
+                }
+            });
+        };
+        
+        checkFirebase();
     });
 }
 
 // Load HOD user data
 async function loadHODUserData(db, currentUser) {
     try {
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        // Wait for Firebase to be initialized
+        await waitForFirebase();
+        
+        // Ensure db is available
+        const database = db || window.db;
+        if (!database) {
+            throw new Error('Firebase database not initialized');
+        }
+        
+        const userDoc = await database.collection('users').doc(currentUser.uid).get();
         if (!userDoc.exists) {
             return { success: false, error: 'User profile not found. Please contact administrator.' };
         }
@@ -37,7 +70,7 @@ async function loadHODUserData(db, currentUser) {
         }
 
         const departmentId = getUserDepartment(userData);
-        const departmentName = await getUserDepartmentName(db, userData);
+        const departmentName = await getUserDepartmentName(database, userData);
 
         return {
             success: true,
@@ -78,7 +111,11 @@ async function getUserDepartmentName(db, userData) {
         }
         
         // It's an ID, resolve it to a name
-        const deptDoc = await db.collection('departments').doc(departmentId).get();
+        const database = db || window.db;
+        if (!database) {
+            throw new Error('Firebase database not initialized');
+        }
+        const deptDoc = await database.collection('departments').doc(departmentId).get();
         if (deptDoc.exists) {
             return deptDoc.data().name || departmentId;
         } else {
@@ -180,7 +217,11 @@ async function loadHODUserData(db, currentUser) {
 // Utility function to get department name from Firestore
 async function getDepartmentName(db, departmentId) {
     try {
-        const deptDoc = await db.collection('departments').doc(departmentId).get();
+        const database = db || window.db;
+        if (!database) {
+            throw new Error('Firebase database not initialized');
+        }
+        const deptDoc = await database.collection('departments').doc(departmentId).get();
         if (deptDoc.exists) {
             return deptDoc.data().name || departmentId.charAt(0).toUpperCase() + departmentId.slice(1);
         } else {
@@ -309,19 +350,26 @@ function setupMobileSidebar() {
 }
 
 // Utility function for logout
-function logout(auth) {
+function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        auth.signOut().then(() => {
+        const authInstance = window.auth;
+        if (authInstance) {
+            authInstance.signOut().then(() => {
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+                window.location.href = '../../index.html';
+            });
+        } else {
+            console.error('Firebase Auth not available');
             window.location.href = '../../index.html';
-        }).catch((error) => {
-            console.error('Error signing out:', error);
-            window.location.href = '../../index.html';
-        });
+        }
     }
 }
 
 // Make functions globally available
 window.waitForAuth = waitForAuth;
+window.waitForFirebase = waitForFirebase;
 window.loadHODUserData = loadHODUserData;
 window.getUserDepartment = getUserDepartment;
 window.getUserDepartmentName = getUserDepartmentName;

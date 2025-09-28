@@ -151,14 +151,16 @@ function setupMobileSidebar() {
 // Utility function for logout
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        if (window.auth) {
-            window.auth.signOut().then(() => {
+        const authInstance = window.auth;
+        if (authInstance) {
+            authInstance.signOut().then(() => {
                 window.location.href = '../../index.html';
             }).catch((error) => {
                 console.error('Error signing out:', error);
                 window.location.href = '../../index.html';
             });
         } else {
+            console.error('Firebase Auth not available');
             window.location.href = '../../index.html';
         }
     }
