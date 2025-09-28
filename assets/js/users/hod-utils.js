@@ -1,6 +1,60 @@
 // HOD Utility Functions
 // Shared utilities for all Head of Department pages
 
+// Global variables
+let currentUser = null;
+
+// Wait for authentication
+function waitForAuth() {
+    return new Promise((resolve, reject) => {
+        if (!window.auth) {
+            reject(new Error('Firebase Auth not initialized.'));
+            return;
+        }
+        const unsubscribe = window.auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            if (user) {
+                window.currentUser = user; // Set global currentUser
+                currentUser = user;
+                resolve(user);
+            } else {
+                window.location.href = '../../index.html'; // Redirect to login if not authenticated
+                reject(new Error('User not authenticated'));
+            }
+        });
+    });
+}
+
+// Load HOD user data
+async function loadHODUserData(db, currentUser) {
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (!userDoc.exists) {
+            return { success: false, error: 'User profile not found. Please contact administrator.' };
+        }
+        const userData = userDoc.data();
+
+        if (userData.role !== 'hod') {
+            return { success: false, error: 'Access denied. This page is only for Head of Department users.' };
+        }
+
+        const departmentId = getUserDepartment(userData);
+        const departmentName = departmentId ? await getDepartmentName(db, departmentId) : 'Unknown Department';
+
+        return {
+            success: true,
+            userData,
+            userName: getUserName(userData),
+            staffId: getUserStaffId(userData),
+            departmentId: departmentId,
+            departmentName: departmentName
+        };
+    } catch (error) {
+        console.error('Error in loadHODUserData:', error);
+        return { success: false, error: 'Failed to load user data. Please refresh and try again.' };
+    }
+}
+
 // Utility function to get user department (can be used across the application)
 function getUserDepartment(userData) {
     if (!userData) return null;
@@ -198,14 +252,15 @@ function logout(auth) {
     }
 }
 
-// Make utility functions globally available
+// Make functions globally available
+window.waitForAuth = waitForAuth;
+window.loadHODUserData = loadHODUserData;
 window.getUserDepartment = getUserDepartment;
 window.getUserName = getUserName;
 window.getUserStaffId = getUserStaffId;
 window.getUserEmail = getUserEmail;
 window.getUserPhone = getUserPhone;
 window.isHODUser = isHODUser;
-window.loadHODUserData = loadHODUserData;
 window.getDepartmentName = getDepartmentName;
 window.showSuccess = showSuccess;
 window.showError = showError;
