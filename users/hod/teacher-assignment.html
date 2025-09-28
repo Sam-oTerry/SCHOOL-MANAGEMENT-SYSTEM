@@ -621,13 +621,6 @@
                     });
                 });
                 
-                // Load terms - using hardcoded terms instead of Firestore
-                terms = [
-                    { id: 'term1', name: 'Term 1', active: true },
-                    { id: 'term2', name: 'Term 2', active: false },
-                    { id: 'term3', name: 'Term 3', active: false }
-                ];
-                
                 // Set current department from user profile
                 await loadUserProfile();
                 
@@ -943,6 +936,9 @@
             const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
             const streams = ['A', 'B', 'C', 'D']; // Optional streams
             
+            // Clear and repopulate classes array with dynamically generated classes
+            classes = [];
+            
             classLevels.forEach(level => {
                 // Add main class option (without stream)
                 const mainOption = document.createElement('option');
@@ -950,16 +946,33 @@
                 mainOption.textContent = level;
                 select.appendChild(mainOption);
                 
+                // Add to classes array
+                classes.push({
+                    id: level.toLowerCase(),
+                    name: level,
+                    level: level,
+                    stream: null
+                });
+                
                 // Add stream options for each level
                 streams.forEach(stream => {
                     const streamOption = document.createElement('option');
                     streamOption.value = `${level.toLowerCase()}_${stream.toLowerCase()}`;
                     streamOption.textContent = `${level} ${stream}`;
                     select.appendChild(streamOption);
+                    
+                    // Add to classes array
+                    classes.push({
+                        id: `${level.toLowerCase()}_${stream.toLowerCase()}`,
+                        name: `${level} ${stream}`,
+                        level: level,
+                        stream: stream
+                    });
                 });
             });
             
             console.log(`Populated class dropdown with S1-S6 classes and streams`);
+            console.log(`Classes array updated with ${classes.length} classes:`, classes);
         }
         
         function populateTeacherDropdown(selectId) {
@@ -1094,20 +1107,31 @@
             select.innerHTML = '<option value="">Select Term</option>';
             
             // Generate Term 1, Term 2, Term 3 options
-            const terms = [
+            const termOptions = [
                 { value: 'term1', name: 'Term 1' },
                 { value: 'term2', name: 'Term 2' },
                 { value: 'term3', name: 'Term 3' }
             ];
             
-            terms.forEach(term => {
+            // Clear and repopulate terms array with dynamically generated terms
+            terms = [];
+            
+            termOptions.forEach(term => {
                 const option = document.createElement('option');
                 option.value = term.value;
                 option.textContent = term.name;
                 select.appendChild(option);
+                
+                // Add to terms array
+                terms.push({
+                    id: term.value,
+                    name: term.name,
+                    active: term.value === 'term1' // Term 1 is active by default
+                });
             });
             
             console.log(`Populated term dropdown with Term 1, Term 2, Term 3`);
+            console.log(`Terms array updated with ${terms.length} terms:`, terms);
         }
 
         // Firebase Integration
@@ -1704,6 +1728,17 @@
             const subject = subjects.find(s => s.id === subjectId);
             const classData = classes.find(c => c.id === classId);
             const term = terms.find(t => t.id === termId);
+            
+            console.log('Assignment validation:', {
+                teacherId, teacher: teacher ? teacher.name : 'NOT FOUND',
+                subjectId, subject: subject ? subject.name : 'NOT FOUND',
+                classId, classData: classData ? classData.name : 'NOT FOUND',
+                termId, term: term ? term.name : 'NOT FOUND',
+                teachersCount: teachers.length,
+                subjectsCount: subjects.length,
+                classesCount: classes.length,
+                termsCount: terms.length
+            });
             
             if (!teacher || !subject || !classData || !term) {
                 showNotification('Please select valid options from all dropdowns.', 'warning');
