@@ -531,18 +531,59 @@
             avgPerfEl.textContent = '—';
         }
 
-        function renderSubjectsTable(subjects) {
+        // Get teacher assignments for a specific teacher
+        async function getTeacherAssignments(teacherId) {
+            try {
+                console.log('Getting teacher assignments for:', teacherId);
+                const assignmentsSnapshot = await db.collection('teacherAssignments')
+                    .where('teacherId', '==', teacherId)
+                    .get();
+                
+                const assignments = [];
+                assignmentsSnapshot.forEach(doc => {
+                    assignments.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('Found assignments:', assignments);
+                return assignments;
+            } catch (error) {
+                console.error('Error getting teacher assignments:', error);
+                return [];
+            }
+        }
+
+        async function renderSubjectsTable(subjects) {
             const tbody = document.getElementById('subjects-tbody');
             tbody.innerHTML = '';
             if (!subjects || subjects.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-book fa-2x mb-2"></i><br>No subject has been assigned to you yet.<br>Please contact your Head of Department.</td></tr>`;
                 return;
             }
+            
+            // Get teacher assignments for the current user
+            const teacherAssignments = await getTeacherAssignments(window.currentUser.uid);
+            console.log('Teacher assignments:', teacherAssignments);
+            
             subjects.forEach(s => {
                 const row = document.createElement('tr');
                 const classes = Array.isArray(s.classes) ? s.classes : [];
                 const status = (s.status || 'active').toString().toLowerCase();
                 const statusClass = status === 'active' ? 'bg-success' : (status === 'inactive' ? 'bg-secondary' : 'bg-primary');
+                
+                // Find assignments for this subject
+                const subjectAssignments = teacherAssignments.filter(assignment => 
+                    assignment.subjectId === s.id || assignment.subject === s.name
+                );
+                
+                // Get assigned classes for this subject
+                const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
+                const uniqueClasses = [...new Set(assignedClasses)];
+                
+                // Format classes display
+                const classesDisplay = uniqueClasses.length > 0 
+                    ? uniqueClasses.map(cls => `<span class="badge bg-info me-1">${cls}</span>`).join('')
+                    : '<span class="text-muted">No classes assigned</span>';
+                
                 row.innerHTML = `
                     <td>
                         <div class="d-flex align-items-center">
@@ -550,10 +591,14 @@
                             <div><strong>${s.name || s.subjectName || 'Subject'}</strong><br><small class="text-muted">${s.department || (s.academicInfo && s.academicInfo.department) || ''}</small></div>
                         </div>
                     </td>
-                    <td>${classes.map(c => `<span class=\"badge bg-primary me-1\">${c}</span>`).join('')}</td>
-                    <td>—</td>
-                    <td>—</td>
-                    <td>—</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            ${classesDisplay}
+                        </div>
+                    </td>
+                    <td>${s.hoursPerWeek || '—'}</td>
+                    <td>${s.level || '—'}</td>
+                    <td>${s.type || '—'}</td>
                     <td><span class="badge ${statusClass}">${(s.status || 'Active').toString().charAt(0).toUpperCase() + (s.status || 'Active').toString().slice(1)}</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="viewSubject('${s.id}')"><i class="fas fa-eye"></i> View</button>
@@ -598,7 +643,7 @@
                 const ids = await getAssignedSubjectIds(window.currentUser.uid);
                 const subjects = await getSubjectsByIds(ids);
                 renderCounts(subjects);
-                renderSubjectsTable(subjects);
+                await renderSubjectsTable(subjects);
                 console.log('Initialization completed successfully');
                 
             } catch (error) {
