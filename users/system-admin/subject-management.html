@@ -303,7 +303,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="subjectDepartment" class="form-label">Department</label>
                                     <select class="form-select" id="subjectDepartment" required onchange="handleDepartmentChange()">
@@ -313,7 +313,14 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="subjectPaper" class="form-label">Paper (Optional)</label>
+                                    <input type="text" class="form-control" id="subjectPaper" placeholder="e.g., Paper 1, Paper 2, 540/1">
+                                    <small class="form-text text-muted">For subjects with multiple papers like ICT 540/1, ICT 540/2</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="subjectHours" class="form-label">Hours per Week</label>
                                     <input type="number" class="form-control" id="subjectHours" min="1" max="20">
@@ -321,16 +328,23 @@
                             </div>
                         </div>
                         <div class="row" id="customDepartmentRow" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-plus-circle"></i> Create New Department</h6>
+                                    <p class="mb-3">Enter details for the new department that will be created and added to the system.</p>
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="customDepartmentName" class="form-label">New Department Name</label>
-                                    <input type="text" class="form-control" id="customDepartmentName" placeholder="Enter department name">
+                                    <label for="customDepartmentName" class="form-label">Department Name</label>
+                                    <input type="text" class="form-control" id="customDepartmentName" placeholder="e.g., Computer Science, Mathematics" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="customDepartmentCode" class="form-label">Department Code</label>
-                                    <input type="text" class="form-control" id="customDepartmentCode" placeholder="Enter department code">
+                                    <input type="text" class="form-control" id="customDepartmentCode" placeholder="e.g., CS, MATH" required>
+                                    <small class="form-text text-muted">Short code for the department (will be converted to uppercase)</small>
                                 </div>
                             </div>
                         </div>
@@ -386,7 +400,8 @@
                 { name: 'Entrepreneurship Education', code: 'ENT', hours: 3, department: 'business' },
                 { name: 'Performing Arts', code: 'PA', hours: 3, department: 'arts' },
                 { name: 'Agriculture', code: 'AGR', hours: 3, department: 'agriculture' },
-                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science' },
+                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science', paper: '540/1' },
+                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science', paper: '540/2' },
                 { name: 'Business Studies', code: 'BS', hours: 3, department: 'business' },
                 { name: 'Home Economics', code: 'HE', hours: 3, department: 'home-economics' },
                 { name: 'Woodwork', code: 'WW', hours: 3, department: 'technical' },
@@ -396,7 +411,8 @@
                 { name: 'Biology (A-Level)', code: 'BIO-A', hours: 8, department: 'biology' },
                 { name: 'Chemistry (A-Level)', code: 'CHEM-A', hours: 8, department: 'chemistry' },
                 { name: 'Physics (A-Level)', code: 'PHY-A', hours: 8, department: 'physics' },
-                { name: 'Mathematics (A-Level)', code: 'MATH-A', hours: 8, department: 'mathematics' },
+                { name: 'Mathematics (A-Level)', code: 'MATH', hours: 8, department: 'mathematics', paper: 'Paper 1' },
+                { name: 'Mathematics (A-Level)', code: 'MATH', hours: 8, department: 'mathematics', paper: 'Paper 2' },
                 { name: 'Geography (A-Level)', code: 'GEO-A', hours: 8, department: 'geography' },
                 { name: 'Economics', code: 'ECON', hours: 8, department: 'economics' },
                 { name: 'History (A-Level)', code: 'HIST-A', hours: 8, department: 'history' },
@@ -597,8 +613,9 @@
                                   category.includes('principal') ? 'principal' : 'subsidiary',
                             department: subject.department,
                             departmentName: subject.department,
+                            paper: subject.paper || null,
                             hoursPerWeek: subject.hours,
-                            description: `${subject.name} - ${subject.code}`,
+                            description: `${subject.name} - ${subject.code}${subject.paper ? ` (${subject.paper})` : ''}`,
                             isActive: true,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             createdBy: currentUser.uid
@@ -674,7 +691,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">${subject.name}</h6>
-                            <small class="text-muted">Code: ${subject.code} | Department: ${subject.departmentName || 'N/A'} | Hours: ${subject.hoursPerWeek || 'N/A'}</small>
+                            <small class="text-muted">Code: ${subject.code}${subject.paper ? ` (${subject.paper})` : ''} | Department: ${subject.departmentName || 'N/A'} | Hours: ${subject.hoursPerWeek || 'N/A'}</small>
                         </div>
                         <div>
                             <span class="badge bg-${typeColor}">${subject.type.toUpperCase()}</span>
@@ -777,6 +794,7 @@
             const subjectsData = subjects.map(subject => ({
                 name: subject.name,
                 code: subject.code,
+                paper: subject.paper || null,
                 level: subject.level,
                 type: subject.type,
                 department: subject.departmentName || subject.department,
@@ -845,12 +863,31 @@
             const level = document.getElementById('subjectLevel').value;
             const type = document.getElementById('subjectType').value;
             const department = document.getElementById('subjectDepartment').value;
+            const paper = document.getElementById('subjectPaper').value;
             const description = document.getElementById('subjectDescription').value;
             const hours = document.getElementById('subjectHours').value;
             
             if (!name || !code || !level || !type || !department) {
                 showError('Please fill in all required fields including department.');
                 return;
+            }
+            
+            // Validate custom department fields if creating new department
+            if (department === 'custom') {
+                const customName = document.getElementById('customDepartmentName').value;
+                const customCode = document.getElementById('customDepartmentCode').value;
+                
+                if (!customName || !customCode) {
+                    showError('Please fill in both department name and code for new department.');
+                    return;
+                }
+                
+                // Check if department code already exists
+                const existingDept = departments.find(d => d.code && d.code.toLowerCase() === customCode.toLowerCase());
+                if (existingDept) {
+                    showError('Department code already exists. Please use a different code.');
+                    return;
+                }
             }
             
             // Handle custom department creation
@@ -917,6 +954,7 @@
                     type: type,
                     department: departmentId,
                     departmentName: departmentName,
+                    paper: paper || null,
                     description: description || '',
                     hoursPerWeek: hours ? parseInt(hours) : null,
                     isActive: true,
