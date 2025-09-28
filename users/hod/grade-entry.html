@@ -578,7 +578,7 @@
                 }
                 
                 // Update UI with user data
-                updateUserDisplay(userResult);
+                updateGradeEntryUserDisplay(userResult);
                 
                 // Load assigned subjects
                 const { subjects } = await ensureAssignedSubjects();
@@ -600,7 +600,7 @@
             }
         }
 
-        function updateUserDisplay(userResult) {
+        function updateGradeEntryUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
