@@ -522,22 +522,51 @@
         async function loadClasses() {
             console.log('Loading classes for analytics');
             try {
-                // Generate S1-S6 classes with streams
-                const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-                const streams = ['A', 'B', 'C', 'D'];
+                // Get current user's department
+                const currentDepartmentId = window.currentUserData?.departmentId;
+                if (!currentDepartmentId) {
+                    console.log('No department ID found for current user');
+                    classes = [];
+                    return;
+                }
+                
+                console.log('Loading classes for department:', currentDepartmentId);
+                
+                // Load actual classes from the database
+                const classesSnapshot = await window.db.collection('classes').get();
                 
                 classes = [];
-                classLevels.forEach(level => {
-                    // Add main class
-                    classes.push({ id: level.toLowerCase(), name: level });
-                    // Add stream classes
-                    streams.forEach(stream => {
-                        classes.push({ 
-                            id: `${level.toLowerCase()}_${stream.toLowerCase()}`, 
-                            name: `${level} ${stream}` 
-                        });
+                classesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        name: data.name || data.className || 'Unknown Class',
+                        level: data.level || data.classLevel,
+                        stream: data.stream,
+                        department: data.department
                     });
                 });
+                
+                // If no classes found in database, generate S1-S6 classes as fallback
+                if (classes.length === 0) {
+                    console.log('No classes found in database, generating S1-S6 classes');
+                    const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+                    const streams = ['A', 'B', 'C', 'D'];
+                    
+                    classLevels.forEach(level => {
+                        // Add main class
+                        classes.push({ id: level.toLowerCase(), name: level, level: level });
+                        // Add stream classes
+                        streams.forEach(stream => {
+                            classes.push({ 
+                                id: `${level.toLowerCase()}_${stream.toLowerCase()}`, 
+                                name: `${level} ${stream}`,
+                                level: level,
+                                stream: stream
+                            });
+                        });
+                    });
+                }
                 
                 // Populate class level filter dropdown
                 const classLevelFilter = document.getElementById('class-level');
@@ -547,12 +576,24 @@
                 console.log('Classes loaded:', classes.length);
             } catch (error) {
                 console.error('Error loading classes:', error);
+                classes = [];
             }
         }
 
         async function loadTeachers() {
             console.log('Loading teachers for analytics');
             try {
+                // Get current user's department
+                const currentDepartmentId = window.currentUserData?.departmentId;
+                if (!currentDepartmentId) {
+                    console.log('No department ID found for current user');
+                    teachers = [];
+                    return;
+                }
+                
+                console.log('Loading teachers for department:', currentDepartmentId);
+                
+                // Load teachers from the current department
                 const teachersSnapshot = await window.db.collection('users')
                     .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
                     .get();
@@ -560,17 +601,24 @@
                 teachers = [];
                 teachersSnapshot.forEach(doc => {
                     const data = doc.data();
-                    teachers.push({
-                        id: doc.id,
-                        name: data.personalInfo?.fullName || data.displayName || 'Unknown Teacher',
-                        subjects: data.academicInfo?.subjects || [],
-                        department: data.academicInfo?.department || data.department
-                    });
+                    const teacherDepartment = data.academicInfo?.department || data.department;
+                    
+                    // Only include teachers from the current department
+                    if (teacherDepartment === currentDepartmentId) {
+                        teachers.push({
+                            id: doc.id,
+                            name: data.personalInfo?.fullName || data.displayName || 'Unknown Teacher',
+                            subjects: data.academicInfo?.subjects || [],
+                            department: teacherDepartment,
+                            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now())
+                        });
+                    }
                 });
                 
-                console.log('Teachers loaded:', teachers.length);
+                console.log('Teachers loaded for department:', teachers.length);
             } catch (error) {
                 console.error('Error loading teachers:', error);
+                teachers = [];
             }
         }
 
@@ -666,8 +714,26 @@
             
             const passRate = validGrades.length > 0 ? (passingGrades.length / validGrades.length) * 100 : 0;
             
-            // Count active classes
-            const activeClasses = new Set(grades.map(g => g.class || g.className)).size;
+            // Count active classes - classes that have grades in the current department
+            const activeClasses = new Set();
+            grades.forEach(g => {
+                // Check if grade belongs to a subject in the current department
+                const gradeSubject = subjects.find(s => 
+                    s.id === g.subjectId || 
+                    s.name === g.subject || 
+                    s.subjectName === g.subject
+                );
+                
+                if (gradeSubject) {
+                    // Add the class from the grade
+                    const className = g.class || g.className;
+                    if (className) {
+                        activeClasses.add(className);
+                    }
+                }
+            });
+            
+            const activeClassesCount = activeClasses.size;
             
             // Count teachers
             const totalTeachers = teachers.length;
@@ -723,7 +789,7 @@
             console.log('Calculated analytics:', {
                 overallAverage: overallAverage.toFixed(1),
                 passRate: passRate.toFixed(1),
-                activeClasses,
+                activeClasses: activeClassesCount,
                 totalTeachers,
                 gradeDistribution,
                 subjectPerformance
@@ -736,7 +802,7 @@
             return {
                 overallAverage: overallAverage,
                 passRate: passRate,
-                activeClasses: activeClasses,
+                activeClasses: activeClassesCount,
                 totalTeachers: totalTeachers,
                 gradeDistribution: gradeDistribution,
                 subjectPerformance: subjectPerformance,
@@ -749,7 +815,7 @@
                     { metric: 'A Grades', current: `${gradeDistribution.A}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'F Grades', current: `${gradeDistribution.F}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'Total Teachers', current: `${totalTeachers}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
-                    { metric: 'Active Classes', current: `${activeClasses}`, previous: 'N/A', change: 'N/A', trend: 'stable' }
+                    { metric: 'Active Classes', current: `${activeClassesCount}`, previous: 'N/A', change: 'N/A', trend: 'stable' }
                 ]
             };
         }
@@ -991,20 +1057,37 @@
             updateIncrementDisplay('pass-rate-change', passRateChange, '%', 'from last period');
             
             // For classes and teachers, show current term activity
-            const currentTermClasses = new Set(grades.filter(g => {
+            const currentTermClasses = new Set();
+            grades.filter(g => {
                 const gradeDate = g.createdAt;
                 if (!gradeDate) return false;
                 const gradeMonth = gradeDate.getMonth();
                 const gradeYear = gradeDate.getFullYear();
                 return gradeMonth === currentMonth && gradeYear === currentYear;
-            }).map(g => g.class || g.className)).size;
+            }).forEach(g => {
+                // Check if grade belongs to a subject in the current department
+                const gradeSubject = subjects.find(s => 
+                    s.id === g.subjectId || 
+                    s.name === g.subject || 
+                    s.subjectName === g.subject
+                );
+                
+                if (gradeSubject) {
+                    const className = g.class || g.className;
+                    if (className) {
+                        currentTermClasses.add(className);
+                    }
+                }
+            });
+            
+            const currentTermClassesCount = currentTermClasses.size;
             
             const currentTermTeachers = teachers.filter(t => {
                 // Check if teacher was added this term (simplified logic)
                 return t.createdAt && t.createdAt.getMonth() === currentMonth && t.createdAt.getFullYear() === currentYear;
             }).length;
             
-            updateIncrementDisplay('active-classes-change', currentTermClasses, '', 'this term', 'classes');
+            updateIncrementDisplay('active-classes-change', currentTermClassesCount, '', 'this term', 'classes');
             updateIncrementDisplay('total-teachers-change', currentTermTeachers, '', 'this term', 'teachers');
         }
 
@@ -1347,8 +1430,26 @@
             
             const passRate = validGrades.length > 0 ? (passingGrades.length / validGrades.length) * 100 : 0;
             
-            // Count active classes
-            const activeClasses = new Set(filteredGrades.map(g => g.class || g.className)).size;
+            // Count active classes - classes that have grades in the current department
+            const activeClasses = new Set();
+            filteredGrades.forEach(g => {
+                // Check if grade belongs to a subject in the current department
+                const gradeSubject = subjects.find(s => 
+                    s.id === g.subjectId || 
+                    s.name === g.subject || 
+                    s.subjectName === g.subject
+                );
+                
+                if (gradeSubject) {
+                    // Add the class from the grade
+                    const className = g.class || g.className;
+                    if (className) {
+                        activeClasses.add(className);
+                    }
+                }
+            });
+            
+            const activeClassesCount = activeClasses.size;
             
             // Count teachers
             const totalTeachers = teachers.length;
@@ -1408,7 +1509,7 @@
             return {
                 overallAverage: overallAverage,
                 passRate: passRate,
-                activeClasses: activeClasses,
+                activeClasses: activeClassesCount,
                 totalTeachers: totalTeachers,
                 gradeDistribution: gradeDistribution,
                 subjectPerformance: subjectPerformance,
@@ -1421,7 +1522,7 @@
                     { metric: 'A Grades', current: `${gradeDistribution.A}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'F Grades', current: `${gradeDistribution.F}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'Total Teachers', current: `${totalTeachers}`, previous: 'N/A', change: 'N/A', trend: 'stable' },
-                    { metric: 'Active Classes', current: `${activeClasses}`, previous: 'N/A', change: 'N/A', trend: 'stable' }
+                    { metric: 'Active Classes', current: `${activeClassesCount}`, previous: 'N/A', change: 'N/A', trend: 'stable' }
                 ]
             };
         }
