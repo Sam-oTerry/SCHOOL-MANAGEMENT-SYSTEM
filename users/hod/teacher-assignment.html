@@ -661,7 +661,12 @@
                         if (deptDoc.exists) {
                             const deptData = deptDoc.data();
                             currentDepartment = deptData.name || deptData.departmentName || 'Mathematics';
+                            console.log('Department document found:', deptData);
                         } else {
+                            console.log('Department document not found for ID:', departmentId);
+                            // Try to get all departments to debug
+                            const allDepts = await window.db.collection('departments').get();
+                            console.log('Available departments:', allDepts.docs.map(doc => ({ id: doc.id, data: doc.data() })));
                             currentDepartment = 'Mathematics'; // Default fallback
                         }
                     } else {

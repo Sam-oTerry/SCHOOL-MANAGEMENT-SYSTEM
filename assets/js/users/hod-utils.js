@@ -226,11 +226,16 @@ async function loadHODUserData(db, currentUser) {
                 throw new Error('No department assigned. Please contact administrator to assign you to a department.');
             }
             
+            // Get department name from Firestore
+            console.log('About to call getUserDepartmentName with:', { db: !!db, userData: userData });
+            const departmentName = await getUserDepartmentName(db, userData);
+            console.log('Department name resolved to:', departmentName);
+            
             return {
                 success: true,
                 userData: userData,
                 departmentId: departmentId,
-                departmentName: departmentId.charAt(0).toUpperCase() + departmentId.slice(1),
+                departmentName: departmentName,
                 userName: getUserName(userData),
                 staffId: getUserStaffId(userData)
             };
