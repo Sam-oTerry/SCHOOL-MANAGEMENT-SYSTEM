@@ -179,11 +179,11 @@
 
                 <!-- Subjects by Level -->
                 <div class="row">
-                    <!-- Senior 1-2 Compulsory Subjects -->
+                    <!-- Senior 1-2 Subjects (All Compulsory) -->
                     <div class="col-md-6 mb-4">
                         <div class="card">
                             <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">Senior 1-2 Compulsory Subjects</h5>
+                                <h5 class="mb-0">Senior 1-2 Subjects (All Compulsory)</h5>
                             </div>
                             <div class="card-body">
                                 <div id="s1s2-compulsory-subjects">
@@ -193,28 +193,28 @@
                         </div>
                     </div>
 
-                    <!-- Senior 1-2 Elective Subjects -->
+                    <!-- Senior 3-4 Compulsory Subjects -->
                     <div class="col-md-6 mb-4">
                         <div class="card">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">Senior 1-2 Elective Subjects</h5>
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">Senior 3-4 Compulsory Subjects</h5>
                             </div>
                             <div class="card-body">
-                                <div id="s1s2-elective-subjects">
+                                <div id="s3s4-compulsory-subjects">
                                     <!-- Subjects will be loaded here -->
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Senior 3-4 Subjects -->
+                    <!-- Senior 3-4 Elective Subjects -->
                     <div class="col-md-6 mb-4">
                         <div class="card">
-                            <div class="card-header bg-warning text-dark">
-                                <h5 class="mb-0">Senior 3-4 Subjects</h5>
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Senior 3-4 Elective Subjects</h5>
                             </div>
                             <div class="card-body">
-                                <div id="s3s4-subjects">
+                                <div id="s3s4-elective-subjects">
                                     <!-- Subjects will be loaded here -->
                                 </div>
                             </div>
@@ -390,9 +390,34 @@
                 { name: 'Kiswahili', code: 'KIS', hours: 3, department: 'languages' },
                 { name: 'Physical Education', code: 'PE', hours: 3, department: 'physical-education' },
                 { name: 'Religious Education', code: 'RE', hours: 3, department: 'religious-studies' },
-                { name: 'General Science', code: 'GS', hours: 4, department: 'science' }
+                { name: 'General Science', code: 'GS', hours: 4, department: 'science' },
+                { name: 'Literature in English', code: 'LIT', hours: 3, department: 'english' },
+                { name: 'Luganda', code: 'LUG', hours: 3, department: 'languages' },
+                { name: 'French', code: 'FRE', hours: 3, department: 'languages' },
+                { name: 'Fine Art', code: 'ART', hours: 3, department: 'arts' },
+                { name: 'Entrepreneurship Education', code: 'ENT', hours: 3, department: 'business' },
+                { name: 'Performing Arts', code: 'PA', hours: 3, department: 'arts' },
+                { name: 'Agriculture', code: 'AGR', hours: 3, department: 'agriculture' },
+                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science', paper: '540/1' },
+                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science', paper: '540/2' },
+                { name: 'Business Studies', code: 'BS', hours: 3, department: 'business' },
+                { name: 'Home Economics', code: 'HE', hours: 3, department: 'home-economics' },
+                { name: 'Woodwork', code: 'WW', hours: 3, department: 'technical' },
+                { name: 'Metal Fabrication', code: 'MF', hours: 3, department: 'technical' }
             ],
-            's1s2-elective': [
+            's3s4-compulsory': [
+                { name: 'English Language', code: 'ENG', hours: 6, department: 'english' },
+                { name: 'Mathematics', code: 'MATH', hours: 6, department: 'mathematics' },
+                { name: 'History & Political Education', code: 'HPE', hours: 4, department: 'history' },
+                { name: 'Physics', code: 'PHY', hours: 4, department: 'physics' },
+                { name: 'Chemistry', code: 'CHEM', hours: 4, department: 'chemistry' },
+                { name: 'Biology', code: 'BIO', hours: 4, department: 'biology' },
+                { name: 'Geography', code: 'GEO', hours: 4, department: 'geography' },
+                { name: 'Kiswahili', code: 'KIS', hours: 3, department: 'languages' },
+                { name: 'Physical Education', code: 'PE', hours: 3, department: 'physical-education' },
+                { name: 'Religious Education', code: 'RE', hours: 3, department: 'religious-studies' }
+            ],
+            's3s4-elective': [
                 { name: 'Literature in English', code: 'LIT', hours: 3, department: 'english' },
                 { name: 'Luganda', code: 'LUG', hours: 3, department: 'languages' },
                 { name: 'French', code: 'FRE', hours: 3, department: 'languages' },
@@ -517,7 +542,7 @@
             
             if (departmentSelect) {
                 // Clear existing options except the first one
-                departmentSelect.innerHTML = '<option value="">Select Department</option>';
+                departmentSelect.innerHTML = '<option value="">Select Department</option><option value="custom">+ Add New Department</option>';
                 
                 // Add department options
                 departments.forEach(department => {
@@ -639,8 +664,8 @@
         // Display subjects by level
         function displaySubjectsByLevel() {
             displaySubjectCategory('s1s2-compulsory-subjects', 's1s2-compulsory');
-            displaySubjectCategory('s1s2-elective-subjects', 's1s2-elective');
-            displaySubjectCategory('s3s4-subjects', 's3s4');
+            displaySubjectCategory('s3s4-compulsory-subjects', 's3s4-compulsory');
+            displaySubjectCategory('s3s4-elective-subjects', 's3s4-elective');
             displaySubjectCategory('s5s6-principal-subjects', 's5s6-principal');
             displaySubjectCategory('s5s6-subsidiary-subjects', 's5s6-subsidiary');
         }
@@ -651,9 +676,9 @@
             if (!container) return;
             
             const categorySubjects = subjects.filter(subject => {
-                if (category === 's1s2-compulsory') return subject.level === 's1-s2' && subject.type === 'compulsory';
-                if (category === 's1s2-elective') return subject.level === 's1-s2' && subject.type === 'elective';
-                if (category === 's3s4') return subject.level === 's3-s4';
+                if (category === 's1s2-compulsory') return subject.level === 's1-s2';
+                if (category === 's3s4-compulsory') return subject.level === 's3-s4' && subject.type === 'compulsory';
+                if (category === 's3s4-elective') return subject.level === 's3-s4' && subject.type === 'elective';
                 if (category === 's5s6-principal') return subject.level === 's5-s6' && subject.type === 'principal';
                 if (category === 's5s6-subsidiary') return subject.level === 's5-s6' && subject.type === 'subsidiary';
                 return false;
