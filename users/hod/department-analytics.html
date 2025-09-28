@@ -275,7 +275,7 @@
                                     <div class="card-body">
                                         <h3 id="overall-average">0%</h3>
                                         <p class="mb-0">Overall Average</p>
-                                        <small class="text-light">+2.1% from last term</small>
+                                        <small class="text-light" id="overall-average-change">Loading...</small>
                                     </div>
                                 </div>
                             </div>
@@ -284,7 +284,7 @@
                                     <div class="card-body">
                                         <h3 id="pass-rate">0%</h3>
                                         <p class="mb-0">Pass Rate</p>
-                                        <small class="text-light">+3.2% from last term</small>
+                                        <small class="text-light" id="pass-rate-change">Loading...</small>
                                     </div>
                                 </div>
                             </div>
@@ -293,7 +293,7 @@
                                     <div class="card-body">
                                         <h3 id="active-classes">0</h3>
                                         <p class="mb-0">Active Classes</p>
-                                        <small class="text-light">3 new this term</small>
+                                        <small class="text-light" id="active-classes-change">Loading...</small>
                                     </div>
                                 </div>
                             </div>
@@ -302,7 +302,7 @@
                                     <div class="card-body">
                                         <h3 id="total-teachers">0</h3>
                                         <p class="mb-0">Teachers</p>
-                                        <small class="text-light">1 new hire</small>
+                                        <small class="text-light" id="total-teachers-change">Loading...</small>
                                     </div>
                                 </div>
                             </div>
@@ -592,6 +592,15 @@
                 });
                 
                 console.log('Grades loaded:', grades.length);
+                if (grades.length > 0) {
+                    console.log('Sample grade structure:', grades[0]);
+                    console.log('Grade field analysis:', {
+                        hasFinalGradePercentage: grades.filter(g => g.finalGrade && typeof g.finalGrade.percentage === 'number').length,
+                        hasFinalGradeNumber: grades.filter(g => typeof g.finalGrade === 'number').length,
+                        hasFinalScore: grades.filter(g => typeof g.finalScore === 'number').length,
+                        hasTotalScore: grades.filter(g => typeof g.totalScore === 'number').length
+                    });
+                }
             } catch (error) {
                 console.error('Error loading grades:', error);
             }
@@ -617,15 +626,44 @@
 
         function calculateAnalytics() {
             console.log('Calculating analytics from loaded data');
+            console.log('Total grades loaded:', grades.length);
             
-            // Calculate overall average
-            const validGrades = grades.filter(g => g.finalGrade && typeof g.finalGrade === 'number');
+            // Calculate overall average - check multiple possible field names
+            const validGrades = grades.filter(g => {
+                // Check for finalGrade.percentage
+                if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                // Check for direct finalGrade number
+                if (typeof g.finalGrade === 'number') return true;
+                // Check for finalScore
+                if (typeof g.finalScore === 'number') return true;
+                // Check for totalScore
+                if (typeof g.totalScore === 'number') return true;
+                return false;
+            });
+            
+            console.log('Valid grades found:', validGrades.length);
+            
             const overallAverage = validGrades.length > 0 
-                ? validGrades.reduce((sum, g) => sum + g.finalGrade, 0) / validGrades.length 
+                ? validGrades.reduce((sum, g) => {
+                    // Try different field names for the final grade
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                    if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                    if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                    if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                    return sum;
+                }, 0) / validGrades.length 
                 : 0;
             
             // Calculate pass rate (grades >= 50)
-            const passingGrades = validGrades.filter(g => g.finalGrade >= 50);
+            const passingGrades = validGrades.filter(g => {
+                let score = 0;
+                if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                else if (typeof g.finalScore === 'number') score = g.finalScore;
+                else if (typeof g.totalScore === 'number') score = g.totalScore;
+                return score >= 50;
+            });
+            
             const passRate = validGrades.length > 0 ? (passingGrades.length / validGrades.length) * 100 : 0;
             
             // Count active classes
@@ -637,7 +675,12 @@
             // Calculate grade distribution
             const gradeDistribution = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
             validGrades.forEach(grade => {
-                const score = grade.finalGrade;
+                let score = 0;
+                if (grade.finalGrade && typeof grade.finalGrade.percentage === 'number') score = grade.finalGrade.percentage;
+                else if (typeof grade.finalGrade === 'number') score = grade.finalGrade;
+                else if (typeof grade.finalScore === 'number') score = grade.finalScore;
+                else if (typeof grade.totalScore === 'number') score = grade.totalScore;
+                
                 if (score >= 90) gradeDistribution.A++;
                 else if (score >= 80) gradeDistribution.B++;
                 else if (score >= 70) gradeDistribution.C++;
@@ -655,11 +698,35 @@
                     g.subjectName === subject.name
                 );
                 if (subjectGrades.length > 0) {
-                    const validSubjectGrades = subjectGrades.filter(g => g.finalGrade && typeof g.finalGrade === 'number');
-                    subjectPerformance[subject.name || subject.subjectName] = validSubjectGrades.length > 0
-                        ? validSubjectGrades.reduce((sum, g) => sum + g.finalGrade, 0) / validSubjectGrades.length
-                        : 0;
+                    const validSubjectGrades = subjectGrades.filter(g => {
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                        if (typeof g.finalGrade === 'number') return true;
+                        if (typeof g.finalScore === 'number') return true;
+                        if (typeof g.totalScore === 'number') return true;
+                        return false;
+                    });
+                    
+                    if (validSubjectGrades.length > 0) {
+                        const totalScore = validSubjectGrades.reduce((sum, g) => {
+                            if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                            if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                            if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                            if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                            return sum;
+                        }, 0);
+                        
+                        subjectPerformance[subject.name || subject.subjectName] = totalScore / validSubjectGrades.length;
+                    }
                 }
+            });
+            
+            console.log('Calculated analytics:', {
+                overallAverage: overallAverage.toFixed(1),
+                passRate: passRate.toFixed(1),
+                activeClasses,
+                totalTeachers,
+                gradeDistribution,
+                subjectPerformance
             });
             
             // Generate dynamic insights and recommendations
@@ -854,6 +921,108 @@
             document.getElementById('pass-rate').textContent = `${analyticsData.passRate.toFixed(1)}%`;
             document.getElementById('active-classes').textContent = analyticsData.activeClasses;
             document.getElementById('total-teachers').textContent = analyticsData.totalTeachers;
+            
+            // Update dynamic increments
+            updateMetricIncrements();
+        }
+
+        function updateMetricIncrements() {
+            console.log('Updating metric increments');
+            
+            // Calculate increments based on current data
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            // Calculate previous period data for comparison
+            const previousPeriodGrades = grades.filter(g => {
+                const gradeDate = g.createdAt;
+                if (!gradeDate) return false;
+                
+                const gradeMonth = gradeDate.getMonth();
+                const gradeYear = gradeDate.getFullYear();
+                
+                // Compare with previous month or previous term
+                if (currentMonth === 0) {
+                    // If current month is January, compare with December of previous year
+                    return gradeMonth === 11 && gradeYear === currentYear - 1;
+                } else {
+                    // Compare with previous month
+                    return gradeMonth === currentMonth - 1 && gradeYear === currentYear;
+                }
+            });
+            
+            // Calculate previous period averages
+            const previousValidGrades = previousPeriodGrades.filter(g => {
+                if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                if (typeof g.finalGrade === 'number') return true;
+                if (typeof g.finalScore === 'number') return true;
+                if (typeof g.totalScore === 'number') return true;
+                return false;
+            });
+            
+            const previousOverallAverage = previousValidGrades.length > 0 
+                ? previousValidGrades.reduce((sum, g) => {
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                    if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                    if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                    if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                    return sum;
+                }, 0) / previousValidGrades.length 
+                : 0;
+            
+            const previousPassRate = previousValidGrades.length > 0 
+                ? (previousValidGrades.filter(g => {
+                    let score = 0;
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                    else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                    else if (typeof g.finalScore === 'number') score = g.finalScore;
+                    else if (typeof g.totalScore === 'number') score = g.totalScore;
+                    return score >= 50;
+                }).length / previousValidGrades.length) * 100 
+                : 0;
+            
+            // Calculate changes
+            const overallAverageChange = analyticsData.overallAverage - previousOverallAverage;
+            const passRateChange = analyticsData.passRate - previousPassRate;
+            
+            // Update increment displays
+            updateIncrementDisplay('overall-average-change', overallAverageChange, '%', 'from last period');
+            updateIncrementDisplay('pass-rate-change', passRateChange, '%', 'from last period');
+            
+            // For classes and teachers, show current term activity
+            const currentTermClasses = new Set(grades.filter(g => {
+                const gradeDate = g.createdAt;
+                if (!gradeDate) return false;
+                const gradeMonth = gradeDate.getMonth();
+                const gradeYear = gradeDate.getFullYear();
+                return gradeMonth === currentMonth && gradeYear === currentYear;
+            }).map(g => g.class || g.className)).size;
+            
+            const currentTermTeachers = teachers.filter(t => {
+                // Check if teacher was added this term (simplified logic)
+                return t.createdAt && t.createdAt.getMonth() === currentMonth && t.createdAt.getFullYear() === currentYear;
+            }).length;
+            
+            updateIncrementDisplay('active-classes-change', currentTermClasses, '', 'this term', 'classes');
+            updateIncrementDisplay('total-teachers-change', currentTermTeachers, '', 'this term', 'teachers');
+        }
+
+        function updateIncrementDisplay(elementId, change, unit, period, itemType = '') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (change === 0) {
+                element.textContent = `No change ${period}`;
+            } else if (change > 0) {
+                const changeText = itemType ? `${change} new ${itemType} ${period}` : `+${change.toFixed(1)}${unit} ${period}`;
+                element.textContent = changeText;
+                element.className = 'text-light text-success';
+            } else {
+                const changeText = itemType ? `${Math.abs(change)} fewer ${itemType} ${period}` : `${change.toFixed(1)}${unit} ${period}`;
+                element.textContent = changeText;
+                element.className = 'text-light text-warning';
+            }
         }
 
         function displayInsightsAndRecommendations() {
@@ -1142,14 +1311,40 @@
         function calculateFilteredAnalytics(filteredGrades) {
             console.log('Calculating filtered analytics');
             
-            // Calculate overall average
-            const validGrades = filteredGrades.filter(g => g.finalGrade && typeof g.finalGrade === 'number');
+            // Calculate overall average - check multiple possible field names
+            const validGrades = filteredGrades.filter(g => {
+                // Check for finalGrade.percentage
+                if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                // Check for direct finalGrade number
+                if (typeof g.finalGrade === 'number') return true;
+                // Check for finalScore
+                if (typeof g.finalScore === 'number') return true;
+                // Check for totalScore
+                if (typeof g.totalScore === 'number') return true;
+                return false;
+            });
+            
             const overallAverage = validGrades.length > 0 
-                ? validGrades.reduce((sum, g) => sum + g.finalGrade, 0) / validGrades.length 
+                ? validGrades.reduce((sum, g) => {
+                    // Try different field names for the final grade
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                    if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                    if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                    if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                    return sum;
+                }, 0) / validGrades.length 
                 : 0;
             
             // Calculate pass rate (grades >= 50)
-            const passingGrades = validGrades.filter(g => g.finalGrade >= 50);
+            const passingGrades = validGrades.filter(g => {
+                let score = 0;
+                if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                else if (typeof g.finalScore === 'number') score = g.finalScore;
+                else if (typeof g.totalScore === 'number') score = g.totalScore;
+                return score >= 50;
+            });
+            
             const passRate = validGrades.length > 0 ? (passingGrades.length / validGrades.length) * 100 : 0;
             
             // Count active classes
@@ -1161,7 +1356,12 @@
             // Calculate grade distribution
             const gradeDistribution = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
             validGrades.forEach(grade => {
-                const score = grade.finalGrade;
+                let score = 0;
+                if (grade.finalGrade && typeof grade.finalGrade.percentage === 'number') score = grade.finalGrade.percentage;
+                else if (typeof grade.finalGrade === 'number') score = grade.finalGrade;
+                else if (typeof grade.finalScore === 'number') score = grade.finalScore;
+                else if (typeof grade.totalScore === 'number') score = grade.totalScore;
+                
                 if (score >= 90) gradeDistribution.A++;
                 else if (score >= 80) gradeDistribution.B++;
                 else if (score >= 70) gradeDistribution.C++;
@@ -1179,10 +1379,25 @@
                     g.subjectName === subject.name
                 );
                 if (subjectGrades.length > 0) {
-                    const validSubjectGrades = subjectGrades.filter(g => g.finalGrade && typeof g.finalGrade === 'number');
-                    subjectPerformance[subject.name || subject.subjectName] = validSubjectGrades.length > 0
-                        ? validSubjectGrades.reduce((sum, g) => sum + g.finalGrade, 0) / validSubjectGrades.length
-                        : 0;
+                    const validSubjectGrades = subjectGrades.filter(g => {
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                        if (typeof g.finalGrade === 'number') return true;
+                        if (typeof g.finalScore === 'number') return true;
+                        if (typeof g.totalScore === 'number') return true;
+                        return false;
+                    });
+                    
+                    if (validSubjectGrades.length > 0) {
+                        const totalScore = validSubjectGrades.reduce((sum, g) => {
+                            if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                            if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                            if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                            if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                            return sum;
+                        }, 0);
+                        
+                        subjectPerformance[subject.name || subject.subjectName] = totalScore / validSubjectGrades.length;
+                    }
                 }
             });
             
