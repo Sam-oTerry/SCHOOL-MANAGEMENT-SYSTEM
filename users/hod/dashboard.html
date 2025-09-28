@@ -551,6 +551,19 @@
         console.log('window.loadHODUserData available:', typeof window.loadHODUserData);
         console.log('window.updateUserDisplay available:', typeof window.updateUserDisplay);
         
+        // Test function to see what's happening
+        async function testLoadHODUserData() {
+            try {
+                console.log('Testing loadHODUserData function...');
+                const testResult = await window.loadHODUserData(window.db, currentUser);
+                console.log('Test result:', testResult);
+                return testResult;
+            } catch (error) {
+                console.error('Test error:', error);
+                return null;
+            }
+        }
+        
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
@@ -571,6 +584,9 @@
                 
                 // Load user data using utility function
                 console.log('About to call loadHODUserData...');
+                console.log('Function being called:', window.loadHODUserData.toString().substring(0, 100));
+                const testResult = await testLoadHODUserData();
+                console.log('Test function returned:', testResult);
                 const userResult = await window.loadHODUserData(window.db, currentUser);
                 console.log('loadHODUserData returned:', userResult);
                 if (!userResult.success) {
