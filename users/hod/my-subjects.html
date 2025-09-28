@@ -512,7 +512,30 @@
             }));
             const subjects = [];
             snaps.forEach(snap => snap.forEach(doc => subjects.push({ id: doc.id, ...doc.data() })));
-            return subjects;
+            
+            // Resolve department names for subjects that don't have them
+            const subjectsWithResolvedDepartments = await Promise.all(subjects.map(async (subject) => {
+                if (!subject.departmentName && subject.department) {
+                    try {
+                        // Try to resolve department name from department ID
+                        const deptDoc = await db.collection('departments').doc(subject.department).get();
+                        if (deptDoc.exists) {
+                            const deptData = deptDoc.data();
+                            subject.departmentName = deptData.name || deptData.code || subject.department;
+                            console.log(`Resolved department name for subject ${subject.name}: ${subject.departmentName}`);
+                        } else {
+                            // If department document doesn't exist, use the department field as name
+                            subject.departmentName = subject.department;
+                        }
+                    } catch (error) {
+                        console.error('Error resolving department name:', error);
+                        subject.departmentName = subject.department;
+                    }
+                }
+                return subject;
+            }));
+            
+            return subjectsWithResolvedDepartments;
         }
 
         function renderCounts(subjects) {
@@ -588,7 +611,10 @@
                     <td>
                         <div class="d-flex align-items-center">
                             <div class="subject-icon me-3"><i class="fas fa-book text-primary"></i></div>
-                            <div><strong>${s.name || s.subjectName || 'Subject'}</strong><br><small class="text-muted">${s.department || (s.academicInfo && s.academicInfo.department) || ''}</small></div>
+                            <div>
+                                <div class="fw-bold">${s.name || s.subjectName || 'Subject'}</div>
+                                <small class="text-muted">Code: ${s.code || 'N/A'} | Department: ${s.departmentName || 'N/A'}</small>
+                            </div>
                         </div>
                     </td>
                     <td>
@@ -596,9 +622,9 @@
                             ${classesDisplay}
                         </div>
                     </td>
-                    <td>${s.hoursPerWeek || '—'}</td>
-                    <td>${s.level || '—'}</td>
-                    <td>${s.type || '—'}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
                     <td><span class="badge ${statusClass}">${(s.status || 'Active').toString().charAt(0).toUpperCase() + (s.status || 'Active').toString().slice(1)}</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="viewSubject('${s.id}')"><i class="fas fa-eye"></i> View</button>
