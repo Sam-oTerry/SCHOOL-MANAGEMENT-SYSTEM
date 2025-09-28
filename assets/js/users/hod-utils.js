@@ -1,6 +1,9 @@
 // HOD Utility Functions
 // Shared utilities for all Head of Department pages
 
+// HOD Utility Functions
+console.log('HOD Utils loaded successfully');
+
 // Note: currentUser is declared globally in system-admin-utils.js
 
 // Get Firebase instances from global scope
@@ -398,6 +401,7 @@ function logout() {
 }
 
 // Make functions globally available
+console.log('Exporting loadHODUserData to global scope');
 window.waitForAuth = waitForAuth;
 window.waitForFirebase = waitForFirebase;
 window.loadHODUserData = loadHODUserData;

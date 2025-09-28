@@ -546,6 +546,11 @@
     <script src="../../assets/js/users/hod-utils.js"></script>
     <script src="../../assets/js/users/hod.js"></script>
     <script>
+        // Test if hod-utils.js loaded properly
+        console.log('Dashboard script loaded');
+        console.log('window.loadHODUserData available:', typeof window.loadHODUserData);
+        console.log('window.updateUserDisplay available:', typeof window.updateUserDisplay);
+        
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             initializeDashboard();
