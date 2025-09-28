@@ -996,6 +996,20 @@
                 hodOption.style.fontWeight = 'bold';
                 select.appendChild(hodOption);
                 console.log('Added HOD option to dropdown');
+                
+                // Also add HOD to teachers array if not already there
+                const existingHOD = teachers.find(t => t.id === window.currentUser.uid);
+                if (!existingHOD) {
+                    teachers.push({
+                        id: window.currentUser.uid,
+                        name: window.currentUser.displayName || 'HOD',
+                        staffId: 'HOD',
+                        role: 'hod',
+                        department: currentDepartment,
+                        subjects: ['General']
+                    });
+                    console.log('Added HOD to teachers array');
+                }
             }
             
             // Get subjects that belong to the current department
@@ -1078,9 +1092,29 @@
                 
                 // Get teacher's subjects
                 const teacherSubjects = teacher.subjects || [];
-                const subjectsText = teacherSubjects.length > 0 
-                    ? teacherSubjects.join(', ') 
-                    : (teacher.academicInfo?.subjects?.join(', ') || 'General');
+                let subjectsText = 'General';
+                
+                if (teacherSubjects.length > 0) {
+                    // Handle both string and object subjects
+                    subjectsText = teacherSubjects.map(subject => {
+                        if (typeof subject === 'string') {
+                            return subject;
+                        } else if (typeof subject === 'object') {
+                            return subject.name || subject.subjectName || subject;
+                        }
+                        return subject;
+                    }).join(', ');
+                } else if (teacher.academicInfo?.subjects?.length > 0) {
+                    // Handle academicInfo subjects
+                    subjectsText = teacher.academicInfo.subjects.map(subject => {
+                        if (typeof subject === 'string') {
+                            return subject;
+                        } else if (typeof subject === 'object') {
+                            return subject.name || subject.subjectName || subject;
+                        }
+                        return subject;
+                    }).join(', ');
+                }
                 
                 // Get staff ID
                 const staffId = teacher.staffId || teacher.academicInfo?.staffId || 'N/A';
@@ -1956,6 +1990,18 @@
             // Initialize Firebase to set up auth state listener
             initializeFirebase();
             setupMobileSidebar(); // From hod-utils.js
+            
+            // Add event listener for modal shown
+            const assignModal = document.getElementById('assignTeacherModal');
+            if (assignModal) {
+                assignModal.addEventListener('shown.bs.modal', function() {
+                    console.log('Assign Teacher modal opened, populating dropdowns...');
+                    populateTeacherDropdown('teacher-select');
+                    populateSubjectDropdown('assign-subject');
+                    populateClassDropdown('assign-class');
+                    populateTermDropdown('assign-term');
+                });
+            }
         });
 
 
