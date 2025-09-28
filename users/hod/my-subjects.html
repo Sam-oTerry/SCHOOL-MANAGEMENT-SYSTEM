@@ -415,20 +415,101 @@
         function uniq(arr) { return Array.from(new Set(arr)); }
 
         async function getAssignedSubjectIds(uid) {
+            console.log('Getting assigned subject IDs for user:', uid);
             const snap = await db.collection('users').doc(uid).get();
-            if (!snap.exists) return [];
+            if (!snap.exists) {
+                console.log('User document not found');
+                return [];
+            }
+            
             const data = snap.data() || {};
+            console.log('User data:', data);
+            
             // Support both employmentInfo.subjects and academicInfo.subjects
-            const a = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
-            const b = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
-            return uniq([...(a||[]), ...(b||[])]).filter(Boolean);
+            const employmentSubjects = (data.employmentInfo && Array.isArray(data.employmentInfo.subjects)) ? data.employmentInfo.subjects : [];
+            const academicSubjects = (data.academicInfo && Array.isArray(data.academicInfo.subjects)) ? data.academicInfo.subjects : [];
+            
+            console.log('Employment subjects:', employmentSubjects);
+            console.log('Academic subjects:', academicSubjects);
+            
+            // Extract IDs from subjects (handle both string IDs and object subjects)
+            const extractIds = (subjects) => {
+                return subjects.map(subject => {
+                    if (typeof subject === 'string') {
+                        console.log('String subject ID:', subject);
+                        return subject;
+                    } else if (typeof subject === 'object' && subject.id) {
+                        console.log('Object subject with ID:', subject.id);
+                        return subject.id;
+                    } else if (typeof subject === 'object' && subject.subjectId) {
+                        console.log('Object subject with subjectId:', subject.subjectId);
+                        return subject.subjectId;
+                    } else if (typeof subject === 'object' && subject.name) {
+                        // If it's an object with name but no ID, we need to find the subject by name
+                        console.log('Object subject with name (need to find ID):', subject.name);
+                        return null; // Will be handled separately
+                    }
+                    console.log('Unknown subject format:', subject);
+                    return null;
+                }).filter(Boolean);
+            };
+            
+            const employmentIds = extractIds(employmentSubjects);
+            const academicIds = extractIds(academicSubjects);
+            
+            // Handle subjects stored as objects with names (find their IDs)
+            const findSubjectIdsByName = async (subjects) => {
+                const nameBasedSubjects = subjects.filter(subject => 
+                    typeof subject === 'object' && subject.name && !subject.id && !subject.subjectId
+                );
+                
+                if (nameBasedSubjects.length === 0) return [];
+                
+                console.log('Finding IDs for name-based subjects:', nameBasedSubjects);
+                
+                // Get all subjects to find matches by name
+                const allSubjectsSnapshot = await db.collection('subjects').get();
+                const allSubjects = [];
+                allSubjectsSnapshot.forEach(doc => {
+                    allSubjects.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const foundIds = [];
+                nameBasedSubjects.forEach(nameSubject => {
+                    const matchingSubject = allSubjects.find(s => 
+                        s.name && s.name.toLowerCase() === nameSubject.name.toLowerCase()
+                    );
+                    if (matchingSubject) {
+                        console.log(`Found subject ID for "${nameSubject.name}":`, matchingSubject.id);
+                        foundIds.push(matchingSubject.id);
+                    } else {
+                        console.log(`No matching subject found for "${nameSubject.name}"`);
+                    }
+                });
+                
+                return foundIds;
+            };
+            
+            const employmentNameIds = await findSubjectIdsByName(employmentSubjects);
+            const academicNameIds = await findSubjectIdsByName(academicSubjects);
+            
+            const allIds = [...employmentIds, ...academicIds, ...employmentNameIds, ...academicNameIds];
+            console.log('All extracted subject IDs:', allIds);
+            
+            return uniq(allIds);
         }
 
         async function getSubjectsByIds(ids) {
+            console.log('getSubjectsByIds called with:', ids);
             if (!ids || ids.length === 0) return [];
             const batches = [];
             for (let i = 0; i < ids.length; i += 10) batches.push(ids.slice(i, i + 10));
-            const snaps = await Promise.all(batches.map(chunk => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get()));
+            console.log('Batches created:', batches);
+            
+            const snaps = await Promise.all(batches.map(chunk => {
+                console.log('Querying with chunk:', chunk);
+                return db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
+            }));
             const subjects = [];
             snaps.forEach(snap => snap.forEach(doc => subjects.push({ id: doc.id, ...doc.data() })));
             return subjects;
