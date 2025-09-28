@@ -449,6 +449,18 @@
                     return;
                 }
                 
+                // Ensure window.currentUserData is set with department info
+                if (userResult.userData) {
+                    window.currentUserData = {
+                        ...userResult.userData,
+                        departmentId: userResult.departmentId,
+                        departmentName: userResult.departmentName,
+                        userName: userResult.userName,
+                        staffId: userResult.staffId
+                    };
+                    console.log('Set window.currentUserData:', window.currentUserData);
+                }
+                
                 // Update UI with user data
                 console.log('Updating user display...');
                 updateDepartmentAnalyticsUserDisplay(userResult);
@@ -486,9 +498,11 @@
 
         async function loadSubjects() {
             console.log('Loading subjects for analytics');
+            console.log('window.currentUserData:', window.currentUserData);
             try {
                 // Get current user's department
                 const currentDepartmentId = window.currentUserData?.departmentId;
+                console.log('Department ID from currentUserData:', currentDepartmentId);
                 if (!currentDepartmentId) {
                     console.log('No department ID found for current user');
                     subjects = [];
@@ -521,9 +535,11 @@
 
         async function loadClasses() {
             console.log('Loading classes for analytics');
+            console.log('window.currentUserData:', window.currentUserData);
             try {
                 // Get current user's department
                 const currentDepartmentId = window.currentUserData?.departmentId;
+                console.log('Department ID from currentUserData:', currentDepartmentId);
                 if (!currentDepartmentId) {
                     console.log('No department ID found for current user');
                     classes = [];
@@ -582,9 +598,11 @@
 
         async function loadTeachers() {
             console.log('Loading teachers for analytics');
+            console.log('window.currentUserData:', window.currentUserData);
             try {
                 // Get current user's department
                 const currentDepartmentId = window.currentUserData?.departmentId;
+                console.log('Department ID from currentUserData:', currentDepartmentId);
                 if (!currentDepartmentId) {
                     console.log('No department ID found for current user');
                     teachers = [];
