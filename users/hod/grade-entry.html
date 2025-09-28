@@ -394,8 +394,31 @@
             const user = auth.currentUser;
             if (!user) return { assigned: [], subjects: [] };
             const doc = await db.collection('users').doc(user.uid).get();
-            const ids = (doc.exists && doc.data().academicInfo && Array.isArray(doc.data().academicInfo.subjects)) ? doc.data().academicInfo.subjects : [];
+            
+            if (!doc.exists) return { assigned: [], subjects: [] };
+            
+            const userData = doc.data();
+            const rawSubjects = (userData.academicInfo && Array.isArray(userData.academicInfo.subjects)) ? userData.academicInfo.subjects : [];
+            
+            // Extract IDs from subjects (handle both string IDs and object subjects)
+            const extractIds = (subjects) => {
+                return subjects.map(subject => {
+                    if (typeof subject === 'string') {
+                        return subject;
+                    } else if (typeof subject === 'object' && subject.id) {
+                        return subject.id;
+                    } else if (typeof subject === 'object' && subject.subjectId) {
+                        return subject.subjectId;
+                    }
+                    return null;
+                }).filter(Boolean);
+            };
+            
+            const ids = extractIds(rawSubjects);
+            console.log('Extracted subject IDs for grade entry:', ids);
+            
             if (ids.length === 0) return { assigned: [], subjects: [] };
+            
             const chunks = [];
             for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
             const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()))
