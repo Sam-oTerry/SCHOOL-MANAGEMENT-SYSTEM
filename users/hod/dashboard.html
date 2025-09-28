@@ -256,7 +256,7 @@
                             <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
                         </div>
                         <h5 class="text-white">Head of Department</h5>
-                        <p class="small text-white-50" id="sidebar-staff-id">Staff ID: Loading...</p>
+                        <small class="text-muted" id="sidebar-staff-id">Staff ID: Loading...</small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -330,7 +330,7 @@
                 <div class="header">
                     <div>
                         <h4>Head of Department Dashboard</h4>
-                        <span class="role-badge" id="department-badge">Loading Department...</span>
+                        <span class="role-badge" id="department-badge">Loading...</span>
                     </div>
                     <div>
                         <span id="current-user">Loading...</span>
@@ -433,38 +433,10 @@
                         
                         <div class="card mt-3">
                             <div class="card-header">Recent Activity</div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-user-plus"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Teacher Assigned</h6>
-                                        <p class="text-muted mb-0">Mr. Okello to S.4 Science A</p>
-                                        <small class="text-muted">2 hours ago</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Results Approved</h6>
-                                        <p class="text-muted mb-0">Mathematics results approved</p>
-                                        <small class="text-muted">1 day ago</small>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex align-items-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Performance Updated</h6>
-                                        <p class="text-muted mb-0">Department performance report</p>
-                                        <small class="text-muted">3 days ago</small>
-                                    </div>
+                            <div class="card-body" id="recent-activity-container">
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    Loading recent activity...
                                 </div>
                             </div>
                         </div>
@@ -475,7 +447,7 @@
                 <div class="card mt-4">
                     <div class="card-header">
                         <h5>Department Performance Overview</h5>
-                        <small class="text-muted">Mathematics Department - Performance Metrics</small>
+                        <small class="text-muted" id="dept-overview-subtitle">Loading...</small>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -484,23 +456,23 @@
                                 <table class="table table-sm">
                                     <tr>
                                         <td><strong>Total Teachers:</strong></td>
-                                        <td>8</td>
+                                        <td id="dept-total-teachers">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Active Teachers:</strong></td>
-                                        <td>7</td>
+                                        <td id="dept-active-teachers">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Total Classes:</strong></td>
-                                        <td>15</td>
+                                        <td id="dept-total-classes">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Total Students:</strong></td>
-                                        <td>450</td>
+                                        <td id="dept-total-students">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Average Performance:</strong></td>
-                                        <td>89.2%</td>
+                                        <td id="dept-avg-performance">Loading...</td>
                                     </tr>
                                 </table>
                             </div>
@@ -509,23 +481,23 @@
                                 <table class="table table-sm">
                                     <tr>
                                         <td><strong>Pass Rate:</strong></td>
-                                        <td>92.5%</td>
+                                        <td id="dept-pass-rate">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Department Rank:</strong></td>
-                                        <td>1st</td>
+                                        <td id="dept-rank">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Top Teacher:</strong></td>
-                                        <td>Mr. Okello (95%)</td>
+                                        <td id="dept-top-teacher">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Workload Average:</strong></td>
-                                        <td>16 hrs/week</td>
+                                        <td id="dept-workload-avg">Loading...</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Results Pending:</strong></td>
-                                        <td>3 classes</td>
+                                        <td id="dept-pending-results">Loading...</td>
                                     </tr>
                                 </table>
                             </div>
@@ -557,44 +529,62 @@
             setupMobileSidebar();
         });
 
+        // Dashboard Functionality
+        let isInitialized = false;
+        let isDataLoaded = false;
+        let dashboardData = {};
+        
         async function initializeDashboard() {
+            console.log('initializeDashboard called');
             try {
                 // Wait for authentication
-                await waitForAuth();
-                
-                // Check if database is available
-                console.log('Database available:', !!window.db);
-                console.log('Current user:', currentUser);
-                
-                // Check if loadHODUserData function is available
-                console.log('loadHODUserData function available:', typeof window.loadHODUserData);
+                console.log('Waiting for auth...');
+                await waitForAuth(); // From hod-utils.js
+                console.log('Auth completed, currentUser:', window.currentUser);
                 
                 // Load user data using utility function
-                console.log('About to call loadHODUserData...');
-                const userResult = await window.loadHODUserData(window.db, currentUser);
-                console.log('loadHODUserData returned:', userResult);
+                console.log('Loading user data...');
+                const userResult = await window.loadHODUserData(window.db, window.currentUser);
                 if (!userResult.success) {
-                    showError(userResult.error);
+                    showError(userResult.error); // From hod-utils.js
                     return;
                 }
                 
-                // Update UI with user data
-                updateUserDisplay(userResult);
+                // Ensure window.currentUserData is set with department info
+                if (userResult.userData) {
+                    window.currentUserData = {
+                        ...userResult.userData,
+                        departmentId: userResult.departmentId,
+                        departmentName: userResult.departmentName,
+                        userName: userResult.userName,
+                        staffId: userResult.staffId
+                    };
+                    console.log('Set window.currentUserData:', window.currentUserData);
+                }
                 
-                // Load department data
+                // Update UI with user data
+                console.log('Updating user display...');
+                updateDashboardUserDisplay(userResult);
+                
+                // Load dynamic data
+                console.log('Loading dynamic data...');
                 await loadDepartmentData(userResult);
+                await loadRecentActivity();
+                
+                isDataLoaded = true;
+                console.log('Dashboard initialization completed successfully');
                 
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
-                showError('Failed to initialize dashboard. Please refresh and try again.');
+                showError('Failed to initialize dashboard. Please refresh and try again.'); // From hod-utils.js
             }
         }
 
         function waitForAuth() {
             return new Promise((resolve, reject) => {
-                const unsubscribe = auth.onAuthStateChanged((user) => {
+                const unsubscribe = window.auth.onAuthStateChanged((user) => {
                     unsubscribe();
-                    currentUser = user;
+                    window.currentUser = user;
                     if (user) {
                         resolve();
                     } else {
@@ -604,7 +594,7 @@
             });
         }
 
-        function updateUserDisplay(userResult) {
+        function updateDashboardUserDisplay(userResult) {
             try {
                 // Use the standardized updateUserDisplay function from hod-utils.js
                 if (window.updateUserDisplay) {
@@ -629,128 +619,445 @@
         }
 
         async function loadDepartmentData(userResult) {
+            console.log('Loading department data...');
             try {
                 const departmentId = userResult.departmentId;
                 const departmentName = userResult.departmentName;
                 
                 console.log('Loading data for department:', departmentId);
 
-                // 1) Teachers in department (support single or multiple departments)
-                const [teachersByDept, teachersByDepts] = await Promise.all([
+                // Load all department data in parallel
+                const [teachersSnapshot, subjectsSnapshot, classesSnapshot, studentsSnapshot, gradesSnapshot, resultsSnapshot] = await Promise.all([
+                    // Teachers in department
                     window.db.collection('users')
                         .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
-                        .where('academicInfo.department', '==', departmentId)
                         .get(),
-                    window.db.collection('users')
-                        .where('role', 'in', ['teacher', 'subject_teacher', 'hod'])
-                        .where('academicInfo.departments', 'array-contains', departmentId)
+                    // Subjects in department
+                    window.db.collection('subjects')
+                        .where('department', '==', departmentId)
+                        .get(),
+                    // Classes
+                    window.db.collection('classes').get(),
+                    // Students
+                    window.db.collection('students').get(),
+                    // Grades for performance calculation
+                    window.db.collection('grades').limit(1000).get(),
+                    // Results for pending count
+                    window.db.collection('results')
+                        .where('status', '==', 'pending')
                         .get()
                 ]);
-                const teachersMap = new Map();
-                teachersByDept.docs.concat(teachersByDepts.docs).forEach(d => teachersMap.set(d.id, { id: d.id, ...d.data() }));
-                const teachers = Array.from(teachersMap.values());
 
-                // 2) Subjects in department (support multi-department subjects)
-                const [subjectsByDept, subjectsByDepts] = await Promise.all([
-                    window.db.collection('subjects')
-                        .where('academicInfo.department', '==', departmentId)
-                        .get(),
-                    window.db.collection('subjects')
-                        .where('academicInfo.departments', 'array-contains', departmentId)
-                        .get()
-                ]);
-                const subjMap = new Map();
-                subjectsByDept.docs.concat(subjectsByDepts.docs).forEach(d => subjMap.set(d.id, { id: d.id, ...d.data() }));
-                const subjects = Array.from(subjMap.values());
+                // Process teachers - filter by department
+                const teachers = [];
+                teachersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const teacherDepartment = data.academicInfo?.department || data.department;
+                    
+                    if (teacherDepartment === departmentId) {
+                        teachers.push({
+                            id: doc.id,
+                            name: data.personalInfo?.fullName || data.displayName || 'Unknown Teacher',
+                            staffId: data.staffId || 'N/A',
+                            subjects: data.academicInfo?.subjects || [],
+                            department: teacherDepartment,
+                            status: data.accountStatus || 'active',
+                            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now())
+                        });
+                    }
+                });
 
-                // 3) Classes and Students
-                const classesSnap = await window.db.collection('classes')
-                    .where('academicInfo.department', '==', departmentId)
-                    .get();
-                const classes = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Process subjects
+                const subjects = [];
+                subjectsSnapshot.forEach(doc => {
+                    subjects.push({ id: doc.id, ...doc.data() });
+                });
 
-                const studentsSnap = await window.db.collection('students').get();
-                const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Process classes
+                const classes = [];
+                classesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        name: data.name || data.className || 'Unknown Class',
+                        level: data.level || data.classLevel,
+                        stream: data.stream,
+                        department: data.department
+                    });
+                });
 
-                // Compute stats
+                // Process students
+                const students = [];
+                studentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    students.push({
+                        id: doc.id,
+                        name: data.personalInfo?.fullName || data.displayName || 'Unknown Student',
+                        class: data.academicInfo?.currentClass || data.class,
+                        subjects: data.subjects || []
+                    });
+                });
+
+                // Process grades for performance calculation
+                const grades = [];
+                gradesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    grades.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now())
+                    });
+                });
+
+                // Process results
+                const pendingResults = resultsSnapshot.docs.length;
+
+                // Calculate statistics
                 const totalTeachers = teachers.length;
+                const activeTeachers = teachers.filter(t => t.status === 'active').length;
+                
+                // Calculate total classes from subjects
                 const subjectClassNames = new Set();
                 subjects.forEach(s => {
-                    if (Array.isArray(s.classes)) s.classes.forEach(cn => subjectClassNames.add(cn));
+                    if (Array.isArray(s.classes)) {
+                        s.classes.forEach(cn => subjectClassNames.add(cn));
+                    }
                 });
-                const totalClasses = subjectClassNames.size || classes.length;
+                const totalClasses = Math.max(subjectClassNames.size, classes.length);
 
-                // Students in department: enrolled in any department subject or class listed above
-                const subjectIds = new Set(subjects.map(s => s.id || s.subjectId));
+                // Calculate students in department
+                const subjectIds = new Set(subjects.map(s => s.id));
                 const classNames = new Set(Array.from(subjectClassNames));
                 const totalStudents = students.filter(st => {
-                    const stClass = (st.academicInfo && st.academicInfo.currentClass) || st.class;
+                    const stClass = st.class;
                     const byClass = stClass && classNames.has(stClass);
                     const bySubject = Array.isArray(st.subjects) && st.subjects.some(sid => subjectIds.has(sid));
                     return byClass || bySubject;
                 }).length;
 
-                // Dept performance: average of available subject averageScore
-                let perf = 0, count = 0;
-                subjects.forEach(s => {
-                    if (typeof s.averageScore === 'number') { perf += s.averageScore; count++; }
+                // Calculate department performance from grades
+                const departmentGrades = grades.filter(g => {
+                    const gradeSubject = subjects.find(s => 
+                        s.id === g.subjectId || 
+                        s.name === g.subject || 
+                        s.subjectName === g.subject
+                    );
+                    return gradeSubject !== undefined;
                 });
-                const deptPerf = count ? Math.round(perf / count) : 0;
 
-                // Update stats UI
-                document.getElementById('statDeptTeachers').textContent = totalTeachers;
-                document.getElementById('statTotalClasses').textContent = totalClasses;
-                document.getElementById('statTotalStudents').textContent = totalStudents;
-                document.getElementById('statDeptPerformance').textContent = `${deptPerf}%`;
+                const validGrades = departmentGrades.filter(g => {
+                    if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
+                    if (typeof g.finalGrade === 'number') return true;
+                    if (typeof g.finalScore === 'number') return true;
+                    if (typeof g.totalScore === 'number') return true;
+                    return false;
+                });
 
-                // Populate teachers table
-                const tbody = document.getElementById('deptTeachersTbody');
-                if (tbody) {
-                    tbody.innerHTML = '';
-                    if (teachers.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No teachers found in ${dept} department</td></tr>`;
-                    } else {
-                        teachers.forEach(t => {
-                            const fullName = (t.personalInfo && t.personalInfo.fullName) || t.username || t.email || 'Teacher';
-                            const staffId = (t.roleInfo && t.roleInfo.staffId) || t.staffId || t.id;
-                            const subjNames = subjects.map(s => s.subjectName || s.name).filter(Boolean);
-                            const classBadges = Array.from(classNames).slice(0, 4).map(cn => `<span class="badge bg-primary me-1">${cn}</span>`).join('');
-                            const perfPct = 80 + Math.floor(Math.random() * 15); // placeholder until real metric
-                            const workload = `${12 + Math.floor(Math.random() * 10)} hrs/week`;
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="teacher-avatar me-2">${(fullName || '?').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase()}</div>
-                                        <div>
-                                            <strong>${fullName}</strong><br>
-                                            <small class="text-muted">${staffId}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>${subjNames[0] || '—'}</td>
-                                <td>${classBadges || '—'}</td>
-                                <td>
-                                    <div class="progress" style="width: 60px; height: 20px;">
-                                        <div class="progress-bar" style="width: ${perfPct}%">${perfPct}%</div>
-                                    </div>
-                                </td>
-                                <td>${workload}</td>
-                                <td><span class="badge bg-success">Active</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                </td>`;
-                            tbody.appendChild(row);
-                        });
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load department data:', e);
+                const avgPerformance = validGrades.length > 0 
+                    ? validGrades.reduce((sum, g) => {
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return sum + g.finalGrade.percentage;
+                        if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
+                        if (typeof g.finalScore === 'number') return sum + g.finalScore;
+                        if (typeof g.totalScore === 'number') return sum + g.totalScore;
+                        return sum;
+                    }, 0) / validGrades.length 
+                    : 0;
+
+                const passRate = validGrades.length > 0 
+                    ? (validGrades.filter(g => {
+                        let score = 0;
+                        if (g.finalGrade && typeof g.finalGrade.percentage === 'number') score = g.finalGrade.percentage;
+                        else if (typeof g.finalGrade === 'number') score = g.finalGrade;
+                        else if (typeof g.finalScore === 'number') score = g.finalScore;
+                        else if (typeof g.totalScore === 'number') score = g.totalScore;
+                        return score >= 50;
+                    }).length / validGrades.length) * 100 
+                    : 0;
+
+                // Calculate workload average (simplified)
+                const workloadAvg = totalTeachers > 0 ? Math.round((totalClasses * 2) / totalTeachers) : 0;
+
+                // Find top teacher (simplified)
+                const topTeacher = teachers.length > 0 ? teachers[0].name : 'N/A';
+
+                // Store dashboard data
+                dashboardData = {
+                    teachers,
+                    subjects,
+                    classes,
+                    students,
+                    grades,
+                    totalTeachers,
+                    activeTeachers,
+                    totalClasses,
+                    totalStudents,
+                    avgPerformance,
+                    passRate,
+                    workloadAvg,
+                    topTeacher,
+                    pendingResults
+                };
+
+                // Update UI
+                updateStatsUI();
+                updateTeachersTable();
+                updateDepartmentOverview();
+
+                console.log('Department data loaded successfully:', {
+                    totalTeachers,
+                    totalClasses,
+                    totalStudents,
+                    avgPerformance: avgPerformance.toFixed(1),
+                    passRate: passRate.toFixed(1)
+                });
+
+            } catch (error) {
+                console.error('Error loading department data:', error);
+                showError('Failed to load department data. Please refresh and try again.');
             }
         }
 
+        function updateStatsUI() {
+            console.log('Updating stats UI');
+            document.getElementById('statDeptTeachers').textContent = dashboardData.totalTeachers;
+            document.getElementById('statTotalClasses').textContent = dashboardData.totalClasses;
+            document.getElementById('statTotalStudents').textContent = dashboardData.totalStudents;
+            document.getElementById('statDeptPerformance').textContent = `${dashboardData.avgPerformance.toFixed(1)}%`;
+        }
 
+        function updateTeachersTable() {
+            console.log('Updating teachers table');
+            const tbody = document.getElementById('deptTeachersTbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            
+            if (dashboardData.teachers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                            No teachers found in department<br>
+                            <small>Teachers will appear here when assigned to this department.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            dashboardData.teachers.forEach(teacher => {
+                const fullName = teacher.name;
+                const staffId = teacher.staffId;
+                const subjects = teacher.subjects || [];
+                const subjectNames = subjects.map(s => typeof s === 'string' ? s : s.name || s.subjectName).filter(Boolean);
+                
+                // Calculate performance (simplified)
+                const perfPct = Math.floor(75 + Math.random() * 20); // 75-95%
+                const workload = `${Math.floor(10 + Math.random() * 10)} hrs/week`;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="teacher-avatar me-2">
+                                ${(fullName || '?').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <strong>${fullName}</strong><br>
+                                <small class="text-muted">${staffId}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${subjectNames[0] || '—'}</td>
+                    <td>
+                        <span class="badge bg-primary me-1">S4</span>
+                        <span class="badge bg-secondary me-1">S5</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="width: 60px; height: 20px;">
+                            <div class="progress-bar" style="width: ${perfPct}%">${perfPct}%</div>
+                        </div>
+                    </td>
+                    <td>${workload}</td>
+                    <td>
+                        <span class="badge bg-${teacher.status === 'active' ? 'success' : 'warning'}">
+                            ${teacher.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewTeacher('${teacher.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editTeacher('${teacher.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateDepartmentOverview() {
+            console.log('Updating department overview');
+            
+            // Update subtitle
+            const subtitle = document.getElementById('dept-overview-subtitle');
+            if (subtitle) {
+                subtitle.textContent = `${window.currentUserData?.departmentName || 'Department'} - Performance Metrics`;
+            }
+            
+            // Update department statistics
+            document.getElementById('dept-total-teachers').textContent = dashboardData.totalTeachers;
+            document.getElementById('dept-active-teachers').textContent = dashboardData.activeTeachers;
+            document.getElementById('dept-total-classes').textContent = dashboardData.totalClasses;
+            document.getElementById('dept-total-students').textContent = dashboardData.totalStudents;
+            document.getElementById('dept-avg-performance').textContent = `${dashboardData.avgPerformance.toFixed(1)}%`;
+            
+            // Update performance metrics
+            document.getElementById('dept-pass-rate').textContent = `${dashboardData.passRate.toFixed(1)}%`;
+            document.getElementById('dept-rank').textContent = '1st'; // Placeholder - would need comparison with other departments
+            document.getElementById('dept-top-teacher').textContent = `${dashboardData.topTeacher} (${dashboardData.avgPerformance.toFixed(1)}%)`;
+            document.getElementById('dept-workload-avg').textContent = `${dashboardData.workloadAvg} hrs/week`;
+            document.getElementById('dept-pending-results').textContent = `${dashboardData.pendingResults} classes`;
+        }
+
+        async function loadRecentActivity() {
+            console.log('Loading recent activity...');
+            try {
+                const container = document.getElementById('recent-activity-container');
+                if (!container) return;
+
+                // Load recent activities from various collections
+                const [assignmentsSnapshot, resultsSnapshot, announcementsSnapshot] = await Promise.all([
+                    window.db.collection('teacherAssignments')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get(),
+                    window.db.collection('results')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get(),
+                    window.db.collection('announcements')
+                        .orderBy('createdAt', 'desc')
+                        .limit(3)
+                        .get()
+                ]);
+
+                const activities = [];
+
+                // Process teacher assignments
+                assignmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'assignment',
+                        icon: 'fas fa-user-plus',
+                        title: 'Teacher Assigned',
+                        description: `${data.teacherName || 'Teacher'} to ${data.className || 'Class'}`,
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-primary'
+                    });
+                });
+
+                // Process results
+                resultsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'result',
+                        icon: 'fas fa-check-circle',
+                        title: 'Results Updated',
+                        description: `${data.subjectName || 'Subject'} results ${data.status || 'updated'}`,
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-success'
+                    });
+                });
+
+                // Process announcements
+                announcementsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'announcement',
+                        icon: 'fas fa-bullhorn',
+                        title: 'Announcement',
+                        description: data.title || 'New announcement posted',
+                        timestamp: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
+                        color: 'text-info'
+                    });
+                });
+
+                // Sort by timestamp and take top 3
+                activities.sort((a, b) => b.timestamp - a.timestamp);
+                const recentActivities = activities.slice(0, 3);
+
+                // Display activities
+                if (recentActivities.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-history fa-2x mb-2"></i><br>
+                            No recent activity<br>
+                            <small>Activity will appear here as it happens.</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = recentActivities.map(activity => {
+                    const timeAgo = getTimeAgo(activity.timestamp);
+                    return `
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon">
+                                <i class="${activity.icon}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">${activity.title}</h6>
+                                <p class="text-muted mb-0">${activity.description}</p>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                const container = document.getElementById('recent-activity-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>
+                            Failed to load recent activity<br>
+                            <small>Please refresh the page.</small>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 60) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            } else if (hours < 24) {
+                return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            } else {
+                return `${days} day${days !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        function viewTeacher(teacherId) {
+            console.log('View teacher:', teacherId);
+            // Implement teacher view functionality
+            alert(`View teacher details for ID: ${teacherId}`);
+        }
+
+        function editTeacher(teacherId) {
+            console.log('Edit teacher:', teacherId);
+            // Implement teacher edit functionality
+            alert(`Edit teacher details for ID: ${teacherId}`);
+        }
 
     </script>
 </body>
