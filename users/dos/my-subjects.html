@@ -137,7 +137,7 @@
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="rounded-circle mb-2" style="width: 60px; height: 60px;">
                         <h5 class="text-white">Director of Studies</h5>
-                        <p class="small text-white-50">Staff ID: DOS1234</p>
+                        <small class="text-muted" id="sidebar-staff-id">Staff ID: Loading...</small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -199,7 +199,7 @@
                         <span class="role-badge">Academic Management</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -222,7 +222,7 @@
                 <!-- Staff ID Display -->
                 <div class="alert alert-info d-flex align-items-center">
                     <i class="fas fa-id-card me-2"></i>
-                    <strong>Staff ID:</strong> DOS1234
+                    <strong>Staff ID:</strong> <span id="staff-id-display">Loading...</span>
                 </div>
 
                 <!-- Subjects Overview -->
@@ -232,7 +232,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">1</h4>
+                                        <h4 class="card-title" id="stat-my-subjects">0</h4>
                                         <p class="card-text">My Subject</p>
                                     </div>
                                     <div class="align-self-center">
@@ -247,7 +247,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">3</h4>
+                                        <h4 class="card-title" id="stat-total-classes">0</h4>
                                         <p class="card-text">Total Classes</p>
                                     </div>
                                     <div class="align-self-center">
@@ -262,7 +262,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">90</h4>
+                                        <h4 class="card-title" id="stat-total-students">0</h4>
                                         <p class="card-text">Total Students</p>
                                     </div>
                                     <div class="align-self-center">
@@ -277,7 +277,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="card-title">87%</h4>
+                                        <h4 class="card-title" id="stat-average-performance">0%</h4>
                                         <p class="card-text">Average Performance</p>
                                     </div>
                                     <div class="align-self-center">
@@ -309,35 +309,11 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="subjects-tbody">
                                     <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="subject-icon me-3">
-                                                    <i class="fas fa-calculator text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <strong>Mathematics</strong><br>
-                                                    <small class="text-muted">Core Subject</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary me-1">S.4 Science A</span>
-                                            <span class="badge bg-primary me-1">S.4 Science B</span>
-                                            <span class="badge bg-primary">S.3 Science</span>
-                                        </td>
-                                        <td>90</td>
-                                        <td>87.3%</td>
-                                        <td>92.2%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary" onclick="viewSubject('math')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-warning" onclick="editSubject('math')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            Loading subjects...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -359,19 +335,19 @@
                                 <table class="table table-sm">
                                     <tr>
                                         <td><strong>Total Students:</strong></td>
-                                        <td>1,200</td>
+                                        <td id="overall-total-students">0</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Average Performance:</strong></td>
-                                        <td>78.5%</td>
+                                        <td id="overall-average-performance">0%</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Pass Rate:</strong></td>
-                                        <td>85.2%</td>
+                                        <td id="overall-pass-rate">0%</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Total Classes:</strong></td>
-                                        <td>15</td>
+                                        <td id="overall-total-classes">0</td>
                                     </tr>
                                 </table>
                             </div>

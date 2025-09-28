@@ -437,9 +437,9 @@
                                 <div class="text-center text-muted py-3">
                                     <i class="fas fa-spinner fa-spin me-2"></i>
                                     Loading recent activity...
+                                    </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
@@ -533,7 +533,7 @@
         let isInitialized = false;
         let isDataLoaded = false;
         let dashboardData = {};
-        
+
         async function initializeDashboard() {
             console.log('initializeDashboard called');
             try {
@@ -827,10 +827,10 @@
 
         function updateTeachersTable() {
             console.log('Updating teachers table');
-            const tbody = document.getElementById('deptTeachersTbody');
+                const tbody = document.getElementById('deptTeachersTbody');
             if (!tbody) return;
 
-            tbody.innerHTML = '';
+                    tbody.innerHTML = '';
             
             if (dashboardData.teachers.length === 0) {
                 tbody.innerHTML = `
@@ -855,30 +855,30 @@
                 const perfPct = Math.floor(75 + Math.random() * 20); // 75-95%
                 const workload = `${Math.floor(10 + Math.random() * 10)} hrs/week`;
                 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <div class="d-flex align-items-center">
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>
+                                    <div class="d-flex align-items-center">
                             <div class="teacher-avatar me-2">
                                 ${(fullName || '?').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
-                            <div>
-                                <strong>${fullName}</strong><br>
-                                <small class="text-muted">${staffId}</small>
-                            </div>
-                        </div>
-                    </td>
+                                        <div>
+                                            <strong>${fullName}</strong><br>
+                                            <small class="text-muted">${staffId}</small>
+                                        </div>
+                                    </div>
+                                </td>
                     <td>${subjectNames[0] || '—'}</td>
                     <td>
                         <span class="badge bg-primary me-1">S4</span>
                         <span class="badge bg-secondary me-1">S5</span>
                     </td>
-                    <td>
-                        <div class="progress" style="width: 60px; height: 20px;">
-                            <div class="progress-bar" style="width: ${perfPct}%">${perfPct}%</div>
-                        </div>
-                    </td>
-                    <td>${workload}</td>
+                                <td>
+                                    <div class="progress" style="width: 60px; height: 20px;">
+                                        <div class="progress-bar" style="width: ${perfPct}%">${perfPct}%</div>
+                                    </div>
+                                </td>
+                                <td>${workload}</td>
                     <td>
                         <span class="badge bg-${teacher.status === 'active' ? 'success' : 'warning'}">
                             ${teacher.status === 'active' ? 'Active' : 'Inactive'}
@@ -893,9 +893,9 @@
                         </button>
                     </td>
                 `;
-                tbody.appendChild(row);
-            });
-        }
+                            tbody.appendChild(row);
+                        });
+                    }
 
         function updateDepartmentOverview() {
             console.log('Updating department overview');

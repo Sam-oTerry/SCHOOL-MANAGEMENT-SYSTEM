@@ -137,7 +137,7 @@
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
                         <h6 class="text-muted">Director of Studies</h6>
-                        <small class="text-muted">Staff ID: DOS1234</small>
+                        <small class="text-muted" id="sidebar-staff-id">Staff ID: Loading...</small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -199,7 +199,7 @@
                         <span class="role-badge">Academic Management</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -261,7 +261,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-primary text-white text-center">
                                     <div class="card-body">
-                                        <h3>285</h3>
+                                        <h3 id="stat-total-students">0</h3>
                                         <p class="mb-0">Total Students</p>
                                     </div>
                                 </div>
@@ -269,7 +269,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-success text-white text-center">
                                     <div class="card-body">
-                                        <h3>250</h3>
+                                        <h3 id="stat-active-ids">0</h3>
                                         <p class="mb-0">Active IDs</p>
                                     </div>
                                 </div>
@@ -277,7 +277,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-warning text-white text-center">
                                     <div class="card-body">
-                                        <h3>20</h3>
+                                        <h3 id="stat-lost-ids">0</h3>
                                         <p class="mb-0">Lost IDs</p>
                                     </div>
                                 </div>
@@ -285,7 +285,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-info text-white text-center">
                                     <div class="card-body">
-                                        <h3>15</h3>
+                                        <h3 id="stat-new-this-month">0</h3>
                                         <p class="mb-0">New This Month</p>
                                     </div>
                                 </div>
@@ -314,7 +314,12 @@
                                     </tr>
                                 </thead>
                                 <tbody id="student-ids-tbody">
-                                    <!-- Student IDs will be populated here -->
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            Loading student IDs...
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
