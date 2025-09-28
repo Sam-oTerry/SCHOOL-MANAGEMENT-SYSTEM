@@ -621,12 +621,12 @@
                     });
                 });
                 
-                // Load terms
-                const termsSnapshot = await window.db.collection('terms').get();
-                terms = [];
-                termsSnapshot.forEach(doc => {
-                    terms.push({ id: doc.id, ...doc.data() });
-                });
+                // Load terms - using hardcoded terms instead of Firestore
+                terms = [
+                    { id: 'term1', name: 'Term 1', active: true },
+                    { id: 'term2', name: 'Term 2', active: false },
+                    { id: 'term3', name: 'Term 3', active: false }
+                ];
                 
                 // Set current department from user profile
                 await loadUserProfile();
@@ -805,7 +805,10 @@
             }
             
             if (classesCountElement) {
-                classesCountElement.textContent = classes.length;
+                // Count senior level classes (S1-S6 with streams)
+                const seniorClasses = ['s1', 's2', 's3', 's4', 's5', 's6'];
+                const totalSeniorClasses = seniorClasses.length * 5; // 5 options per level (main + 4 streams)
+                classesCountElement.textContent = totalSeniorClasses;
             }
             
             // Log department information for debugging
@@ -1088,17 +1091,23 @@
             const select = document.getElementById(selectId);
             if (!select) return;
             
-            select.innerHTML = '';
+            select.innerHTML = '<option value="">Select Term</option>';
+            
+            // Generate Term 1, Term 2, Term 3 options
+            const terms = [
+                { value: 'term1', name: 'Term 1' },
+                { value: 'term2', name: 'Term 2' },
+                { value: 'term3', name: 'Term 3' }
+            ];
             
             terms.forEach(term => {
                 const option = document.createElement('option');
-                option.value = term.id;
+                option.value = term.value;
                 option.textContent = term.name;
-                if (term.active) {
-                    option.selected = true;
-                }
                 select.appendChild(option);
             });
+            
+            console.log(`Populated term dropdown with Term 1, Term 2, Term 3`);
         }
 
         // Firebase Integration
@@ -1465,7 +1474,10 @@
                 const totalTeachers = departmentTeachers.length;
                 const assignedTeachers = new Set(assignments.map(a => a.teacherId)).size;
                 const unassignedTeachers = totalTeachers - assignedTeachers;
-                const totalClasses = classes.length;
+                
+                // Count senior level classes (S1-S6)
+                const seniorClasses = ['s1', 's2', 's3', 's4', 's5', 's6'];
+                const totalClasses = seniorClasses.length * 5; // 5 options per level (main + 4 streams)
                 
                 // Update department overview cards
                 document.getElementById('total-teachers-count').textContent = totalTeachers;
