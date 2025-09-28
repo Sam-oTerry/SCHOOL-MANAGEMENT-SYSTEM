@@ -432,12 +432,66 @@
             select.innerHTML = '<option value="">Select Subject</option>' + subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
 
-        function renderClassesForSubject(subjects) {
+        // Get teacher assignments for grade entry
+        async function getTeacherAssignmentsForGradeEntry(teacherId) {
+            try {
+                console.log('Getting teacher assignments for grade entry:', teacherId);
+                const assignmentsSnapshot = await db.collection('teacherAssignments')
+                    .where('teacherId', '==', teacherId)
+                    .get();
+                
+                const assignments = [];
+                assignmentsSnapshot.forEach(doc => {
+                    assignments.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('Found assignments for grade entry:', assignments);
+                return assignments;
+            } catch (error) {
+                console.error('Error getting teacher assignments for grade entry:', error);
+                return [];
+            }
+        }
+
+        async function renderClassesForSubject(subjects) {
             const subjectId = document.getElementById('subject-select').value;
             const clsSelect = document.getElementById('class-select');
-            const found = subjects.find(s => s.id === subjectId);
-            const classes = found && Array.isArray(found.classes) ? found.classes : [];
-            clsSelect.innerHTML = '<option value="">Select Class</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            if (!subjectId) {
+                clsSelect.innerHTML = '<option value="">Select Class</option>';
+                return;
+            }
+            
+            try {
+                // Get teacher assignments for the current user and selected subject
+                const teacherAssignments = await getTeacherAssignmentsForGradeEntry(window.currentUser.uid);
+                console.log('Teacher assignments for grade entry:', teacherAssignments);
+                
+                // Filter assignments for the selected subject
+                const subjectAssignments = teacherAssignments.filter(assignment => 
+                    assignment.subjectId === subjectId || assignment.subject === subjects.find(s => s.id === subjectId)?.name
+                );
+                
+                console.log('Subject assignments:', subjectAssignments);
+                
+                // Extract unique classes from assignments
+                const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
+                const uniqueClasses = [...new Set(assignedClasses)];
+                
+                console.log('Assigned classes for subject:', uniqueClasses);
+                
+                // Populate class dropdown
+                if (uniqueClasses.length > 0) {
+                    clsSelect.innerHTML = '<option value="">Select Class</option>' + 
+                        uniqueClasses.map(c => `<option value="${c}">${c}</option>`).join('');
+                } else {
+                    clsSelect.innerHTML = '<option value="">No classes assigned for this subject</option>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading classes for subject:', error);
+                clsSelect.innerHTML = '<option value="">Error loading classes</option>';
+            }
         }
 
         async function loadStudents() {
@@ -615,7 +669,7 @@
                     return;
                 }
                 renderAssignedSubjectsSelect(subjects);
-                document.getElementById('subject-select').addEventListener('change', () => renderClassesForSubject(subjects));
+                document.getElementById('subject-select').addEventListener('change', async () => await renderClassesForSubject(subjects));
                 
             } catch (error) {
                 console.error('Error initializing grade entry:', error);
