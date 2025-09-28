@@ -887,26 +887,13 @@
         }
 
         function updateUserDisplay(userResult) {
-            try {
-                // Update current user display
-                const currentUserEl = document.getElementById('current-user');
-                if (currentUserEl) {
-                    currentUserEl.textContent = userResult.userName;
-                }
-                
-                // Update sidebar staff ID
-                const staffIdEl = document.querySelector('.sidebar small');
-                if (staffIdEl) {
-                    staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
-                }
-                
-                console.log('System Admin user loaded:', {
-                    name: userResult.userName,
-                    staffId: userResult.staffId
-                });
-            } catch (error) {
-                console.error('Error updating user display:', error);
-            }
+            // Use the standardized updateUserDisplay function from system-admin-utils.js
+            window.updateUserDisplay(userResult);
+            
+            console.log('System Admin user loaded:', {
+                name: userResult.userName,
+                staffId: userResult.staffId
+            });
         }
         
         // Load departments from Firestore

@@ -1664,19 +1664,11 @@
         }
 
         function updateUserDisplay(userResult) {
+            // Use the standardized updateUserDisplay function from hod-utils.js
+            window.updateUserDisplay(userResult);
+            
+            // Additional HOD-specific updates
             try {
-                // Update current user display
-                const currentUserEl = document.getElementById('current-user');
-                if (currentUserEl) {
-                    currentUserEl.textContent = userResult.userName;
-                }
-                
-                // Update sidebar staff ID
-                const staffIdEl = document.querySelector('.sidebar small');
-                if (staffIdEl) {
-                    staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
-                }
-                
                 // Update department badge
                 const departmentBadge = document.getElementById('detected-department');
                 if (departmentBadge) {
@@ -1696,7 +1688,7 @@
                     staffId: userResult.staffId
                 });
             } catch (error) {
-                console.error('Error updating user display:', error);
+                console.error('Error updating HOD-specific display:', error);
             }
         }
     </script>

@@ -26,6 +26,50 @@ function getUserStaffId(userData) {
     return userData.staffId || userData.employmentInfo?.staffId || 'N/A';
 }
 
+// Standardized function to update user display across all pages
+function updateUserDisplay(userResult) {
+    try {
+        // Update current user display in header
+        const currentUserEl = document.getElementById('current-user');
+        if (currentUserEl) {
+            currentUserEl.textContent = userResult.userName;
+        }
+        
+        // Update sidebar staff ID - try multiple selectors for compatibility
+        let staffIdEl = document.getElementById('sidebar-staff-id');
+        if (!staffIdEl) {
+            staffIdEl = document.querySelector('.sidebar small');
+        }
+        if (!staffIdEl) {
+            staffIdEl = document.querySelector('.sidebar .text-muted');
+        }
+        if (!staffIdEl) {
+            // Look for any small element in sidebar that might contain staff ID
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                staffIdEl = sidebar.querySelector('small');
+            }
+        }
+        
+        if (staffIdEl) {
+            // Check if it already has "Staff ID:" prefix
+            if (staffIdEl.textContent.includes('Staff ID:')) {
+                staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
+            } else {
+                staffIdEl.textContent = userResult.staffId;
+            }
+        }
+        
+        console.log('User display updated:', {
+            name: userResult.userName,
+            staffId: userResult.staffId,
+            department: userResult.departmentName || userResult.departmentId
+        });
+    } catch (error) {
+        console.error('Error updating user display:', error);
+    }
+}
+
 // Centralized System Admin user data loading
 async function loadSystemAdminUserData(db, currentUser) {
     try {
@@ -189,3 +233,4 @@ window.logout = logout;
 window.waitForAuth = waitForAuth;
 window.showSuccess = showSuccess;
 window.showError = showError;
+window.updateUserDisplay = updateUserDisplay;
