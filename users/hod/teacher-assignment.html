@@ -647,6 +647,13 @@
         
         async function loadUserProfile() {
             try {
+                // Check if we already have the department name from loadHODUserData
+                if (window.currentUserData && window.currentUserData.departmentName) {
+                    currentDepartment = window.currentUserData.departmentName;
+                    console.log('Using department name from loadHODUserData:', currentDepartment);
+                    return;
+                }
+                
                 // Get user data from users collection (more reliable than userProfiles)
                 const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
                 if (userDoc.exists) {
@@ -806,6 +813,9 @@
             console.log(`Available subjects: ${subjects.length}`);
             console.log(`Available teachers: ${teachers.length}`);
             console.log(`Available classes: ${classes.length}`);
+            
+            // Update department statistics
+            updateDepartmentStats();
         }
 
         function populateDropdowns() {
@@ -967,7 +977,14 @@
         
         function populateTeacherDropdown(selectId) {
             const select = document.getElementById(selectId);
-            if (!select) return;
+            if (!select) {
+                console.log(`Teacher dropdown element not found: ${selectId}`);
+                return;
+            }
+            
+            console.log(`Populating teacher dropdown: ${selectId}`);
+            console.log(`Current department: ${currentDepartment}`);
+            console.log(`Total teachers loaded: ${teachers.length}`);
             
             select.innerHTML = '<option value="">Select Teacher</option>';
             
@@ -978,6 +995,7 @@
                 hodOption.textContent = `${window.currentUser.displayName || 'HOD'} - Head of Department (Me)`;
                 hodOption.style.fontWeight = 'bold';
                 select.appendChild(hodOption);
+                console.log('Added HOD option to dropdown');
             }
             
             // Get subjects that belong to the current department
@@ -1006,9 +1024,11 @@
             const departmentSubjectNames = departmentSubjects.map(subject => subject.name || subject.subjectName);
             
             console.log(`Department subjects for ${currentDepartment}:`, departmentSubjectNames);
+            console.log(`Department subject IDs:`, departmentSubjectIds);
             
             // Filter teachers who teach subjects under the current department
             const departmentTeachers = teachers.filter(teacher => {
+                console.log(`Checking teacher: ${teacher.name}, subjects:`, teacher.subjects);
                 const teacherSubjects = teacher.subjects || teacher.academicInfo?.subjects || [];
                 
                 // Check if teacher teaches any subject that belongs to the current department
@@ -1535,23 +1555,6 @@
             document.getElementById('pending-assignments').textContent = `Pending: ${pending}`;
         }
 
-        function updateDepartmentStats() {
-            const stats = calculateWorkloadStats();
-            const assignedCount = assignments.filter(a => a.status === 'Active').length;
-            const totalTeachers = teachers.filter(t => t.department === currentDepartment.toLowerCase()).length;
-            const unassignedCount = Math.max(0, totalTeachers - assignedCount);
-            
-            // Update the department overview cards
-            const successCard = document.querySelector('.card.bg-success h3');
-            const warningCard = document.querySelector('.card.bg-warning h3');
-            const primaryCard = document.querySelector('.card.bg-primary h3');
-            const infoCard = document.querySelector('.card.bg-info h3');
-            
-            if (successCard) successCard.textContent = assignedCount;
-            if (warningCard) warningCard.textContent = unassignedCount;
-            if (primaryCard) primaryCard.textContent = totalTeachers;
-            if (infoCard) infoCard.textContent = classes.length;
-        }
         
         function exportAssignmentsToCSV() {
             if (assignments.length === 0) {

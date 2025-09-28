@@ -204,6 +204,9 @@ async function loadHODUserData(db, currentUser) {
                 departmentName = 'Mathematics'; // Fallback
             }
             
+            // Store the resolved department name in window.currentUserData for other functions
+            window.currentUserData.departmentName = departmentName;
+            
             return {
                 success: true,
                 userData: userData,
