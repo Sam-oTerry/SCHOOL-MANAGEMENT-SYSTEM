@@ -286,7 +286,7 @@
                             </div>
                         </div>
                         <div class="row mt-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Search Assignments</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="search-input" placeholder="Search by teacher, subject, class, or ID..." onkeyup="searchAssignments(this.value)">
@@ -294,6 +294,15 @@
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Filter by Status</label>
+                                <select class="form-select" id="status-filter" onchange="filterAssignments()">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Quick Stats</label>
@@ -317,7 +326,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-primary text-white text-center">
                                     <div class="card-body">
-                                        <h3>12</h3>
+                                        <h3 id="total-teachers-count">0</h3>
                                         <p class="mb-0">Total Teachers</p>
                                     </div>
                                 </div>
@@ -325,7 +334,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-success text-white text-center">
                                     <div class="card-body">
-                                        <h3>8</h3>
+                                        <h3 id="assigned-teachers-count">0</h3>
                                         <p class="mb-0">Assigned</p>
                                     </div>
                                 </div>
@@ -333,7 +342,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-warning text-white text-center">
                                     <div class="card-body">
-                                        <h3>4</h3>
+                                        <h3 id="unassigned-teachers-count">0</h3>
                                         <p class="mb-0">Unassigned</p>
                                     </div>
                                 </div>
@@ -341,7 +350,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-info text-white text-center">
                                     <div class="card-body">
-                                        <h3>15</h3>
+                                        <h3 id="total-classes-count">0</h3>
                                         <p class="mb-0">Total Classes</p>
                                     </div>
                                 </div>
@@ -1232,6 +1241,34 @@
             setupRealtimeListener();
         }
         
+        function updateDepartmentStats() {
+            try {
+                // Calculate stats from current data
+                const totalTeachers = teachers.length;
+                const assignedTeachers = new Set(assignments.map(a => a.teacherId)).size;
+                const unassignedTeachers = totalTeachers - assignedTeachers;
+                const totalClasses = classes.length;
+                
+                // Update department overview cards
+                document.getElementById('total-teachers-count').textContent = totalTeachers;
+                document.getElementById('assigned-teachers-count').textContent = assignedTeachers;
+                document.getElementById('unassigned-teachers-count').textContent = unassignedTeachers;
+                document.getElementById('total-classes-count').textContent = totalClasses;
+                
+                // Update quick stats badges
+                const totalAssignments = assignments.length;
+                const activeAssignments = assignments.filter(a => a.status === 'active').length;
+                const pendingAssignments = assignments.filter(a => a.status === 'pending').length;
+                
+                document.getElementById('total-assignments').textContent = `Total: ${totalAssignments}`;
+                document.getElementById('active-assignments').textContent = `Active: ${activeAssignments}`;
+                document.getElementById('pending-assignments').textContent = `Pending: ${pendingAssignments}`;
+                
+            } catch (error) {
+                console.error('Error updating department stats:', error);
+            }
+        }
+
         function displayAssignments() {
             const tbody = document.getElementById('assignments-tbody');
             if (!tbody) return;
@@ -1282,6 +1319,9 @@
                 `;
                 tbody.appendChild(row);
             });
+            
+            // Update department statistics
+            updateDepartmentStats();
         }
         
         function getStatusColor(status) {
@@ -1407,6 +1447,32 @@
                 assignment.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 assignment.teacherId.toLowerCase().includes(searchTerm.toLowerCase())
             );
+            
+            displayFilteredAssignments(filteredAssignments);
+        }
+
+        function filterAssignments() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchTerm = document.getElementById('search-input').value;
+            
+            let filteredAssignments = assignments;
+            
+            // Apply status filter
+            if (statusFilter) {
+                filteredAssignments = filteredAssignments.filter(assignment => 
+                    assignment.status.toLowerCase() === statusFilter.toLowerCase()
+                );
+            }
+            
+            // Apply search filter
+            if (searchTerm.trim()) {
+                filteredAssignments = filteredAssignments.filter(assignment => 
+                    assignment.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    assignment.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    assignment.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    assignment.teacherId.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
             
             displayFilteredAssignments(filteredAssignments);
         }
@@ -1656,7 +1722,7 @@
                 }
                 
                 // Update UI with user data
-                updateUserDisplay(userResult);
+                updateHODUserDisplay(userResult);
                 
                 // Initialize Firebase data
                 initializeFirebase();
@@ -1667,7 +1733,7 @@
             }
         }
 
-        function updateUserDisplay(userResult) {
+        function updateHODUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
@@ -1698,6 +1764,7 @@
 
         // Make functions globally accessible
         window.searchAssignments = searchAssignments;
+        window.filterAssignments = filterAssignments;
         window.assignTeacher = assignTeacher;
         window.editAssignment = editAssignment;
         window.removeAssignment = removeAssignment;
