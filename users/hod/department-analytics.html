@@ -391,20 +391,20 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Key Insights</h6>
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-check-circle text-success me-2"></i> Mathematics performance has improved by 5.2%</li>
-                                    <li><i class="fas fa-check-circle text-success me-2"></i> Physics shows consistent high performance</li>
-                                    <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> Chemistry needs attention - 3% decline</li>
-                                    <li><i class="fas fa-info-circle text-info me-2"></i> Biology maintains excellent standards</li>
+                                <ul class="list-unstyled" id="insights-container">
+                                    <li class="text-muted">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Loading insights...
+                                    </li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
                                 <h6>Recommendations</h6>
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Provide additional support for Chemistry students</li>
-                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Share Mathematics teaching strategies</li>
-                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Organize peer learning sessions</li>
-                                    <li><i class="fas fa-lightbulb text-warning me-2"></i> Review assessment methods</li>
+                                <ul class="list-unstyled" id="recommendations-container">
+                                    <li class="text-muted">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        Loading recommendations...
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -487,7 +487,21 @@
         async function loadSubjects() {
             console.log('Loading subjects for analytics');
             try {
-                const subjectsSnapshot = await window.db.collection('subjects').get();
+                // Get current user's department
+                const currentDepartmentId = window.currentUserData?.departmentId;
+                if (!currentDepartmentId) {
+                    console.log('No department ID found for current user');
+                    subjects = [];
+                    return;
+                }
+                
+                console.log('Loading subjects for department:', currentDepartmentId);
+                
+                // Load subjects that belong to the current department
+                const subjectsSnapshot = await window.db.collection('subjects')
+                    .where('department', '==', currentDepartmentId)
+                    .get();
+                
                 subjects = [];
                 subjectsSnapshot.forEach(doc => {
                     subjects.push({ id: doc.id, ...doc.data() });
@@ -498,9 +512,10 @@
                 subjectFilter.innerHTML = '<option value="">All Subjects</option>' + 
                     subjects.map(subject => `<option value="${subject.id}">${subject.name || subject.subjectName || 'Subject'}</option>`).join('');
                 
-                console.log('Subjects loaded:', subjects.length);
+                console.log('Subjects loaded for department:', subjects.length);
             } catch (error) {
                 console.error('Error loading subjects:', error);
+                subjects = [];
             }
         }
 
@@ -591,6 +606,7 @@
                 
                 displayAnalytics();
                 updateKeyMetrics();
+                displayInsightsAndRecommendations();
                 initializeCharts();
                 
                 console.log('Analytics data loaded and calculated');
@@ -646,6 +662,10 @@
                 }
             });
             
+            // Generate dynamic insights and recommendations
+            const insights = generateInsights(subjectPerformance, overallAverage, passRate, gradeDistribution);
+            const recommendations = generateRecommendations(subjectPerformance, overallAverage, passRate, gradeDistribution);
+            
             return {
                 overallAverage: overallAverage,
                 passRate: passRate,
@@ -654,6 +674,8 @@
                 gradeDistribution: gradeDistribution,
                 subjectPerformance: subjectPerformance,
                 totalGrades: validGrades.length,
+                insights: insights,
+                recommendations: recommendations,
                 metrics: [
                     { metric: 'Overall Average', current: `${overallAverage.toFixed(1)}%`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'Pass Rate', current: `${passRate.toFixed(1)}%`, previous: 'N/A', change: 'N/A', trend: 'stable' },
@@ -665,6 +687,167 @@
             };
         }
 
+        function generateInsights(subjectPerformance, overallAverage, passRate, gradeDistribution) {
+            console.log('Generating dynamic insights');
+            const insights = [];
+            
+            // Overall performance insight
+            if (overallAverage >= 80) {
+                insights.push({
+                    icon: 'fas fa-check-circle',
+                    color: 'text-success',
+                    text: `Department maintains excellent performance with ${overallAverage.toFixed(1)}% average`
+                });
+            } else if (overallAverage >= 70) {
+                insights.push({
+                    icon: 'fas fa-info-circle',
+                    color: 'text-info',
+                    text: `Department shows good performance with ${overallAverage.toFixed(1)}% average`
+                });
+            } else {
+                insights.push({
+                    icon: 'fas fa-exclamation-triangle',
+                    color: 'text-warning',
+                    text: `Department performance needs improvement with ${overallAverage.toFixed(1)}% average`
+                });
+            }
+            
+            // Pass rate insight
+            if (passRate >= 90) {
+                insights.push({
+                    icon: 'fas fa-check-circle',
+                    color: 'text-success',
+                    text: `Excellent pass rate of ${passRate.toFixed(1)}% indicates strong student performance`
+                });
+            } else if (passRate >= 80) {
+                insights.push({
+                    icon: 'fas fa-info-circle',
+                    color: 'text-info',
+                    text: `Good pass rate of ${passRate.toFixed(1)}% shows solid academic progress`
+                });
+            } else {
+                insights.push({
+                    icon: 'fas fa-exclamation-triangle',
+                    color: 'text-warning',
+                    text: `Pass rate of ${passRate.toFixed(1)}% needs attention and support`
+                });
+            }
+            
+            // Subject-specific insights
+            Object.entries(subjectPerformance).forEach(([subjectName, average]) => {
+                if (average >= 85) {
+                    insights.push({
+                        icon: 'fas fa-check-circle',
+                        color: 'text-success',
+                        text: `${subjectName} shows excellent performance with ${average.toFixed(1)}% average`
+                    });
+                } else if (average < 70) {
+                    insights.push({
+                        icon: 'fas fa-exclamation-triangle',
+                        color: 'text-warning',
+                        text: `${subjectName} needs attention with ${average.toFixed(1)}% average`
+                    });
+                }
+            });
+            
+            // Grade distribution insights
+            const totalGrades = gradeDistribution.A + gradeDistribution.B + gradeDistribution.C + gradeDistribution.D + gradeDistribution.E + gradeDistribution.F;
+            if (totalGrades > 0) {
+                const excellentRate = (gradeDistribution.A / totalGrades) * 100;
+                const failureRate = (gradeDistribution.F / totalGrades) * 100;
+                
+                if (excellentRate >= 20) {
+                    insights.push({
+                        icon: 'fas fa-star',
+                        color: 'text-success',
+                        text: `${excellentRate.toFixed(1)}% of students achieved excellent grades (A)`
+                    });
+                }
+                
+                if (failureRate > 10) {
+                    insights.push({
+                        icon: 'fas fa-exclamation-triangle',
+                        color: 'text-danger',
+                        text: `${failureRate.toFixed(1)}% failure rate requires immediate intervention`
+                    });
+                }
+            }
+            
+            return insights;
+        }
+
+        function generateRecommendations(subjectPerformance, overallAverage, passRate, gradeDistribution) {
+            console.log('Generating dynamic recommendations');
+            const recommendations = [];
+            
+            // Overall performance recommendations
+            if (overallAverage < 75) {
+                recommendations.push({
+                    icon: 'fas fa-lightbulb',
+                    color: 'text-warning',
+                    text: 'Implement comprehensive academic support programs to improve overall performance'
+                });
+            }
+            
+            if (passRate < 85) {
+                recommendations.push({
+                    icon: 'fas fa-lightbulb',
+                    color: 'text-warning',
+                    text: 'Develop targeted intervention strategies for struggling students'
+                });
+            }
+            
+            // Subject-specific recommendations
+            Object.entries(subjectPerformance).forEach(([subjectName, average]) => {
+                if (average < 70) {
+                    recommendations.push({
+                        icon: 'fas fa-lightbulb',
+                        color: 'text-warning',
+                        text: `Provide additional support and resources for ${subjectName} students`
+                    });
+                } else if (average >= 85) {
+                    recommendations.push({
+                        icon: 'fas fa-lightbulb',
+                        color: 'text-info',
+                        text: `Share ${subjectName} teaching strategies with other departments`
+                    });
+                }
+            });
+            
+            // Grade distribution recommendations
+            const totalGrades = gradeDistribution.A + gradeDistribution.B + gradeDistribution.C + gradeDistribution.D + gradeDistribution.E + gradeDistribution.F;
+            if (totalGrades > 0) {
+                const failureRate = (gradeDistribution.F / totalGrades) * 100;
+                
+                if (failureRate > 10) {
+                    recommendations.push({
+                        icon: 'fas fa-lightbulb',
+                        color: 'text-danger',
+                        text: 'Review assessment methods and provide remedial classes for failing students'
+                    });
+                }
+                
+                if (gradeDistribution.A + gradeDistribution.B < totalGrades * 0.5) {
+                    recommendations.push({
+                        icon: 'fas fa-lightbulb',
+                        color: 'text-info',
+                        text: 'Encourage peer learning sessions to boost high-performing students'
+                    });
+                }
+            }
+            
+            // General recommendations
+            if (teachers.length < 5) {
+                recommendations.push({
+                    icon: 'fas fa-lightbulb',
+                    color: 'text-info',
+                    text: 'Consider hiring additional teachers to reduce workload and improve quality'
+                });
+            }
+            
+            return recommendations;
+        }
+
         function updateKeyMetrics() {
             console.log('Updating key metrics');
             document.getElementById('overall-average').textContent = `${analyticsData.overallAverage.toFixed(1)}%`;
@@ -673,16 +856,66 @@
             document.getElementById('total-teachers').textContent = analyticsData.totalTeachers;
         }
 
+        function displayInsightsAndRecommendations() {
+            console.log('Displaying dynamic insights and recommendations');
+            
+            // Display insights
+            const insightsContainer = document.querySelector('#insights-container');
+            if (insightsContainer && analyticsData.insights) {
+                insightsContainer.innerHTML = '';
+                analyticsData.insights.forEach(insight => {
+                    const insightElement = document.createElement('li');
+                    insightElement.innerHTML = `
+                        <i class="${insight.icon} ${insight.color} me-2"></i>
+                        ${insight.text}
+                    `;
+                    insightsContainer.appendChild(insightElement);
+                });
+                
+                if (analyticsData.insights.length === 0) {
+                    insightsContainer.innerHTML = `
+                        <li class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No specific insights available. Add more grade data to generate insights.
+                        </li>
+                    `;
+                }
+            }
+            
+            // Display recommendations
+            const recommendationsContainer = document.querySelector('#recommendations-container');
+            if (recommendationsContainer && analyticsData.recommendations) {
+                recommendationsContainer.innerHTML = '';
+                analyticsData.recommendations.forEach(recommendation => {
+                    const recommendationElement = document.createElement('li');
+                    recommendationElement.innerHTML = `
+                        <i class="${recommendation.icon} ${recommendation.color} me-2"></i>
+                        ${recommendation.text}
+                    `;
+                    recommendationsContainer.appendChild(recommendationElement);
+                });
+                
+                if (analyticsData.recommendations.length === 0) {
+                    recommendationsContainer.innerHTML = `
+                        <li class="text-muted">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            No specific recommendations available. Add more grade data to generate recommendations.
+                        </li>
+                    `;
+                }
+            }
+        }
+
         function updateDepartmentAnalyticsUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
             
-            console.log('Department Analytics user loaded:', {
-                name: userResult.userName,
-                department: userResult.departmentId,
-                departmentName: userResult.departmentName,
-                staffId: userResult.staffId
-            });
+                console.log('Department Analytics user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
         }
         
         function displayAnalytics() {
@@ -902,6 +1135,7 @@
             // Update display
             displayAnalytics();
             updateKeyMetrics();
+            displayInsightsAndRecommendations();
             initializeCharts();
         }
 
@@ -952,6 +1186,10 @@
                 }
             });
             
+            // Generate dynamic insights and recommendations
+            const insights = generateInsights(subjectPerformance, overallAverage, passRate, gradeDistribution);
+            const recommendations = generateRecommendations(subjectPerformance, overallAverage, passRate, gradeDistribution);
+            
             return {
                 overallAverage: overallAverage,
                 passRate: passRate,
@@ -960,6 +1198,8 @@
                 gradeDistribution: gradeDistribution,
                 subjectPerformance: subjectPerformance,
                 totalGrades: validGrades.length,
+                insights: insights,
+                recommendations: recommendations,
                 metrics: [
                     { metric: 'Overall Average', current: `${overallAverage.toFixed(1)}%`, previous: 'N/A', change: 'N/A', trend: 'stable' },
                     { metric: 'Pass Rate', current: `${passRate.toFixed(1)}%`, previous: 'N/A', change: 'N/A', trend: 'stable' },
