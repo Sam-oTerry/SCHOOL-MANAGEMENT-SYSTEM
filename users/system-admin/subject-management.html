@@ -115,7 +115,7 @@
                             <option value="s5-s6">Senior 5-6</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" id="typeFilter" onchange="filterSubjects()">
                             <option value="all">All Types</option>
                             <option value="compulsory">Compulsory</option>
@@ -125,6 +125,12 @@
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <select class="form-select" id="departmentFilter" onchange="filterSubjects()">
+                            <option value="all">All Departments</option>
+                            <!-- Departments will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-md-1">
                         <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
                             <i class="fas fa-times"></i> Clear
                         </button>
@@ -296,15 +302,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="subjectDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="subjectDescription" rows="3"></textarea>
-                        </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="subjectCredits" class="form-label">Credits</label>
-                                    <input type="number" class="form-control" id="subjectCredits" min="1" max="10">
+                                    <label for="subjectDepartment" class="form-label">Department</label>
+                                    <select class="form-select" id="subjectDepartment" required onchange="handleDepartmentChange()">
+                                        <option value="">Select Department</option>
+                                        <option value="custom">+ Add New Department</option>
+                                        <!-- Departments will be loaded dynamically -->
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -313,6 +319,24 @@
                                     <input type="number" class="form-control" id="subjectHours" min="1" max="20">
                                 </div>
                             </div>
+                        </div>
+                        <div class="row" id="customDepartmentRow" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customDepartmentName" class="form-label">New Department Name</label>
+                                    <input type="text" class="form-control" id="customDepartmentName" placeholder="Enter department name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customDepartmentCode" class="form-label">Department Code</label>
+                                    <input type="text" class="form-control" id="customDepartmentCode" placeholder="Enter department code">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subjectDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="subjectDescription" rows="3"></textarea>
                         </div>
                     </form>
                 </div>
@@ -337,56 +361,56 @@
         // System Admin Subject Management Functionality
         let subjects = [];
         let filteredSubjects = [];
-        let currentUser = null;
+        let departments = [];
         
         // Predefined subjects data
         const predefinedSubjects = {
             's1s2-compulsory': [
-                { name: 'English Language', code: 'ENG', credits: 4, hours: 6 },
-                { name: 'Mathematics', code: 'MATH', credits: 4, hours: 6 },
-                { name: 'History & Political Education', code: 'HPE', credits: 3, hours: 4 },
-                { name: 'Physics', code: 'PHY', credits: 3, hours: 4 },
-                { name: 'Chemistry', code: 'CHEM', credits: 3, hours: 4 },
-                { name: 'Biology', code: 'BIO', credits: 3, hours: 4 },
-                { name: 'Geography', code: 'GEO', credits: 3, hours: 4 },
-                { name: 'Kiswahili', code: 'KIS', credits: 2, hours: 3 },
-                { name: 'Physical Education', code: 'PE', credits: 2, hours: 3 },
-                { name: 'Religious Education', code: 'RE', credits: 2, hours: 3 },
-                { name: 'General Science', code: 'GS', credits: 3, hours: 4 }
+                { name: 'English Language', code: 'ENG', hours: 6, department: 'english' },
+                { name: 'Mathematics', code: 'MATH', hours: 6, department: 'mathematics' },
+                { name: 'History & Political Education', code: 'HPE', hours: 4, department: 'history' },
+                { name: 'Physics', code: 'PHY', hours: 4, department: 'physics' },
+                { name: 'Chemistry', code: 'CHEM', hours: 4, department: 'chemistry' },
+                { name: 'Biology', code: 'BIO', hours: 4, department: 'biology' },
+                { name: 'Geography', code: 'GEO', hours: 4, department: 'geography' },
+                { name: 'Kiswahili', code: 'KIS', hours: 3, department: 'languages' },
+                { name: 'Physical Education', code: 'PE', hours: 3, department: 'physical-education' },
+                { name: 'Religious Education', code: 'RE', hours: 3, department: 'religious-studies' },
+                { name: 'General Science', code: 'GS', hours: 4, department: 'science' }
             ],
             's1s2-elective': [
-                { name: 'Literature in English', code: 'LIT', credits: 2, hours: 3 },
-                { name: 'Luganda', code: 'LUG', credits: 2, hours: 3 },
-                { name: 'French', code: 'FRE', credits: 2, hours: 3 },
-                { name: 'Fine Art', code: 'ART', credits: 2, hours: 3 },
-                { name: 'Entrepreneurship Education', code: 'ENT', credits: 2, hours: 3 },
-                { name: 'Performing Arts', code: 'PA', credits: 2, hours: 3 },
-                { name: 'Agriculture', code: 'AGR', credits: 2, hours: 3 },
-                { name: 'Information and Computer Technology', code: 'ICT', credits: 2, hours: 3 },
-                { name: 'Business Studies', code: 'BS', credits: 2, hours: 3 },
-                { name: 'Home Economics', code: 'HE', credits: 2, hours: 3 },
-                { name: 'Woodwork', code: 'WW', credits: 2, hours: 3 },
-                { name: 'Metal Fabrication', code: 'MF', credits: 2, hours: 3 }
+                { name: 'Literature in English', code: 'LIT', hours: 3, department: 'english' },
+                { name: 'Luganda', code: 'LUG', hours: 3, department: 'languages' },
+                { name: 'French', code: 'FRE', hours: 3, department: 'languages' },
+                { name: 'Fine Art', code: 'ART', hours: 3, department: 'arts' },
+                { name: 'Entrepreneurship Education', code: 'ENT', hours: 3, department: 'business' },
+                { name: 'Performing Arts', code: 'PA', hours: 3, department: 'arts' },
+                { name: 'Agriculture', code: 'AGR', hours: 3, department: 'agriculture' },
+                { name: 'Information and Computer Technology', code: 'ICT', hours: 3, department: 'computer-science' },
+                { name: 'Business Studies', code: 'BS', hours: 3, department: 'business' },
+                { name: 'Home Economics', code: 'HE', hours: 3, department: 'home-economics' },
+                { name: 'Woodwork', code: 'WW', hours: 3, department: 'technical' },
+                { name: 'Metal Fabrication', code: 'MF', hours: 3, department: 'technical' }
             ],
             's5s6-principal': [
-                { name: 'Biology (A-Level)', code: 'BIO-A', credits: 6, hours: 8 },
-                { name: 'Chemistry (A-Level)', code: 'CHEM-A', credits: 6, hours: 8 },
-                { name: 'Physics (A-Level)', code: 'PHY-A', credits: 6, hours: 8 },
-                { name: 'Mathematics (A-Level)', code: 'MATH-A', credits: 6, hours: 8 },
-                { name: 'Geography (A-Level)', code: 'GEO-A', credits: 6, hours: 8 },
-                { name: 'Economics', code: 'ECON', credits: 6, hours: 8 },
-                { name: 'History (A-Level)', code: 'HIST-A', credits: 6, hours: 8 },
-                { name: 'Literature in English (A-Level)', code: 'LIT-A', credits: 6, hours: 8 },
-                { name: 'Divinity', code: 'DIV', credits: 6, hours: 8 },
-                { name: 'Fine Art (A-Level)', code: 'ART-A', credits: 6, hours: 8 },
-                { name: 'Business Studies (A-Level)', code: 'BS-A', credits: 6, hours: 8 },
-                { name: 'Entrepreneurship (A-Level)', code: 'ENT-A', credits: 6, hours: 8 },
-                { name: 'Accountancy', code: 'ACC', credits: 6, hours: 8 }
+                { name: 'Biology (A-Level)', code: 'BIO-A', hours: 8, department: 'biology' },
+                { name: 'Chemistry (A-Level)', code: 'CHEM-A', hours: 8, department: 'chemistry' },
+                { name: 'Physics (A-Level)', code: 'PHY-A', hours: 8, department: 'physics' },
+                { name: 'Mathematics (A-Level)', code: 'MATH-A', hours: 8, department: 'mathematics' },
+                { name: 'Geography (A-Level)', code: 'GEO-A', hours: 8, department: 'geography' },
+                { name: 'Economics', code: 'ECON', hours: 8, department: 'economics' },
+                { name: 'History (A-Level)', code: 'HIST-A', hours: 8, department: 'history' },
+                { name: 'Literature in English (A-Level)', code: 'LIT-A', hours: 8, department: 'english' },
+                { name: 'Divinity', code: 'DIV', hours: 8, department: 'religious-studies' },
+                { name: 'Fine Art (A-Level)', code: 'ART-A', hours: 8, department: 'arts' },
+                { name: 'Business Studies (A-Level)', code: 'BS-A', hours: 8, department: 'business' },
+                { name: 'Entrepreneurship (A-Level)', code: 'ENT-A', hours: 8, department: 'business' },
+                { name: 'Accountancy', code: 'ACC', hours: 8, department: 'business' }
             ],
             's5s6-subsidiary': [
-                { name: 'General Paper', code: 'GP', credits: 3, hours: 4 },
-                { name: 'Subsidiary Mathematics', code: 'SUB-MATH', credits: 3, hours: 4 },
-                { name: 'Subsidiary ICT', code: 'SUB-ICT', credits: 3, hours: 4 }
+                { name: 'General Paper', code: 'GP', hours: 4, department: 'general-studies' },
+                { name: 'Subsidiary Mathematics', code: 'SUB-MATH', hours: 4, department: 'mathematics' },
+                { name: 'Subsidiary ICT', code: 'SUB-ICT', hours: 4, department: 'computer-science' }
             ]
         };
         
@@ -399,9 +423,7 @@
         async function initializeSubjectManagement() {
             try {
                 // Wait for authentication and get the user
-                if (!currentUser) {
-                    currentUser = await waitForAuth(); // From system-admin-utils.js
-                }
+                currentUser = await waitForAuth(); // From system-admin-utils.js
                 
                 // Load user data using utility function
                 const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
@@ -413,7 +435,8 @@
                 // Update UI with user data
                 updateUserDisplay(userResult);
                 
-                // Initialize subjects
+                // Initialize subjects and departments
+                await loadDepartments();
                 initializeSubjects();
                 setupRealTimeListeners();
                 
@@ -445,6 +468,76 @@
                 });
             } catch (error) {
                 console.error('Error updating user display:', error);
+            }
+        }
+        
+        // Load departments from Firebase
+        async function loadDepartments() {
+            try {
+                const departmentsSnapshot = await db.collection('departments').get();
+                departments = [];
+                departmentsSnapshot.forEach(doc => {
+                    const departmentData = doc.data();
+                    departments.push({
+                        id: doc.id,
+                        name: departmentData.name,
+                        code: departmentData.code || doc.id
+                    });
+                });
+                
+                // Populate department dropdown
+                populateDepartmentDropdown();
+                
+            } catch (error) {
+                console.error('Error loading departments:', error);
+                showError('Failed to load departments. Please try again.');
+            }
+        }
+        
+        // Populate department dropdowns
+        function populateDepartmentDropdown() {
+            const departmentSelect = document.getElementById('subjectDepartment');
+            const departmentFilterSelect = document.getElementById('departmentFilter');
+            
+            if (departmentSelect) {
+                // Clear existing options except the first one
+                departmentSelect.innerHTML = '<option value="">Select Department</option>';
+                
+                // Add department options
+                departments.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department.id;
+                    option.textContent = department.name;
+                    departmentSelect.appendChild(option);
+                });
+            }
+            
+            if (departmentFilterSelect) {
+                // Clear existing options except the first one
+                departmentFilterSelect.innerHTML = '<option value="all">All Departments</option>';
+                
+                // Add department options
+                departments.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department.id;
+                    option.textContent = department.name;
+                    departmentFilterSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Handle department dropdown change
+        function handleDepartmentChange() {
+            const departmentSelect = document.getElementById('subjectDepartment');
+            const customDepartmentRow = document.getElementById('customDepartmentRow');
+            
+            if (departmentSelect.value === 'custom') {
+                customDepartmentRow.style.display = 'block';
+                // Clear the custom fields
+                document.getElementById('customDepartmentName').value = '';
+                document.getElementById('customDepartmentCode').value = '';
+            } else {
+                customDepartmentRow.style.display = 'none';
             }
         }
         
@@ -502,7 +595,8 @@
                             type: category.includes('compulsory') ? 'compulsory' : 
                                   category.includes('elective') ? 'elective' :
                                   category.includes('principal') ? 'principal' : 'subsidiary',
-                            credits: subject.credits,
+                            department: subject.department,
+                            departmentName: subject.department,
                             hoursPerWeek: subject.hours,
                             description: `${subject.name} - ${subject.code}`,
                             isActive: true,
@@ -580,7 +674,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">${subject.name}</h6>
-                            <small class="text-muted">Code: ${subject.code} | Credits: ${subject.credits || 'N/A'} | Hours: ${subject.hoursPerWeek || 'N/A'}</small>
+                            <small class="text-muted">Code: ${subject.code} | Department: ${subject.departmentName || 'N/A'} | Hours: ${subject.hoursPerWeek || 'N/A'}</small>
                         </div>
                         <div>
                             <span class="badge bg-${typeColor}">${subject.type.toUpperCase()}</span>
@@ -656,11 +750,13 @@
         function filterSubjects() {
             const levelFilter = document.getElementById('levelFilter').value;
             const typeFilter = document.getElementById('typeFilter').value;
+            const departmentFilter = document.getElementById('departmentFilter').value;
             
             filteredSubjects = subjects.filter(subject => {
                 const levelMatch = levelFilter === 'all' || subject.level === levelFilter;
                 const typeMatch = typeFilter === 'all' || subject.type === typeFilter;
-                return levelMatch && typeMatch;
+                const departmentMatch = departmentFilter === 'all' || subject.department === departmentFilter;
+                return levelMatch && typeMatch && departmentMatch;
             });
             
             displaySubjectsByLevel();
@@ -671,6 +767,7 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('levelFilter').value = 'all';
             document.getElementById('typeFilter').value = 'all';
+            document.getElementById('departmentFilter').value = 'all';
             filteredSubjects = [...subjects];
             displaySubjectsByLevel();
         }
@@ -682,7 +779,7 @@
                 code: subject.code,
                 level: subject.level,
                 type: subject.type,
-                credits: subject.credits,
+                department: subject.departmentName || subject.department,
                 hoursPerWeek: subject.hoursPerWeek,
                 description: subject.description
             }));
@@ -747,13 +844,62 @@
             const code = document.getElementById('subjectCode').value;
             const level = document.getElementById('subjectLevel').value;
             const type = document.getElementById('subjectType').value;
+            const department = document.getElementById('subjectDepartment').value;
             const description = document.getElementById('subjectDescription').value;
-            const credits = document.getElementById('subjectCredits').value;
             const hours = document.getElementById('subjectHours').value;
             
-            if (!name || !code || !level || !type) {
-                showError('Please fill in all required fields.');
+            if (!name || !code || !level || !type || !department) {
+                showError('Please fill in all required fields including department.');
                 return;
+            }
+            
+            // Handle custom department creation
+            let departmentId = department;
+            let departmentName = '';
+            
+            if (department === 'custom') {
+                const customName = document.getElementById('customDepartmentName').value;
+                const customCode = document.getElementById('customDepartmentCode').value;
+                
+                if (!customName || !customCode) {
+                    showError('Please fill in both department name and code for new department.');
+                    return;
+                }
+                
+                // Create new department
+                try {
+                    const departmentData = {
+                        name: customName,
+                        code: customCode.toUpperCase(),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid
+                    };
+                    
+                    const departmentRef = await db.collection('departments').add(departmentData);
+                    departmentId = departmentRef.id;
+                    departmentName = customName;
+                    
+                    // Add to local departments array
+                    departments.push({
+                        id: departmentId,
+                        name: customName,
+                        code: customCode.toUpperCase()
+                    });
+                    
+                    // Update dropdowns
+                    populateDepartmentDropdown();
+                    
+                    showSuccess(`New department "${customName}" created successfully!`);
+                    
+                } catch (error) {
+                    console.error('Error creating department:', error);
+                    showError('Error creating department: ' + error.message);
+                    return;
+                }
+            } else {
+                // Use existing department
+                const existingDept = departments.find(d => d.id === department);
+                departmentName = existingDept ? existingDept.name : department;
             }
             
             // Check if subject code already exists
@@ -769,8 +915,9 @@
                     code: code,
                     level: level,
                     type: type,
+                    department: departmentId,
+                    departmentName: departmentName,
                     description: description || '',
-                    credits: credits ? parseInt(credits) : null,
                     hoursPerWeek: hours ? parseInt(hours) : null,
                     isActive: true,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -890,6 +1037,7 @@
         window.exportSubjects = exportSubjects;
         window.printSubjects = printSubjects;
         window.logout = logout;
+        window.handleDepartmentChange = handleDepartmentChange;
     </script>
 </body>
 </html>
