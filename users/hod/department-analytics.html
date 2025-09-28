@@ -660,17 +660,12 @@
                 console.log('Grades loaded:', grades.length);
                 if (grades.length > 0) {
                     console.log('Sample grade structure:', grades[0]);
-                console.log('Grade field analysis:', {
-                    hasFinalGradePercentage: grades.filter(g => g.finalGrade && typeof g.finalGrade.percentage === 'number').length,
-                    hasFinalGradeNumber: grades.filter(g => typeof g.finalGrade === 'number').length,
-                    hasFinalScore: grades.filter(g => typeof g.finalScore === 'number').length,
-                    hasTotalScore: grades.filter(g => typeof g.totalScore === 'number').length,
-                    hasGradeInfoTotalScore: grades.filter(g => g.gradeInfo && typeof g.gradeInfo.totalScore === 'number').length,
-                    hasGradeInfoFinalScore: grades.filter(g => g.gradeInfo && typeof g.gradeInfo.finalScore === 'number').length,
-                    hasGradeInfoPercentage: grades.filter(g => g.gradeInfo && typeof g.gradeInfo.percentage === 'number').length,
-                    hasAssessmentDetailsTotalScore: grades.filter(g => g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number').length,
-                    hasAssessmentDetailsFinalScore: grades.filter(g => g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number').length
-                });
+                    console.log('Grade field analysis:', {
+                        hasFinalGradePercentage: grades.filter(g => g.finalGrade && typeof g.finalGrade.percentage === 'number').length,
+                        hasFinalGradeNumber: grades.filter(g => typeof g.finalGrade === 'number').length,
+                        hasFinalScore: grades.filter(g => typeof g.finalScore === 'number').length,
+                        hasTotalScore: grades.filter(g => typeof g.totalScore === 'number').length
+                    });
                 }
             } catch (error) {
                 console.error('Error loading grades:', error);
@@ -709,16 +704,6 @@
                 if (typeof g.finalScore === 'number') return true;
                 // Check for totalScore
                 if (typeof g.totalScore === 'number') return true;
-                // Check for gradeInfo.totalScore
-                if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return true;
-                // Check for gradeInfo.finalScore
-                if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return true;
-                // Check for gradeInfo.percentage
-                if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return true;
-                // Check for assessmentDetails.totalScore
-                if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return true;
-                // Check for assessmentDetails.finalScore
-                if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return true;
                 return false;
             });
             
@@ -731,11 +716,6 @@
                     if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
                     if (typeof g.finalScore === 'number') return sum + g.finalScore;
                     if (typeof g.totalScore === 'number') return sum + g.totalScore;
-                    if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return sum + g.gradeInfo.totalScore;
-                    if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return sum + g.gradeInfo.finalScore;
-                    if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return sum + g.gradeInfo.percentage;
-                    if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return sum + g.assessmentDetails.totalScore;
-                    if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return sum + g.assessmentDetails.finalScore;
                     return sum;
                 }, 0) / validGrades.length 
                 : 0;
@@ -747,11 +727,6 @@
                 else if (typeof g.finalGrade === 'number') score = g.finalGrade;
                 else if (typeof g.finalScore === 'number') score = g.finalScore;
                 else if (typeof g.totalScore === 'number') score = g.totalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') score = g.gradeInfo.totalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') score = g.gradeInfo.finalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') score = g.gradeInfo.percentage;
-                else if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') score = g.assessmentDetails.totalScore;
-                else if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') score = g.assessmentDetails.finalScore;
                 return score >= 50;
             });
             
@@ -789,11 +764,6 @@
                 else if (typeof grade.finalGrade === 'number') score = grade.finalGrade;
                 else if (typeof grade.finalScore === 'number') score = grade.finalScore;
                 else if (typeof grade.totalScore === 'number') score = grade.totalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.totalScore === 'number') score = grade.gradeInfo.totalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.finalScore === 'number') score = grade.gradeInfo.finalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.percentage === 'number') score = grade.gradeInfo.percentage;
-                else if (grade.assessmentDetails && typeof grade.assessmentDetails.totalScore === 'number') score = grade.assessmentDetails.totalScore;
-                else if (grade.assessmentDetails && typeof grade.assessmentDetails.finalScore === 'number') score = grade.assessmentDetails.finalScore;
                 
                 if (score >= 90) gradeDistribution.A++;
                 else if (score >= 80) gradeDistribution.B++;
@@ -817,11 +787,6 @@
                         if (typeof g.finalGrade === 'number') return true;
                         if (typeof g.finalScore === 'number') return true;
                         if (typeof g.totalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return true;
-                        if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return true;
-                        if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return true;
                         return false;
                     });
                     
@@ -831,11 +796,6 @@
                             if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
                             if (typeof g.finalScore === 'number') return sum + g.finalScore;
                             if (typeof g.totalScore === 'number') return sum + g.totalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return sum + g.gradeInfo.totalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return sum + g.gradeInfo.finalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return sum + g.gradeInfo.percentage;
-                            if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return sum + g.assessmentDetails.totalScore;
-                            if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return sum + g.assessmentDetails.finalScore;
                             return sum;
                         }, 0);
                         
@@ -1483,11 +1443,6 @@
                 else if (typeof g.finalGrade === 'number') score = g.finalGrade;
                 else if (typeof g.finalScore === 'number') score = g.finalScore;
                 else if (typeof g.totalScore === 'number') score = g.totalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') score = g.gradeInfo.totalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') score = g.gradeInfo.finalScore;
-                else if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') score = g.gradeInfo.percentage;
-                else if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') score = g.assessmentDetails.totalScore;
-                else if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') score = g.assessmentDetails.finalScore;
                 return score >= 50;
             });
             
@@ -1525,11 +1480,6 @@
                 else if (typeof grade.finalGrade === 'number') score = grade.finalGrade;
                 else if (typeof grade.finalScore === 'number') score = grade.finalScore;
                 else if (typeof grade.totalScore === 'number') score = grade.totalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.totalScore === 'number') score = grade.gradeInfo.totalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.finalScore === 'number') score = grade.gradeInfo.finalScore;
-                else if (grade.gradeInfo && typeof grade.gradeInfo.percentage === 'number') score = grade.gradeInfo.percentage;
-                else if (grade.assessmentDetails && typeof grade.assessmentDetails.totalScore === 'number') score = grade.assessmentDetails.totalScore;
-                else if (grade.assessmentDetails && typeof grade.assessmentDetails.finalScore === 'number') score = grade.assessmentDetails.finalScore;
                 
                 if (score >= 90) gradeDistribution.A++;
                 else if (score >= 80) gradeDistribution.B++;
@@ -1553,11 +1503,6 @@
                         if (typeof g.finalGrade === 'number') return true;
                         if (typeof g.finalScore === 'number') return true;
                         if (typeof g.totalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return true;
-                        if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return true;
-                        if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return true;
-                        if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return true;
                         return false;
                     });
                     
@@ -1567,11 +1512,6 @@
                             if (typeof g.finalGrade === 'number') return sum + g.finalGrade;
                             if (typeof g.finalScore === 'number') return sum + g.finalScore;
                             if (typeof g.totalScore === 'number') return sum + g.totalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.totalScore === 'number') return sum + g.gradeInfo.totalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.finalScore === 'number') return sum + g.gradeInfo.finalScore;
-                            if (g.gradeInfo && typeof g.gradeInfo.percentage === 'number') return sum + g.gradeInfo.percentage;
-                            if (g.assessmentDetails && typeof g.assessmentDetails.totalScore === 'number') return sum + g.assessmentDetails.totalScore;
-                            if (g.assessmentDetails && typeof g.assessmentDetails.finalScore === 'number') return sum + g.assessmentDetails.finalScore;
                             return sum;
                         }, 0);
                         

@@ -509,7 +509,7 @@
                 });
                 
                 console.log('Results loaded:', results.length);
-                displayResults();
+            displayResults();
                 updateApprovalStats();
                 
             } catch (error) {
@@ -616,18 +616,18 @@
             tbody.innerHTML = '';
             
             if (result.results && result.results.length > 0) {
-                result.results.forEach(student => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+            result.results.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                         <td>${student.studentId || student.id || 'TBD'}</td>
                         <td>${student.studentName || student.name || 'TBD'}</td>
                         <td>${student.midterm || student.midTerm || 'TBD'}${student.midterm ? '%' : ''}</td>
                         <td>${student.endterm || student.endTerm || 'TBD'}${student.endterm ? '%' : ''}</td>
                         <td>${student.total || student.totalScore || 'TBD'}${student.total ? '%' : ''}</td>
                         <td><span class="badge ${getGradeColor(student.grade)}">${student.grade || 'TBD'}</span></td>
-                    `;
-                    tbody.appendChild(row);
-                });
+                `;
+                tbody.appendChild(row);
+            });
                 
                 // Update grade distribution
                 updateGradeDistribution(result.results);
@@ -758,12 +758,12 @@
                     });
                     
                     // Update local data
-                    const result = results.find(r => r.id === resultId);
-                    if (result) {
+                const result = results.find(r => r.id === resultId);
+                if (result) {
                         result.status = 'approved';
-                        displayResults();
+                    displayResults();
                         updateApprovalStats();
-                        showNotification('Results approved successfully!', 'success');
+                    showNotification('Results approved successfully!', 'success');
                     }
                     
                 } catch (error) {
@@ -787,12 +787,12 @@
                     });
                     
                     // Update local data
-                    const result = results.find(r => r.id === resultId);
-                    if (result) {
+                const result = results.find(r => r.id === resultId);
+                if (result) {
                         result.status = 'rejected';
-                        displayResults();
+                    displayResults();
                         updateApprovalStats();
-                        showNotification('Results rejected!', 'warning');
+                    showNotification('Results rejected!', 'warning');
                     }
                     
                 } catch (error) {
@@ -812,7 +812,7 @@
             
             if (subjectId) {
                 const subject = subjects.find(s => s.id === subjectId);
-                if (subject) {
+            if (subject) {
                     filteredResults = filteredResults.filter(r => 
                         r.subject === subject.name || 
                         r.subjectName === subject.name ||
@@ -918,7 +918,7 @@
                         result.status = 'approved';
                     });
                     
-                    displayResults();
+                displayResults();
                     updateApprovalStats();
                     showNotification(`All ${pendingResults.length} pending results approved!`, 'success');
                     
@@ -947,7 +947,7 @@
             if (!isInitialized) {
                 isInitialized = true;
                 initializeResultsApprovalAsync();
-                setupMobileSidebar(); // From hod-utils.js
+            setupMobileSidebar(); // From hod-utils.js
             }
         });
 
@@ -989,13 +989,13 @@
         function updateResultsApprovalUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
-            
-            console.log('Results Approval user loaded:', {
-                name: userResult.userName,
-                department: userResult.departmentId,
-                departmentName: userResult.departmentName,
-                staffId: userResult.staffId
-            });
+                
+                console.log('Results Approval user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
         }
 
         function waitForAuth() {
