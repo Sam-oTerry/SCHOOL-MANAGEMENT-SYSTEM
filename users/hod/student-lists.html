@@ -579,14 +579,14 @@
             const departmentBadge = document.getElementById('department-badge');
             if (departmentBadge && userResult.departmentName) {
                 departmentBadge.textContent = `${userResult.departmentName} Department`;
-            }
+                }
                 
-            console.log('Student Lists user loaded:', {
-                name: userResult.userName,
-                department: userResult.departmentId,
-                departmentName: userResult.departmentName,
-                staffId: userResult.staffId
-            });
+                console.log('Student Lists user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
         }
     </script>
 </body>

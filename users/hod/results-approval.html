@@ -214,7 +214,7 @@
                         <span class="role-badge">Department Management</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -230,19 +230,12 @@
                                 <label class="form-label">Subject</label>
                                 <select class="form-select" id="subject-filter" onchange="filterResults()">
                                     <option value="">All Subjects</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="biology">Biology</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Class</label>
                                 <select class="form-select" id="class-filter" onchange="filterResults()">
                                     <option value="">All Classes</option>
-                                    <option value="s4-science-a">S.4 Science A</option>
-                                    <option value="s4-science-b">S.4 Science B</option>
-                                    <option value="s3-science">S.3 Science</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -279,7 +272,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-warning text-white text-center">
                                     <div class="card-body">
-                                        <h3>8</h3>
+                                        <h3 id="pending-count">0</h3>
                                         <p class="mb-0">Pending Approval</p>
                                     </div>
                                 </div>
@@ -287,7 +280,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-success text-white text-center">
                                     <div class="card-body">
-                                        <h3>15</h3>
+                                        <h3 id="approved-count">0</h3>
                                         <p class="mb-0">Approved</p>
                                     </div>
                                 </div>
@@ -295,7 +288,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-danger text-white text-center">
                                     <div class="card-body">
-                                        <h3>2</h3>
+                                        <h3 id="rejected-count">0</h3>
                                         <p class="mb-0">Rejected</p>
                                     </div>
                                 </div>
@@ -303,7 +296,7 @@
                             <div class="col-md-3">
                                 <div class="card bg-info text-white text-center">
                                     <div class="card-body">
-                                        <h3>25</h3>
+                                        <h3 id="total-count">0</h3>
                                         <p class="mb-0">Total Results</p>
                                     </div>
                                 </div>
@@ -386,24 +379,24 @@
                     
                     <div class="mt-3">
                         <h6>Grade Distribution:</h6>
-                        <div class="row">
+                        <div class="row grade-distribution">
                             <div class="col-md-2">
-                                <span class="badge bg-success">A: 5</span>
+                                <span class="badge bg-success">A: 0</span>
                             </div>
                             <div class="col-md-2">
-                                <span class="badge bg-primary">B: 8</span>
+                                <span class="badge bg-primary">B: 0</span>
                             </div>
                             <div class="col-md-2">
-                                <span class="badge bg-info">C: 12</span>
+                                <span class="badge bg-info">C: 0</span>
                             </div>
                             <div class="col-md-2">
-                                <span class="badge bg-warning">D: 7</span>
+                                <span class="badge bg-warning">D: 0</span>
                             </div>
                             <div class="col-md-2">
-                                <span class="badge bg-danger">E: 2</span>
+                                <span class="badge bg-danger">E: 0</span>
                             </div>
                             <div class="col-md-2">
-                                <span class="badge bg-dark">F: 1</span>
+                                <span class="badge bg-dark">F: 0</span>
                             </div>
                         </div>
                     </div>
@@ -434,101 +427,152 @@
         // Results Approval Functionality
         let results = [];
         let currentResult = null;
-        
-        // Sample results data
-        const sampleResults = [
-            {
-                id: 1,
-                subject: 'Mathematics',
-                class: 'S.4 Science A',
-                teacher: 'John Smith',
-                term: 'Term 1',
-                students: 35,
-                averageScore: 82.5,
-                status: 'Pending',
-                submittedDate: '2023-10-15',
-                results: [
-                    { studentId: 'ST001', studentName: 'John Doe', midterm: 85, endterm: 78, total: 79.4, grade: 'B' },
-                    { studentId: 'ST002', studentName: 'Mary Smith', midterm: 90, endterm: 82, total: 83.6, grade: 'A' },
-                    { studentId: 'ST003', studentName: 'Peter Johnson', midterm: 75, endterm: 80, total: 79.0, grade: 'B' }
-                ]
-            },
-            {
-                id: 2,
-                subject: 'Physics',
-                class: 'S.4 Science B',
-                teacher: 'Mary Johnson',
-                term: 'Term 1',
-                students: 32,
-                averageScore: 85.2,
-                status: 'Pending',
-                submittedDate: '2023-10-14',
-                results: [
-                    { studentId: 'ST004', studentName: 'Sarah Wilson', midterm: 88, endterm: 85, total: 85.6, grade: 'A' },
-                    { studentId: 'ST005', studentName: 'David Brown', midterm: 82, endterm: 87, total: 86.0, grade: 'A' }
-                ]
-            },
-            {
-                id: 3,
-                subject: 'Chemistry',
-                class: 'S.3 Science',
-                teacher: 'Peter Brown',
-                term: 'Term 1',
-                students: 28,
-                averageScore: 78.8,
-                status: 'Approved',
-                submittedDate: '2023-10-13',
-                results: [
-                    { studentId: 'ST006', studentName: 'Lisa Davis', midterm: 80, endterm: 75, total: 76.0, grade: 'B' },
-                    { studentId: 'ST007', studentName: 'Michael Wilson', midterm: 85, endterm: 82, total: 82.6, grade: 'A' }
-                ]
-            },
-            {
-                id: 4,
-                subject: 'Biology',
-                class: 'S.4 Science A',
-                teacher: 'Sarah Wilson',
-                term: 'Term 1',
-                students: 35,
-                averageScore: 88.1,
-                status: 'Rejected',
-                submittedDate: '2023-10-12',
-                results: [
-                    { studentId: 'ST008', studentName: 'Emma Taylor', midterm: 92, endterm: 88, total: 88.8, grade: 'A' },
-                    { studentId: 'ST009', studentName: 'James Anderson', midterm: 87, endterm: 90, total: 89.4, grade: 'A' }
-                ]
-            }
-        ];
+        let isInitialized = false;
+        let isDataLoaded = false;
+        let subjects = [];
+        let classes = [];
         
         function initializeResultsApproval() {
-            results = [...sampleResults];
-            displayResults();
+            console.log('initializeResultsApproval called');
+            // This function is now replaced by the async version below
+        }
+
+        async function loadSubjects() {
+            console.log('Loading subjects for results approval');
+            try {
+                const subjectsSnapshot = await window.db.collection('subjects').get();
+                subjects = [];
+                subjectsSnapshot.forEach(doc => {
+                    subjects.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Populate subject filter dropdown
+                const subjectFilter = document.getElementById('subject-filter');
+                subjectFilter.innerHTML = '<option value="">All Subjects</option>' + 
+                    subjects.map(subject => `<option value="${subject.id}">${subject.name || subject.subjectName || 'Subject'}</option>`).join('');
+                
+                console.log('Subjects loaded:', subjects.length);
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        async function loadClasses() {
+            console.log('Loading classes for results approval');
+            try {
+                // Generate S1-S6 classes with streams
+                const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+                const streams = ['A', 'B', 'C', 'D'];
+                
+                classes = [];
+                classLevels.forEach(level => {
+                    // Add main class
+                    classes.push({ id: level.toLowerCase(), name: level });
+                    // Add stream classes
+                    streams.forEach(stream => {
+                        classes.push({ 
+                            id: `${level.toLowerCase()}_${stream.toLowerCase()}`, 
+                            name: `${level} ${stream}` 
+                        });
+                    });
+                });
+                
+                // Populate class filter dropdown
+                const classFilter = document.getElementById('class-filter');
+                classFilter.innerHTML = '<option value="">All Classes</option>' + 
+                    classes.map(cls => `<option value="${cls.id}">${cls.name}</option>`).join('');
+                
+                console.log('Classes loaded:', classes.length);
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        }
+
+        async function loadResults() {
+            console.log('Loading results for approval');
+            try {
+                // Load results from Firestore
+                const resultsSnapshot = await window.db.collection('results')
+                    .where('status', 'in', ['pending', 'approved', 'rejected'])
+                    .orderBy('submittedDate', 'desc')
+                    .limit(100)
+                    .get();
+                
+                results = [];
+                resultsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    results.push({
+                        id: doc.id,
+                        ...data,
+                        submittedDate: data.submittedDate?.toDate?.() || new Date(data.submittedDate || Date.now())
+                    });
+                });
+                
+                console.log('Results loaded:', results.length);
+                displayResults();
+                updateApprovalStats();
+                
+            } catch (error) {
+                console.error('Error loading results:', error);
+                // Show empty state
+                displayResults();
+                updateApprovalStats();
+            }
+        }
+
+        function updateApprovalStats() {
+            console.log('Updating approval stats');
+            const pendingCount = results.filter(r => r.status === 'pending').length;
+            const approvedCount = results.filter(r => r.status === 'approved').length;
+            const rejectedCount = results.filter(r => r.status === 'rejected').length;
+            const totalCount = results.length;
+            
+            document.getElementById('pending-count').textContent = pendingCount;
+            document.getElementById('approved-count').textContent = approvedCount;
+            document.getElementById('rejected-count').textContent = rejectedCount;
+            document.getElementById('total-count').textContent = totalCount;
+            
+            console.log('Approval stats updated:', { pendingCount, approvedCount, rejectedCount, totalCount });
         }
         
         function displayResults() {
+            console.log('Displaying results:', results.length);
             const tbody = document.getElementById('results-tbody');
             tbody.innerHTML = '';
+            
+            if (!results || results.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-clipboard-check fa-2x mb-2"></i><br>
+                            No results available for approval.<br>
+                            <small>Results will appear here when teachers submit them.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             results.forEach(result => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${result.subject}</strong></td>
-                    <td>${result.class}</td>
-                    <td>${result.teacher}</td>
-                    <td>${result.term}</td>
-                    <td>${result.students}</td>
-                    <td>${result.averageScore}%</td>
-                    <td><span class="badge ${getStatusColor(result.status)}">${result.status}</span></td>
+                    <td><strong>${result.subject || result.subjectName || 'TBD'}</strong></td>
+                    <td>${result.class || result.className || 'TBD'}</td>
+                    <td>${result.teacher || result.teacherName || 'TBD'}</td>
+                    <td>${result.term || 'TBD'}</td>
+                    <td>${result.students || result.studentCount || 0}</td>
+                    <td>${result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD'}</td>
+                    <td><span class="badge ${getStatusColor(result.status)}">${result.status || 'Unknown'}</span></td>
                     <td>${formatDate(result.submittedDate)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults(${result.id})">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')">
                             <i class="fas fa-eye"></i>
                         </button>
-                        ${result.status === 'Pending' ? 
-                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult(${result.id})">
+                        ${result.status === 'pending' ? 
+                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult('${result.id}')">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult(${result.id})">
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult('${result.id}')">
                                 <i class="fas fa-times"></i>
                             </button>` : 
                             ''
@@ -549,39 +593,77 @@
         }
         
         function viewResults(resultId) {
+            console.log('Viewing results for ID:', resultId);
             const result = results.find(r => r.id === resultId);
-            if (!result) return;
+            if (!result) {
+                console.error('Result not found:', resultId);
+                showNotification('Result not found!', 'error');
+                return;
+            }
             
             currentResult = result;
             
             // Populate modal
-            document.getElementById('detail-subject').textContent = result.subject;
-            document.getElementById('detail-class').textContent = result.class;
-            document.getElementById('detail-teacher').textContent = result.teacher;
-            document.getElementById('detail-term').textContent = result.term;
-            document.getElementById('detail-students').textContent = result.students;
-            document.getElementById('detail-average').textContent = result.averageScore + '%';
+            document.getElementById('detail-subject').textContent = result.subject || result.subjectName || 'TBD';
+            document.getElementById('detail-class').textContent = result.class || result.className || 'TBD';
+            document.getElementById('detail-teacher').textContent = result.teacher || result.teacherName || 'TBD';
+            document.getElementById('detail-term').textContent = result.term || 'TBD';
+            document.getElementById('detail-students').textContent = result.students || result.studentCount || 0;
+            document.getElementById('detail-average').textContent = result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD';
             
             // Populate results table
             const tbody = document.getElementById('results-detail-tbody');
             tbody.innerHTML = '';
             
-            result.results.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.studentId}</td>
-                    <td>${student.studentName}</td>
-                    <td>${student.midterm}%</td>
-                    <td>${student.endterm}%</td>
-                    <td>${student.total}%</td>
-                    <td><span class="badge ${getGradeColor(student.grade)}">${student.grade}</span></td>
+            if (result.results && result.results.length > 0) {
+                result.results.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.studentId || student.id || 'TBD'}</td>
+                        <td>${student.studentName || student.name || 'TBD'}</td>
+                        <td>${student.midterm || student.midTerm || 'TBD'}${student.midterm ? '%' : ''}</td>
+                        <td>${student.endterm || student.endTerm || 'TBD'}${student.endterm ? '%' : ''}</td>
+                        <td>${student.total || student.totalScore || 'TBD'}${student.total ? '%' : ''}</td>
+                        <td><span class="badge ${getGradeColor(student.grade)}">${student.grade || 'TBD'}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Update grade distribution
+                updateGradeDistribution(result.results);
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">
+                            <i class="fas fa-exclamation-triangle"></i><br>
+                            No student results available for this submission.
+                        </td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
-            });
+            }
             
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('resultsDetailModal'));
             modal.show();
+        }
+
+        function updateGradeDistribution(studentResults) {
+            const gradeCounts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            
+            studentResults.forEach(student => {
+                const grade = student.grade;
+                if (gradeCounts.hasOwnProperty(grade)) {
+                    gradeCounts[grade]++;
+                }
+            });
+            
+            // Update grade distribution badges
+            const gradeElements = document.querySelectorAll('.grade-distribution .badge');
+            gradeElements.forEach((element, index) => {
+                const grades = ['A', 'B', 'C', 'D', 'E', 'F'];
+                const grade = grades[index];
+                element.textContent = `${grade}: ${gradeCounts[grade]}`;
+            });
         }
         
         function getGradeColor(grade) {
@@ -596,98 +678,206 @@
             }
         }
         
-        function approveResults() {
-            if (currentResult) {
-                currentResult.status = 'Approved';
+        async function approveResults() {
+            if (!currentResult) {
+                showNotification('No result selected!', 'error');
+                return;
+            }
+            
+            try {
+                console.log('Approving results:', currentResult.id);
+                
+                // Update in Firestore
+                await window.db.collection('results').doc(currentResult.id).update({
+                    status: 'approved',
+                    approvedBy: window.currentUser.uid,
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    approvedByName: window.currentUser.displayName || 'HOD'
+                });
+                
+                // Update local data
+                currentResult.status = 'approved';
                 displayResults();
+                updateApprovalStats();
                 showNotification('Results approved successfully!', 'success');
                 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('resultsDetailModal'));
                 modal.hide();
+                
+            } catch (error) {
+                console.error('Error approving results:', error);
+                showNotification('Failed to approve results. Please try again.', 'error');
             }
         }
         
-        function rejectResults() {
-            if (currentResult) {
-                currentResult.status = 'Rejected';
+        async function rejectResults() {
+            if (!currentResult) {
+                showNotification('No result selected!', 'error');
+                return;
+            }
+            
+            try {
+                console.log('Rejecting results:', currentResult.id);
+                
+                // Update in Firestore
+                await window.db.collection('results').doc(currentResult.id).update({
+                    status: 'rejected',
+                    rejectedBy: window.currentUser.uid,
+                    rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    rejectedByName: window.currentUser.displayName || 'HOD'
+                });
+                
+                // Update local data
+                currentResult.status = 'rejected';
                 displayResults();
+                updateApprovalStats();
                 showNotification('Results rejected!', 'warning');
                 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('resultsDetailModal'));
                 modal.hide();
+                
+            } catch (error) {
+                console.error('Error rejecting results:', error);
+                showNotification('Failed to reject results. Please try again.', 'error');
             }
         }
         
-        function approveResult(resultId) {
+        async function approveResult(resultId) {
             if (confirm('Are you sure you want to approve these results?')) {
-                const result = results.find(r => r.id === resultId);
-                if (result) {
-                    result.status = 'Approved';
-                    displayResults();
-                    showNotification('Results approved successfully!', 'success');
+                try {
+                    console.log('Approving result:', resultId);
+                    
+                    // Update in Firestore
+                    await window.db.collection('results').doc(resultId).update({
+                        status: 'approved',
+                        approvedBy: window.currentUser.uid,
+                        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        approvedByName: window.currentUser.displayName || 'HOD'
+                    });
+                    
+                    // Update local data
+                    const result = results.find(r => r.id === resultId);
+                    if (result) {
+                        result.status = 'approved';
+                        displayResults();
+                        updateApprovalStats();
+                        showNotification('Results approved successfully!', 'success');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error approving result:', error);
+                    showNotification('Failed to approve results. Please try again.', 'error');
                 }
             }
         }
         
-        function rejectResult(resultId) {
+        async function rejectResult(resultId) {
             if (confirm('Are you sure you want to reject these results?')) {
-                const result = results.find(r => r.id === resultId);
-                if (result) {
-                    result.status = 'Rejected';
-                    displayResults();
-                    showNotification('Results rejected!', 'warning');
+                try {
+                    console.log('Rejecting result:', resultId);
+                    
+                    // Update in Firestore
+                    await window.db.collection('results').doc(resultId).update({
+                        status: 'rejected',
+                        rejectedBy: window.currentUser.uid,
+                        rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        rejectedByName: window.currentUser.displayName || 'HOD'
+                    });
+                    
+                    // Update local data
+                    const result = results.find(r => r.id === resultId);
+                    if (result) {
+                        result.status = 'rejected';
+                        displayResults();
+                        updateApprovalStats();
+                        showNotification('Results rejected!', 'warning');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error rejecting result:', error);
+                    showNotification('Failed to reject results. Please try again.', 'error');
                 }
             }
         }
         
         function filterResults() {
-            const subject = document.getElementById('subject-filter').value;
+            console.log('Filtering results');
+            const subjectId = document.getElementById('subject-filter').value;
             const classFilter = document.getElementById('class-filter').value;
             const status = document.getElementById('status-filter').value;
             
-            let filteredResults = results;
+            let filteredResults = [...results];
             
-            if (subject) {
-                filteredResults = filteredResults.filter(r => r.subject.toLowerCase() === subject.toLowerCase());
+            if (subjectId) {
+                const subject = subjects.find(s => s.id === subjectId);
+                if (subject) {
+                    filteredResults = filteredResults.filter(r => 
+                        r.subject === subject.name || 
+                        r.subjectName === subject.name ||
+                        r.subjectId === subjectId
+                    );
+                }
             }
             
             if (classFilter) {
-                filteredResults = filteredResults.filter(r => r.class === classFilter);
+                const classData = classes.find(c => c.id === classFilter);
+                if (classData) {
+                    filteredResults = filteredResults.filter(r => 
+                        r.class === classData.name || 
+                        r.className === classData.name ||
+                        r.classId === classFilter
+                    );
+                }
             }
             
             if (status) {
                 filteredResults = filteredResults.filter(r => r.status.toLowerCase() === status.toLowerCase());
             }
             
+            console.log('Filtered results:', filteredResults.length);
             displayFilteredResults(filteredResults);
         }
         
         function displayFilteredResults(filteredResults) {
+            console.log('Displaying filtered results:', filteredResults.length);
             const tbody = document.getElementById('results-tbody');
             tbody.innerHTML = '';
+            
+            if (!filteredResults || filteredResults.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-search fa-2x mb-2"></i><br>
+                            No results match the selected filters.<br>
+                            <small>Try adjusting your filter criteria.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             filteredResults.forEach(result => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${result.subject}</strong></td>
-                    <td>${result.class}</td>
-                    <td>${result.teacher}</td>
-                    <td>${result.term}</td>
-                    <td>${result.students}</td>
-                    <td>${result.averageScore}%</td>
-                    <td><span class="badge ${getStatusColor(result.status)}">${result.status}</span></td>
+                    <td><strong>${result.subject || result.subjectName || 'TBD'}</strong></td>
+                    <td>${result.class || result.className || 'TBD'}</td>
+                    <td>${result.teacher || result.teacherName || 'TBD'}</td>
+                    <td>${result.term || 'TBD'}</td>
+                    <td>${result.students || result.studentCount || 0}</td>
+                    <td>${result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD'}</td>
+                    <td><span class="badge ${getStatusColor(result.status)}">${result.status || 'Unknown'}</span></td>
                     <td>${formatDate(result.submittedDate)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults(${result.id})">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')">
                             <i class="fas fa-eye"></i>
                         </button>
-                        ${result.status === 'Pending' ? 
-                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult(${result.id})">
+                        ${result.status === 'pending' ? 
+                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult('${result.id}')">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult(${result.id})">
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult('${result.id}')">
                                 <i class="fas fa-times"></i>
                             </button>` : 
                             ''
@@ -698,48 +888,97 @@
             });
         }
         
-        function approveAll() {
+        async function approveAll() {
             if (confirm('Are you sure you want to approve all pending results?')) {
-                results.forEach(result => {
-                    if (result.status === 'Pending') {
-                        result.status = 'Approved';
+                try {
+                    console.log('Approving all pending results');
+                    const pendingResults = results.filter(r => r.status === 'pending');
+                    
+                    if (pendingResults.length === 0) {
+                        showNotification('No pending results to approve!', 'info');
+                        return;
                     }
-                });
-                displayResults();
-                showNotification('All pending results approved!', 'success');
+                    
+                    // Update all pending results in Firestore
+                    const batch = window.db.batch();
+                    pendingResults.forEach(result => {
+                        const resultRef = window.db.collection('results').doc(result.id);
+                        batch.update(resultRef, {
+                            status: 'approved',
+                            approvedBy: window.currentUser.uid,
+                            approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            approvedByName: window.currentUser.displayName || 'HOD'
+                        });
+                    });
+                    
+                    await batch.commit();
+                    
+                    // Update local data
+                    pendingResults.forEach(result => {
+                        result.status = 'approved';
+                    });
+                    
+                    displayResults();
+                    updateApprovalStats();
+                    showNotification(`All ${pendingResults.length} pending results approved!`, 'success');
+                    
+                } catch (error) {
+                    console.error('Error approving all results:', error);
+                    showNotification('Failed to approve all results. Please try again.', 'error');
+                }
             }
         }
         
-        function refreshResults() {
-            showNotification('Results refreshed!', 'info');
-            displayResults();
+        async function refreshResults() {
+            console.log('Refreshing results');
+            try {
+                showNotification('Refreshing results...', 'info');
+                await loadResults();
+                showNotification('Results refreshed successfully!', 'success');
+            } catch (error) {
+                console.error('Error refreshing results:', error);
+                showNotification('Failed to refresh results. Please try again.', 'error');
+            }
         }
         
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            initializeResultsApproval();
-            setupMobileSidebar(); // From hod-utils.js
+            if (!isInitialized) {
+                isInitialized = true;
+                initializeResultsApprovalAsync();
+                setupMobileSidebar(); // From hod-utils.js
+            }
         });
 
-        async function initializeResultsApproval() {
+        async function initializeResultsApprovalAsync() {
+            console.log('initializeResultsApprovalAsync called');
             try {
                 // Wait for authentication
+                console.log('Waiting for auth...');
                 await waitForAuth(); // From hod-utils.js
+                console.log('Auth completed, currentUser:', window.currentUser);
                 
                 // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                console.log('Loading user data...');
+                const userResult = await window.loadHODUserData(window.db, window.currentUser);
                 if (!userResult.success) {
                     showError(userResult.error); // From hod-utils.js
                     return;
                 }
                 
                 // Update UI with user data
-                updateUserDisplay(userResult);
+                console.log('Updating user display...');
+                updateResultsApprovalUserDisplay(userResult);
                 
-                // Initialize results approval data
-                results = [...sampleResults];
-                displayResults();
+                // Load dynamic data
+                console.log('Loading dynamic data...');
+                await loadSubjects();
+                await loadClasses();
+                await loadResults();
+                
+                isDataLoaded = true;
+                console.log('Results approval initialization completed successfully');
                 
             } catch (error) {
                 console.error('Error initializing results approval:', error);
@@ -747,16 +986,40 @@
             }
         }
 
-        function updateUserDisplay(userResult) {
+        function updateResultsApprovalUserDisplay(userResult) {
             // Use the standardized updateUserDisplay function from hod-utils.js
             window.updateUserDisplay(userResult);
-                
-                console.log('Results Approval user loaded:', {
-                    name: userResult.userName,
-                    department: userResult.departmentId,
-                    departmentName: userResult.departmentName,
-                    staffId: userResult.staffId
+            
+            console.log('Results Approval user loaded:', {
+                name: userResult.userName,
+                department: userResult.departmentId,
+                departmentName: userResult.departmentName,
+                staffId: userResult.staffId
+            });
+        }
+
+        function waitForAuth() {
+            return new Promise((resolve, reject) => {
+                const unsubscribe = window.auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    window.currentUser = user;
+                    if (user) {
+                        resolve();
+                    } else {
+                        reject(new Error('User not authenticated'));
+                    }
                 });
+            });
+        }
+
+        function formatDate(date) {
+            if (!date) return 'TBD';
+            const d = new Date(date);
+            return d.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
         }
     </script>
 </body>

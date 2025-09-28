@@ -550,7 +550,7 @@
                 if (classNames.length > 0) {
                         const snaps = await Promise.all(classNames.map(cn => window.db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
                     snaps.forEach(snap => { students += snap.size; });
-                    }
+                }
                 } catch (e) {
                     console.log('Could not load student count:', e);
                 }
