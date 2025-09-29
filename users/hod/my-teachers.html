@@ -837,11 +837,11 @@
                     // Check both academicInfo.department and personalInfo.department
                     const snapshot = await db.collection('users')
                         .where('role', 'in', ['subject_teacher', 'class_teacher', 'hod'])
-                        .where('status', '==', 'active')
-                        .get();
+                    .where('status', '==', 'active')
+                    .get();
 
-                    teachersData = [];
-                    snapshot.forEach(doc => {
+                teachersData = [];
+                snapshot.forEach(doc => {
                         const userData = doc.data();
                         
                         // Check if user belongs to this department
@@ -850,14 +850,14 @@
                                              userData.department;
                         
                         if (userDepartment === departmentId) {
-                            teachersData.push({
-                                id: doc.id,
+                    teachersData.push({
+                        id: doc.id,
                                 ...userData
-                            });
-                        }
                     });
+                        }
+                });
 
-                    console.log(`Loaded ${teachersData.length} teachers for department: ${departmentId}`);
+                console.log(`Loaded ${teachersData.length} teachers for department: ${departmentId}`);
                 } else {
                     console.warn('Firestore not available, using sample data');
                     teachersData = sampleTeachers.filter(teacher => teacher.department === departmentId);
@@ -887,20 +887,20 @@
 
                 if (typeof db !== 'undefined' && db) {
                     // Query teacher_assignments collection for this department
-                    const snapshot = await db.collection('teacher_assignments')
-                        .where('department', '==', departmentId)
-                        .where('status', '==', 'active')
-                        .get();
+                const snapshot = await db.collection('teacher_assignments')
+                    .where('department', '==', departmentId)
+                    .where('status', '==', 'active')
+                    .get();
 
-                    assignmentsData = [];
-                    snapshot.forEach(doc => {
-                        assignmentsData.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                assignmentsData = [];
+                snapshot.forEach(doc => {
+                    assignmentsData.push({
+                        id: doc.id,
+                        ...doc.data()
                     });
+                });
 
-                    console.log(`Loaded ${assignmentsData.length} assignments for department: ${departmentId}`);
+                console.log(`Loaded ${assignmentsData.length} assignments for department: ${departmentId}`);
                 } else {
                     console.warn('Firestore not available, using sample data');
                     assignmentsData = sampleAssignments.filter(assignment => assignment.department === departmentId);
@@ -930,20 +930,20 @@
 
                 if (typeof db !== 'undefined' && db) {
                     // Query classes collection for this department
-                    const snapshot = await db.collection('classes')
-                        .where('department', '==', departmentId)
-                        .where('status', '==', 'active')
-                        .get();
+                const snapshot = await db.collection('classes')
+                    .where('department', '==', departmentId)
+                    .where('status', '==', 'active')
+                    .get();
 
-                    classesData = [];
-                    snapshot.forEach(doc => {
-                        classesData.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                classesData = [];
+                snapshot.forEach(doc => {
+                    classesData.push({
+                        id: doc.id,
+                        ...doc.data()
                     });
+                });
 
-                    console.log(`Loaded ${classesData.length} classes for department: ${departmentId}`);
+                console.log(`Loaded ${classesData.length} classes for department: ${departmentId}`);
                 } else {
                     console.warn('Firestore not available, using sample data');
                     classesData = sampleClasses.filter(cls => cls.department === departmentId);
@@ -973,20 +973,20 @@
 
                 if (typeof db !== 'undefined' && db) {
                     // Query subjects collection for this department
-                    const snapshot = await db.collection('subjects')
-                        .where('department', '==', departmentId)
-                        .where('status', '==', 'active')
-                        .get();
+                const snapshot = await db.collection('subjects')
+                    .where('department', '==', departmentId)
+                    .where('status', '==', 'active')
+                    .get();
 
-                    subjectsData = [];
-                    snapshot.forEach(doc => {
-                        subjectsData.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                subjectsData = [];
+                snapshot.forEach(doc => {
+                    subjectsData.push({
+                        id: doc.id,
+                        ...doc.data()
                     });
+                });
 
-                    console.log(`Loaded ${subjectsData.length} subjects for department: ${departmentId}`);
+                console.log(`Loaded ${subjectsData.length} subjects for department: ${departmentId}`);
                 } else {
                     console.warn('Firestore not available, using sample data');
                     subjectsData = sampleSubjects.filter(subject => subject.department === departmentId);
@@ -1404,12 +1404,12 @@
                             }
                         }
 
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td><strong>${subject.name}:</strong></td>
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${subject.name}:</strong></td>
                             <td>${subjectAverage}%</td>
-                        `;
-                        subjectPerformanceBody.appendChild(row);
+                    `;
+                    subjectPerformanceBody.appendChild(row);
                     } catch (error) {
                         console.error(`Error loading performance for subject ${subject.name}:`, error);
                         // Fallback to random performance
@@ -1516,10 +1516,10 @@
                                              userData.department;
                         
                         if (userDepartment === departmentId) {
-                            teachersData.push({
-                                id: doc.id,
+                        teachersData.push({
+                            id: doc.id,
                                 ...userData
-                            });
+                        });
                         }
                     });
                     console.log(`Real-time update: ${teachersData.length} teachers loaded`);
@@ -1755,13 +1755,13 @@
                                                 <label class="form-label">Effectiveness</label>
                                                 <div class="progress">
                                                     <div class="progress-bar" style="width: ${performance.effectiveness}%">${performance.effectiveness}%</div>
-                                                </div>
+                                            </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Student Satisfaction</label>
                                                 <div class="progress">
                                                     <div class="progress-bar bg-success" style="width: ${performance.satisfaction}%">${performance.satisfaction}%</div>
-                                                </div>
+                                            </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Attendance Rate</label>
@@ -1788,16 +1788,16 @@
                                         <tbody>
                                             ${teacherAssignments.length > 0 ? 
                                                 teacherAssignments.map(assignment => {
-                                                    const classData = classesData.find(c => c.id === assignment.classId);
-                                                    const subjectData = subjectsData.find(s => s.id === assignment.subjectId);
-                                                    return `
-                                                        <tr>
-                                                            <td>${classData ? classData.name : 'Unknown'}</td>
-                                                            <td>${subjectData ? subjectData.name : 'Unknown'}</td>
-                                                            <td>${assignment.hoursPerWeek || 0}</td>
+                                                const classData = classesData.find(c => c.id === assignment.classId);
+                                                const subjectData = subjectsData.find(s => s.id === assignment.subjectId);
+                                                return `
+                                                    <tr>
+                                                        <td>${classData ? classData.name : 'Unknown'}</td>
+                                                        <td>${subjectData ? subjectData.name : 'Unknown'}</td>
+                                                        <td>${assignment.hoursPerWeek || 0}</td>
                                                             <td><span class="badge bg-success">${assignment.status || 'Active'}</span></td>
-                                                        </tr>
-                                                    `;
+                                                    </tr>
+                                                `;
                                                 }).join('') :
                                                 '<tr><td colspan="4" class="text-center text-muted">No assignments found</td></tr>'
                                             }

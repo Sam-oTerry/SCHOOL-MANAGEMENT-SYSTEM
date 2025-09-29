@@ -658,7 +658,7 @@
                     } else {
                         console.warn('setupMobileSidebar function not available');
                     }
-                    initializeStudentManagement();
+            initializeStudentManagement();
                 } catch (error) {
                     console.error('Error initializing student management:', error);
                 }
@@ -666,18 +666,30 @@
         });
 
         async function initializeStudentManagement() {
+            console.log('🚀 Starting student management initialization...');
             try {
+                // Check Firebase availability
+                console.log('🔍 Checking Firebase availability...');
+                console.log('Firebase auth available:', typeof window.auth !== 'undefined');
+                console.log('Firebase db available:', typeof window.db !== 'undefined');
+                
                 // Wait for authentication and get the user
+                console.log('🔐 Waiting for authentication...');
                 if (typeof waitForAuth === 'function') {
                     window.currentUser = await waitForAuth();
+                    console.log('✅ Authentication successful:', window.currentUser?.uid);
                 } else {
+                    console.error('❌ waitForAuth function not available');
                     throw new Error('waitForAuth function not available');
                 }
                 
                 // Load user data using utility function
+                console.log('👤 Loading user data...');
                 if (typeof loadSystemAdminUserData === 'function') {
                     const userResult = await loadSystemAdminUserData(db, window.currentUser);
+                    console.log('User data result:', userResult);
                     if (!userResult.success) {
+                        console.error('❌ Failed to load user data:', userResult.error);
                         if (typeof showError === 'function') {
                             showError(userResult.error);
                         } else {
@@ -688,18 +700,30 @@
                     
                     // Update UI with user data
                     updateUserDisplay(userResult);
+                    console.log('✅ User display updated');
                 } else {
+                    console.error('❌ loadSystemAdminUserData function not available');
                     throw new Error('loadSystemAdminUserData function not available');
                 }
                 
                 // Load student data
-                loadStudents();
-                loadClasses();
-                loadAcademicYears();
+                console.log('📚 Loading student data...');
+                await loadStudents();
+                console.log('📚 Loading classes...');
+                await loadClasses();
+                console.log('📅 Loading academic years...');
+                await loadAcademicYears();
+                console.log('🔄 Setting up real-time listeners...');
                 setupRealTimeListeners();
+                console.log('✅ Student management initialization complete!');
                 
             } catch (error) {
-                console.error('Error initializing student management:', error);
+                console.error('❌ Error initializing student management:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
                 if (typeof showError === 'function') {
                     showError('Failed to initialize student management. Please refresh and try again.');
                 } else {
@@ -735,10 +759,14 @@
         
         // Load students from Firebase
         async function loadStudents() {
+            console.log('📚 Starting to load students from Firestore...');
             try {
+                console.log('🔍 Querying students collection...');
                 const studentsSnapshot = await db.collection('students')
                     .orderBy('createdAt', 'desc')
                     .get();
+                
+                console.log('📊 Students snapshot received:', studentsSnapshot.size, 'documents');
                 
                 students = [];
                 studentsSnapshot.forEach(doc => {
@@ -749,6 +777,8 @@
                     });
                 });
                 
+                console.log('✅ Processed', students.length, 'students');
+                
                 filteredStudents = [...students];
                 displayStudents();
                 updateStudentStats();
@@ -758,7 +788,12 @@
                 console.log(`✅ Loaded ${students.length} students from Firestore`);
                 
             } catch (error) {
-                console.error('Error loading students:', error);
+                console.error('❌ Error loading students:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 if (typeof showError === 'function') {
                     showError('Failed to load students. Please try again.');
                 } else {
@@ -769,11 +804,15 @@
         
         // Load classes dynamically from Firestore
         async function loadClasses() {
+            console.log('📚 Starting to load classes from Firestore...');
             try {
+                console.log('🔍 Querying classes collection...');
                 const classesSnapshot = await db.collection('classes')
                     .where('status', '==', 'active')
                     .orderBy('name')
                     .get();
+                
+                console.log('📊 Classes snapshot received:', classesSnapshot.size, 'documents');
                 
                 classes = [];
                 classesSnapshot.forEach(doc => {
@@ -784,9 +823,11 @@
                     });
                 });
                 
+                console.log('✅ Processed', classes.length, 'classes');
+                
                 // If no classes found, use sample data
                 if (classes.length === 0) {
-                    console.log('No classes found in Firestore, using sample data');
+                    console.log('⚠️ No classes found in Firestore, using sample data');
                     classes = [
                         { id: 's1', name: 'S1', level: 'O Level', stream: null },
                         { id: 's2', name: 'S2', level: 'O Level', stream: null },
@@ -801,8 +842,14 @@
                 console.log(`✅ Loaded ${classes.length} classes from Firestore`);
                 
             } catch (error) {
-                console.error('Error loading classes:', error);
+                console.error('❌ Error loading classes:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 // Fallback to sample data
+                console.log('🔄 Using fallback sample data for classes');
                 classes = [
                     { id: 's1', name: 'S1', level: 'O Level', stream: null },
                     { id: 's2', name: 'S2', level: 'O Level', stream: null },
@@ -909,7 +956,7 @@
                 const select = document.getElementById(selectId);
                 if (select) {
                     if (selectId === 'yearFilter') {
-                        select.innerHTML = '<option value="all">All Years</option>';
+                    select.innerHTML = '<option value="all">All Years</option>';
                     } else {
                         select.innerHTML = '<option value="">Select Year</option>';
                     }
@@ -1138,7 +1185,7 @@
             
             if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
                 if (typeof showError === 'function') {
-                    showError('Please fill in all required fields.');
+                showError('Please fill in all required fields.');
                 } else {
                     console.error('Please fill in all required fields.');
                 }
@@ -1196,7 +1243,7 @@
                 console.error('Error adding student:', error);
                 hideLoading();
                 if (typeof showError === 'function') {
-                    showError('Error adding student: ' + error.message);
+                showError('Error adding student: ' + error.message);
                 } else {
                     console.error('Error adding student: ' + error.message);
                 }
@@ -1300,7 +1347,7 @@
             
             if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
                 if (typeof showError === 'function') {
-                    showError('Please fill in all required fields.');
+                showError('Please fill in all required fields.');
                 } else {
                     console.error('Please fill in all required fields.');
                 }
@@ -1350,7 +1397,7 @@
                 console.error('Error updating student:', error);
                 hideLoading();
                 if (typeof showError === 'function') {
-                    showError('Error updating student: ' + error.message);
+                showError('Error updating student: ' + error.message);
                 } else {
                     console.error('Error updating student: ' + error.message);
                 }
@@ -1370,7 +1417,7 @@
                     console.error('Error deleting student:', error);
                     hideLoading();
                     if (typeof showError === 'function') {
-                        showError('Error deleting student: ' + error.message);
+                    showError('Error deleting student: ' + error.message);
                     } else {
                         console.error('Error deleting student: ' + error.message);
                     }
