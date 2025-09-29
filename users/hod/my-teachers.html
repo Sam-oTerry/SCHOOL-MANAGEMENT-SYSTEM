@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Teachers - Head of Department</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
@@ -1263,16 +1264,25 @@
             console.log('Setting up real-time listeners for department:', departmentId);
 
             // Listen for teachers changes
-            db.collection('teachers')
-                .where('department', '==', departmentId)
+            db.collection('users')
+                .where('role', 'in', ['subject_teacher', 'class_teacher', 'hod'])
                 .where('status', '==', 'active')
                 .onSnapshot((snapshot) => {
                     teachersData = [];
                     snapshot.forEach(doc => {
-                        teachersData.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                        const userData = doc.data();
+                        
+                        // Check if user belongs to this department
+                        const userDepartment = userData.academicInfo?.department || 
+                                             userData.personalInfo?.department || 
+                                             userData.department;
+                        
+                        if (userDepartment === departmentId) {
+                            teachersData.push({
+                                id: doc.id,
+                                ...userData
+                            });
+                        }
                     });
                     console.log(`Real-time update: ${teachersData.length} teachers loaded`);
                     updateTeachersTable();
