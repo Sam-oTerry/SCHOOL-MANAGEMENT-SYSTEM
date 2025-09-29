@@ -457,6 +457,21 @@
     <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/database-service.js"></script>
     <script>
+        /*
+         * REPORT CARDS PAGE - CLASS TEACHER
+         * 
+         * This page is for generating comprehensive report cards for ALL students 
+         * in the assigned class, covering ALL subjects (not just the teacher's subjects).
+         * 
+         * DISTINCTION FROM OTHER PAGES:
+         * - grade-entry.html: For entering grades for specific subjects the teacher teaches
+         * - my-subjects.html: Shows only subjects that the teacher teaches
+         * - report-cards.html: Shows ALL students in assigned class with ALL their subjects
+         * 
+         * The class teacher can generate report cards for their entire class,
+         * even for subjects taught by other teachers.
+         */
+        
         // Report Cards Functionality (Firebase)
         let currentUser = null;
         let classTeacherData = null;
@@ -612,15 +627,30 @@
             try {
                 console.log('👥 Loading students for class:', assignedClass);
                 
+                // First, let's check what students exist in the database
+                const allStudentsSnapshot = await db.collection('students').limit(5).get();
+                console.log('🔍 Sample students in database:');
+                allStudentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    console.log(`  - Student ${doc.id}:`, {
+                        class: data.class,
+                        academicInfo: data.academicInfo,
+                        firstName: data.firstName,
+                        personalInfo: data.personalInfo
+                    });
+                });
+                
+                // Try multiple possible field structures for class
                 const studentsSnapshot = await db.collection('students')
-                    .where('academicInfo.currentClass', '==', assignedClass)
+                    .where('class', '==', assignedClass)
                     .get();
                 
                 students = [];
                 studentsSnapshot.forEach(doc => {
                     const studentData = doc.data();
                     const studentName = studentData.personalInfo?.fullName || 
-                                      `${studentData.personalInfo?.firstName || ''} ${studentData.personalInfo?.lastName || ''}`.trim() || 
+                                      `${studentData.personalInfo?.firstName || ''} ${studentData.personalInfo?.lastName || ''}`.trim() ||
+                                      `${studentData.firstName || ''} ${studentData.lastName || ''}`.trim() ||
                                       'Unnamed Student';
                     
                     students.push({
@@ -631,7 +661,61 @@
                     });
                 });
                 
-                console.log(`✅ Loaded ${students.length} students`);
+                console.log(`✅ Loaded ${students.length} students for class ${assignedClass}`);
+                
+                // If no students found with 'class' field, try 'academicInfo.currentClass'
+                if (students.length === 0) {
+                    console.log('🔄 No students found with "class" field, trying "academicInfo.currentClass"...');
+                    const altSnapshot = await db.collection('students')
+                        .where('academicInfo.currentClass', '==', assignedClass)
+                        .get();
+                    
+                    altSnapshot.forEach(doc => {
+                        const studentData = doc.data();
+                        const studentName = studentData.personalInfo?.fullName || 
+                                          `${studentData.personalInfo?.firstName || ''} ${studentData.personalInfo?.lastName || ''}`.trim() ||
+                                          `${studentData.firstName || ''} ${studentData.lastName || ''}`.trim() ||
+                                          'Unnamed Student';
+                        
+                        students.push({
+                            id: doc.id,
+                            name: studentName,
+                            class: assignedClass,
+                            studentId: studentData.studentId || doc.id
+                        });
+                    });
+                    
+                    console.log(`✅ Loaded ${students.length} students using alternative field structure`);
+                }
+                
+                // If still no students, try loading all students and filtering manually
+                if (students.length === 0) {
+                    console.log('🔄 No students found with either field structure, trying manual filtering...');
+                    const allStudentsSnapshot = await db.collection('students').get();
+                    
+                    allStudentsSnapshot.forEach(doc => {
+                        const studentData = doc.data();
+                        const studentClass = studentData.class || 
+                                           studentData.academicInfo?.currentClass ||
+                                           studentData.academicInfo?.assignedClass;
+                        
+                        if (studentClass && studentClass.toLowerCase() === assignedClass.toLowerCase()) {
+                            const studentName = studentData.personalInfo?.fullName || 
+                                              `${studentData.personalInfo?.firstName || ''} ${studentData.personalInfo?.lastName || ''}`.trim() ||
+                                              `${studentData.firstName || ''} ${studentData.lastName || ''}`.trim() ||
+                                              'Unnamed Student';
+                            
+                            students.push({
+                                id: doc.id,
+                                name: studentName,
+                                class: assignedClass,
+                                studentId: studentData.studentId || doc.id
+                            });
+                        }
+                    });
+                    
+                    console.log(`✅ Loaded ${students.length} students using manual filtering`);
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading students:', error);
@@ -639,10 +723,10 @@
             }
         }
         
-        // Load grades for students
+        // Load grades for students (ALL subjects, not just teacher's subjects)
         async function loadGrades() {
             try {
-                console.log('📊 Loading grades...');
+                console.log('📊 Loading grades for ALL subjects...');
                 
                 if (students.length === 0) {
                     grades = [];
@@ -650,6 +734,8 @@
                 }
                 
                 const studentIds = students.map(s => s.id);
+                
+                // Load ALL grades for students in the class (not filtered by teacher's subjects)
                 const gradesSnapshot = await db.collection('grades')
                     .where('studentId', 'in', studentIds)
                     .get();
@@ -662,7 +748,7 @@
                     });
                 });
                 
-                console.log(`✅ Loaded ${grades.length} grade records`);
+                console.log(`✅ Loaded ${grades.length} grade records for ALL subjects`);
                 
             } catch (error) {
                 console.error('❌ Error loading grades:', error);
@@ -670,10 +756,10 @@
             }
         }
         
-        // Load subjects
+        // Load subjects (ALL subjects for report cards, not just teacher's subjects)
         async function loadSubjects() {
             try {
-                console.log('📚 Loading subjects...');
+                console.log('📚 Loading ALL subjects for report cards...');
                 
                 const subjectsSnapshot = await db.collection('subjects').get();
                 
@@ -685,7 +771,7 @@
                     });
                 });
                 
-                console.log(`✅ Loaded ${subjects.length} subjects`);
+                console.log(`✅ Loaded ${subjects.length} subjects (ALL subjects for report cards)`);
                 
             } catch (error) {
                 console.error('❌ Error loading subjects:', error);
@@ -693,56 +779,89 @@
             }
         }
         
-        // Generate report cards from loaded data
+        // Generate report cards from loaded data (ALL subjects for each student)
         function generateReportCards() {
-            console.log('📋 Generating report cards...');
+            console.log('📋 Generating comprehensive report cards with ALL subjects...');
             
             reportCards = students.map(student => {
-                // Get grades for this student
+                // Get ALL grades for this student (not just teacher's subjects)
                 const studentGrades = grades.filter(g => g.studentId === student.id);
                 
-                // Calculate average grade and position
-                const { averageGrade, position, status } = calculateStudentPerformance(studentGrades);
+                console.log(`📊 Student ${student.studentId || student.id}: Found ${studentGrades.length} grade records`);
+                
+                // Calculate comprehensive performance across ALL subjects
+                const { averageGrade, position, status, subjects } = calculateStudentPerformance(studentGrades);
                 
                 return {
-                    studentId: student.studentId,
-                    studentName: student.name,
-                    class: student.class,
+                    id: student.id,
+                    studentId: student.studentId || student.id,
+                    studentName: student.fullName || `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+                    class: assignedClass,
                     averageGrade: averageGrade,
                     position: position,
                     status: status,
-                    grades: studentGrades
+                    grades: studentGrades,
+                    subjects: subjects, // ALL subjects with grades
+                    totalSubjects: subjects.length, // Total subjects with grades
+                    createdAt: new Date(),
+                    createdBy: currentUser.uid
                 };
             });
             
-            console.log(`✅ Generated ${reportCards.length} report cards`);
+            console.log(`✅ Generated ${reportCards.length} comprehensive report cards`);
         }
         
-        // Calculate student performance
+        // Calculate student performance across ALL subjects
         function calculateStudentPerformance(studentGrades) {
             if (studentGrades.length === 0) {
                 return {
                     averageGrade: '—',
+                    averageScore: 0,
                     position: '—',
-                status: 'Draft'
+                    status: 'Draft',
+                    subjects: []
                 };
             }
             
-            // Calculate average score
+            // Calculate average score across ALL subjects
             let totalScore = 0;
             let validGrades = 0;
+            const subjectPerformance = [];
             
             studentGrades.forEach(grade => {
+                // Find subject name
+                const subject = subjects.find(s => s.id === grade.subjectId);
+                const subjectName = subject ? subject.name : 'Unknown Subject';
+                
                 if (grade.finalGrade && typeof grade.finalGrade.percentage === 'number') {
                     totalScore += grade.finalGrade.percentage;
                     validGrades++;
+                    
+                    subjectPerformance.push({
+                        subjectId: grade.subjectId,
+                        subjectName: subjectName,
+                        score: grade.finalGrade.percentage,
+                        grade: grade.finalGrade.grade,
+                        midterm: grade.midTerm || grade.scores?.midterm || 0,
+                        endterm: grade.endTerm || grade.scores?.endterm || 0
+                    });
+                } else {
+                    // Subject with no grades yet
+                    subjectPerformance.push({
+                        subjectId: grade.subjectId,
+                        subjectName: subjectName,
+                        score: 0,
+                        grade: '—',
+                        midterm: grade.midTerm || grade.scores?.midterm || 0,
+                        endterm: grade.endTerm || grade.scores?.endterm || 0
+                    });
                 }
             });
             
             const averageScore = validGrades > 0 ? totalScore / validGrades : 0;
             const averageGrade = getGradeFromScore(averageScore);
             
-            // Determine status based on completeness
+            // Determine status based on completeness (80% of subjects should have grades)
             const status = validGrades >= subjects.length * 0.8 ? 'Ready' : 'Draft';
             
             // Calculate position (simplified - would need more complex logic for actual ranking)
@@ -750,8 +869,10 @@
             
             return {
                 averageGrade,
+                averageScore,
                 position,
-                status
+                status,
+                subjects: subjectPerformance
             };
         }
         
@@ -820,9 +941,9 @@
             
             console.log('🔄 Setting up real-time listeners...');
             
-            // Listen for student changes
+            // Listen for student changes - try 'class' field first
             const studentsListener = db.collection('students')
-                .where('academicInfo.currentClass', '==', assignedClass)
+                .where('class', '==', assignedClass)
                 .onSnapshot(async (snapshot) => {
                     console.log('👥 Students updated');
                     await loadStudents();
@@ -832,6 +953,19 @@
                 });
             
             realTimeListeners.push(studentsListener);
+            
+            // Also listen for students with 'academicInfo.currentClass' structure
+            const altStudentsListener = db.collection('students')
+                .where('academicInfo.currentClass', '==', assignedClass)
+                .onSnapshot(async (snapshot) => {
+                    console.log('👥 Students updated (alternative structure)');
+                    await loadStudents();
+                    generateReportCards();
+                    updateSummaryCards();
+                    displayReportCards();
+                });
+            
+            realTimeListeners.push(altStudentsListener);
             
             // Listen for grade changes
             if (students.length > 0) {
@@ -1053,39 +1187,39 @@
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             
             if (mobileMenuToggle && sidebar && sidebarOverlay) {
-                // Toggle sidebar on mobile
-                mobileMenuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                    sidebarOverlay.classList.toggle('show');
-                });
-                
-                // Close sidebar when clicking overlay
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                });
-                
-                // Close sidebar when clicking on nav links (mobile)
-                const navLinks = document.querySelectorAll('.sidebar .nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        if (window.innerWidth <= 768) {
-                            sidebar.classList.remove('show');
-                            sidebarOverlay.classList.remove('show');
-                        }
-                    });
-                });
-                
-                // Handle window resize
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth > 768) {
+            // Toggle sidebar on mobile
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+            });
+            
+            // Close sidebar when clicking overlay
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+            
+            // Close sidebar when clicking on nav links (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
                         sidebar.classList.remove('show');
                         sidebarOverlay.classList.remove('show');
                     }
                 });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
             }
         }
-        
+
         // Logout function
         function logout() {
             auth.signOut().then(() => {

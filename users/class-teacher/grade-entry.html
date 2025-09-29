@@ -448,29 +448,38 @@
             }
             
             try {
-                // Get teacher assignments for the current user and selected subject
-                const teacherAssignments = await getTeacherAssignmentsForGradeEntry(window.currentUser.uid);
-                console.log('Teacher assignments for grade entry:', teacherAssignments);
+                console.log('🎯 Class Teacher - Loading classes for subject:', subjectId);
+                console.log('🎯 Assigned class for this teacher:', assignedClass);
                 
-                // Filter assignments for the selected subject
-                const subjectAssignments = teacherAssignments.filter(assignment => 
-                    assignment.subjectId === subjectId || assignment.subject === subjects.find(s => s.id === subjectId)?.name
-                );
-                
-                console.log('Subject assignments:', subjectAssignments);
-                
-                // Extract unique classes from assignments
-                const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
-                const uniqueClasses = [...new Set(assignedClasses)];
-                
-                console.log('Assigned classes for subject:', uniqueClasses);
-                
-                // Populate class dropdown
-                if (uniqueClasses.length > 0) {
-                    clsSelect.innerHTML = '<option value="">Select Class</option>' + 
-                        uniqueClasses.map(c => `<option value="${c}">${c}</option>`).join('');
+                // For class teachers, they should only see their assigned class
+                if (assignedClass) {
+                    clsSelect.innerHTML = `<option value="${assignedClass}" selected>${assignedClass}</option>`;
+                    console.log(`✅ Set class dropdown to assigned class: ${assignedClass}`);
                 } else {
-                    clsSelect.innerHTML = '<option value="">No classes assigned for this subject</option>';
+                    // Fallback: try to get classes from teacher assignments
+                    const teacherAssignments = await getTeacherAssignmentsForGradeEntry(currentUser.uid);
+                    console.log('Teacher assignments for grade entry:', teacherAssignments);
+                    
+                    // Filter assignments for the selected subject
+                    const subjectAssignments = teacherAssignments.filter(assignment => 
+                        assignment.subjectId === subjectId || assignment.subject === subjects.find(s => s.id === subjectId)?.name
+                    );
+                    
+                    console.log('Subject assignments:', subjectAssignments);
+                    
+                    // Extract unique classes from assignments
+                    const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
+                    const uniqueClasses = [...new Set(assignedClasses)];
+                    
+                    console.log('Assigned classes for subject:', uniqueClasses);
+                    
+                    // Populate class dropdown
+                    if (uniqueClasses.length > 0) {
+                        clsSelect.innerHTML = '<option value="">Select Class</option>' + 
+                            uniqueClasses.map(c => `<option value="${c}">${c}</option>`).join('');
+                    } else {
+                        clsSelect.innerHTML = '<option value="">No classes assigned for this subject</option>';
+                    }
                 }
                 
             } catch (error) {
@@ -489,16 +498,75 @@
                 return;
             }
             
-            // Fetch students in selected class
-            const snap = await db.collection('students')
-                .where('academicInfo.currentClass', '==', classSelect)
-                .get();
+            console.log('👥 Loading students for grade entry - Class:', classSelect);
+            
+            // Try multiple possible field structures for class
+            let snap;
+            try {
+                // First try the direct 'class' field (most common)
+                snap = await db.collection('students')
+                    .where('class', '==', classSelect)
+                    .get();
+                
+                console.log(`✅ Found ${snap.size} students using 'class' field`);
+                
+                // If no students found, try 'academicInfo.currentClass'
+                if (snap.empty) {
+                    console.log('🔄 No students found with "class" field, trying "academicInfo.currentClass"...');
+                    snap = await db.collection('students')
+                        .where('academicInfo.currentClass', '==', classSelect)
+                        .get();
+                    console.log(`✅ Found ${snap.size} students using 'academicInfo.currentClass' field`);
+                }
+                
+                // If still no students, try manual filtering
+                if (snap.empty) {
+                    console.log('🔄 No students found with either field, trying manual filtering...');
+                    const allStudentsSnap = await db.collection('students').get();
+                    const filteredDocs = [];
+                    
+                    allStudentsSnap.forEach(doc => {
+                        const data = doc.data();
+                        const studentClass = data.class || 
+                                           data.academicInfo?.currentClass ||
+                                           data.academicInfo?.assignedClass;
+                        
+                        if (studentClass && studentClass.toLowerCase() === classSelect.toLowerCase()) {
+                            filteredDocs.push(doc);
+                        }
+                    });
+                    
+                    console.log(`✅ Found ${filteredDocs.length} students using manual filtering`);
+                    
+                    // Create a mock snapshot-like object
+                    snap = {
+                        forEach: (callback) => filteredDocs.forEach(callback),
+                        empty: filteredDocs.length === 0,
+                        size: filteredDocs.length
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading students:', error);
+                alert('Failed to load students. Please try again.');
+                return;
+            }
+            
             currentStudents = [];
             snap.forEach(doc => {
                 const s = doc.data();
-                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
-                currentStudents.push({ id: doc.id, name });
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || 
+                           `${s.firstName || ''} ${s.lastName || ''}`.trim() || 
+                           s.name || 
+                           'Unnamed Student';
+                currentStudents.push({ 
+                    id: doc.id, 
+                    name,
+                    studentId: s.studentId || doc.id
+                });
             });
+
+            console.log(`✅ Loaded ${currentStudents.length} students for grade entry`);
 
             // Optionally prefill existing grades for this subject/term
             const gradeSnap = await db.collection('grades')
@@ -689,7 +757,7 @@
                     return;
                 }
                 
-                // Get user data to find assigned subjects
+                // Get user data to find assigned subjects and class
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
                 if (!userDoc.exists) {
                     console.error('❌ User document not found');
@@ -697,6 +765,13 @@
                 }
                 
                 const userData = userDoc.data();
+                
+                // Extract assigned class for this class teacher
+                assignedClass = userData.employmentInfo?.assignedClass || 
+                              userData.academicInfo?.assignedClass ||
+                              userData.assignedClass;
+                
+                console.log('🎯 Class Teacher assigned class:', assignedClass);
                 
                 // Get assigned subject IDs from user data
                 let assignedSubjectIds = [];
@@ -775,9 +850,9 @@
                 
                 if (subjects.length === 0) {
                     showNoSubjectsMessage();
-                    return;
-                }
-                
+                return;
+            }
+            
                 // Render subjects dropdown
                 renderAssignedSubjectsSelect(subjects);
                 
@@ -827,39 +902,39 @@
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             
             if (mobileMenuToggle && sidebar && sidebarOverlay) {
-                // Toggle sidebar on mobile
-                mobileMenuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                    sidebarOverlay.classList.toggle('show');
-                });
-                
-                // Close sidebar when clicking overlay
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                });
-                
-                // Close sidebar when clicking on nav links (mobile)
-                const navLinks = document.querySelectorAll('.sidebar .nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        if (window.innerWidth <= 768) {
-                            sidebar.classList.remove('show');
-                            sidebarOverlay.classList.remove('show');
-                        }
-                    });
-                });
-                
-                // Handle window resize
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth > 768) {
+            // Toggle sidebar on mobile
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+            });
+            
+            // Close sidebar when clicking overlay
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+            
+            // Close sidebar when clicking on nav links (mobile)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
                         sidebar.classList.remove('show');
                         sidebarOverlay.classList.remove('show');
                     }
                 });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
             }
         }
-        
+
         // Logout function
         function logout() {
             auth.signOut().then(() => {
@@ -871,6 +946,68 @@
             });
         }
         
+        // Test function to verify student loading
+        async function testStudentLoading() {
+            console.log('🧪 Testing student loading...');
+            console.log('Current assigned class:', assignedClass);
+            
+            if (!assignedClass) {
+                console.log('❌ No assigned class found');
+                return;
+            }
+            
+            try {
+                // Test direct class field query
+                const directQuery = await db.collection('students')
+                    .where('class', '==', assignedClass)
+                    .get();
+                
+                console.log(`📊 Direct 'class' field query: ${directQuery.size} students`);
+                
+                // Test academicInfo.currentClass query
+                const academicQuery = await db.collection('students')
+                    .where('academicInfo.currentClass', '==', assignedClass)
+                    .get();
+                
+                console.log(`📊 'academicInfo.currentClass' field query: ${academicQuery.size} students`);
+                
+                // Test manual filtering
+                const allStudents = await db.collection('students').get();
+                let manualCount = 0;
+                
+                allStudents.forEach(doc => {
+                    const data = doc.data();
+                    const studentClass = data.class || 
+                                       data.academicInfo?.currentClass ||
+                                       data.academicInfo?.assignedClass;
+                    
+                    if (studentClass && studentClass.toLowerCase() === assignedClass.toLowerCase()) {
+                        manualCount++;
+                        console.log(`  - Found student: ${data.firstName || data.personalInfo?.firstName} ${data.lastName || data.personalInfo?.lastName} (Class: ${studentClass})`);
+                    }
+                });
+                
+                console.log(`📊 Manual filtering: ${manualCount} students`);
+                
+                // Show sample student data
+                if (allStudents.size > 0) {
+                    console.log('🔍 Sample student document structure:');
+                    const sampleDoc = allStudents.docs[0];
+                    const sampleData = sampleDoc.data();
+                    console.log('Sample student data:', {
+                        id: sampleDoc.id,
+                        class: sampleData.class,
+                        academicInfo: sampleData.academicInfo,
+                        firstName: sampleData.firstName,
+                        personalInfo: sampleData.personalInfo
+                    });
+                }
+                
+            } catch (error) {
+                console.error('❌ Error in test:', error);
+            }
+        }
+        
         // Make functions globally available
         window.logout = logout;
         window.loadStudents = loadStudents;
@@ -879,6 +1016,7 @@
         window.editGrades = editGrades;
         window.calculateFinalGrade = calculateFinalGrade;
         window.clearStudentGrade = clearStudentGrade;
+        window.testStudentLoading = testStudentLoading;
 
         // Form submission
         document.getElementById('grade-entry-form').addEventListener('submit', async function(e) {
