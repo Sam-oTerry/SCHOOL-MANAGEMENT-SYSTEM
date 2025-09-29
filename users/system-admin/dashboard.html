@@ -612,8 +612,7 @@
         // System Admin Dashboard Functionality
         let dashboardData = {};
         
-        // Global variables
-        let currentUser = null;
+        // Global variables (currentUser is declared in system-admin-utils.js)
         let systemStats = {
             totalStudents: 0,
             totalStaff: 0,
@@ -623,20 +622,43 @@
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            initializeDashboard();
-            setupMobileSidebar(); // From system-admin-utils.js
+            // Wait for external scripts to load
+            setTimeout(() => {
+                try {
+                    if (typeof setupMobileSidebar === 'function') {
+                        setupMobileSidebar();
+                    } else {
+                        console.warn('setupMobileSidebar function not available');
+                    }
+                    initializeDashboard();
+                } catch (error) {
+                    console.error('Error initializing dashboard:', error);
+                }
+            }, 100);
         });
 
         async function initializeDashboard() {
             try {
                 // Wait for authentication and get the user
-                currentUser = await waitForAuth(); // From system-admin-utils.js
+                if (typeof waitForAuth === 'function') {
+                    currentUser = await waitForAuth();
+                } else {
+                    throw new Error('waitForAuth function not available');
+                }
                 
                 // Load user data using utility function
-                const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
-                if (!userResult.success) {
-                    showError(userResult.error); // From system-admin-utils.js
-                    return;
+                if (typeof loadSystemAdminUserData === 'function') {
+                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    if (!userResult.success) {
+                        if (typeof showError === 'function') {
+                            showError(userResult.error);
+                        } else {
+                            console.error('Error loading user data:', userResult.error);
+                        }
+                        return;
+                    }
+                } else {
+                    throw new Error('loadSystemAdminUserData function not available');
                 }
                 
                 // Update UI with user data
@@ -648,7 +670,11 @@
                 
             } catch (error) {
                 console.error('Error initializing dashboard:', error);
-                showError('Failed to initialize dashboard. Please refresh and try again.'); // From system-admin-utils.js
+                if (typeof showError === 'function') {
+                    showError('Failed to initialize dashboard. Please refresh and try again.');
+                } else {
+                    console.error('Failed to initialize dashboard. Please refresh and try again.');
+                }
             }
         }
 
