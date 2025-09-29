@@ -240,7 +240,7 @@
                             <img src="../../assets/images/logo.png" alt="School Logo" class="sidebar-logo">
                         </div>
                         <h5 class="text-white">Class Teacher</h5>
-                        <p class="small text-white-50">Staff ID: CT1234</p>
+                        <p class="small text-white-50">Staff ID: Loading...</p>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -356,62 +356,11 @@
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="studentsTableBody">
                                             <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="student-avatar me-2">MJ</div>
-                                                        <div>
-                                                            <strong>Mukasa John</strong><br>
-                                                            <small class="text-muted">Male</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>S00123</td>
-                                                <td>92.5%</td>
-                                                <td>98%</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="student-avatar me-2">NM</div>
-                                                        <div>
-                                                            <strong>Nakato Mary</strong><br>
-                                                            <small class="text-muted">Female</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>S00124</td>
-                                                <td>89.2%</td>
-                                                <td>95%</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="student-avatar me-2">OD</div>
-                                                        <div>
-                                                            <strong>Okot David</strong><br>
-                                                            <small class="text-muted">Male</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>S00125</td>
-                                                <td>85.7%</td>
-                                                <td>92%</td>
-                                                <td><span class="badge bg-warning">Needs Attention</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                                                    <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                                                <td colspan="6" class="text-center text-muted">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                                    Loading students...
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -452,8 +401,8 @@
                                     </div>
                                     <div>
                                         <h6 class="mb-0">Student Added</h6>
-                                        <p class="text-muted mb-0">New student: Mukasa John</p>
-                                        <small class="text-muted">1 hour ago</small>
+                                        <p class="text-muted mb-0">Loading recent activity...</p>
+                                        <small class="text-muted">Loading...</small>
                                     </div>
                                 </div>
                                 
@@ -463,8 +412,8 @@
                                     </div>
                                     <div>
                                         <h6 class="mb-0">Comment Added</h6>
-                                        <p class="text-muted mb-0">Report card comment</p>
-                                        <small class="text-muted">2 hours ago</small>
+                                        <p class="text-muted mb-0">Loading recent activity...</p>
+                                        <small class="text-muted">Loading...</small>
                                     </div>
                                 </div>
                                 
@@ -474,8 +423,8 @@
                                     </div>
                                     <div>
                                         <h6 class="mb-0">Report Approved</h6>
-                                        <p class="text-muted mb-0">S.4 Science A reports</p>
-                                        <small class="text-muted">1 day ago</small>
+                                        <p class="text-muted mb-0">Loading recent activity...</p>
+                                        <small class="text-muted">Loading...</small>
                                     </div>
                                 </div>
                             </div>
@@ -493,52 +442,28 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Class Statistics</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <td><strong>Total Students:</strong></td>
-                                        <td>35</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Male Students:</strong></td>
-                                        <td>18</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Female Students:</strong></td>
-                                        <td>17</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Average Age:</strong></td>
-                                        <td>17.2 years</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Average Score:</strong></td>
-                                        <td>88.7%</td>
-                                    </tr>
+                                <table class="table table-sm" id="classStatsTable">
+                                    <tbody id="classStatsTableBody">
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                Loading class statistics...
+                                            </td>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                             <div class="col-md-6">
                                 <h6>Performance Metrics</h6>
-                                <table class="table table-sm">
-                                    <tr>
-                                        <td><strong>Pass Rate:</strong></td>
-                                        <td>94.3%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Top Performer:</strong></td>
-                                        <td>Mukasa John (95.2%)</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Attendance Rate:</strong></td>
-                                        <td>94.3%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Discipline Score:</strong></td>
-                                        <td>8.7/10</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Class Rank:</strong></td>
-                                        <td>1st</td>
-                                    </tr>
+                                <table class="table table-sm" id="performanceMetricsTable">
+                                    <tbody id="performanceMetricsTableBody">
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                Loading performance metrics...
+                                            </td>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -752,15 +677,12 @@
                     
                     console.log(`✅ Loaded ${dashboardData.students.length} students from Firestore`);
                     
-                    // Log sample student data for debugging
+                    // Log student data summary for debugging
                     if (dashboardData.students.length > 0) {
-                        console.log('👥 Sample student data:', {
-                            id: dashboardData.students[0].id,
-                            fullName: dashboardData.students[0].fullName,
-                            studentId: dashboardData.students[0].studentId,
-                            averageScore: dashboardData.students[0].averageScore,
-                            class: dashboardData.students[0].class,
-                            gender: dashboardData.students[0].gender
+                        console.log('👥 Student data loaded:', {
+                            totalStudents: dashboardData.students.length,
+                            firstStudent: dashboardData.students[0].fullName,
+                            classes: [...new Set(dashboardData.students.map(s => s.class))]
                         });
                     }
                 }
@@ -832,12 +754,18 @@
                     activities: dashboardData.recentActivity.length
                 });
                 
-                // Log sample data for debugging
+                // Log data summary for debugging
                 if (dashboardData.students.length > 0) {
-                    console.log('👥 Sample student data:', dashboardData.students[0]);
+                    console.log('👥 Student data summary:', {
+                        total: dashboardData.students.length,
+                        classes: [...new Set(dashboardData.students.map(s => s.class))]
+                    });
                 }
                 if (dashboardData.teachers.length > 0) {
-                    console.log('👨‍🏫 Sample teacher data:', dashboardData.teachers[0]);
+                    console.log('👨‍🏫 Teacher data summary:', {
+                        total: dashboardData.teachers.length,
+                        roles: [...new Set(dashboardData.teachers.map(t => t.role))]
+                    });
                 }
                 
             } catch (error) {
@@ -1041,38 +969,41 @@
                     statCards[2].querySelector('.number').textContent = stats.assignmentsPending;
                     statCards[3].querySelector('.number').textContent = `${stats.classEngagement}%`;
                     
-                    // Color coding based on values
-                    // Attendance: Green if >80%, Yellow if 60-80%, Red if <60%
-                    if (stats.attendanceRate >= 80) {
+                    // Color coding based on values - dynamic thresholds
+                    const attendanceThresholds = { good: 85, warning: 70 };
+                    if (stats.attendanceRate >= attendanceThresholds.good) {
                         statCards[0].style.borderLeft = '4px solid #28a745'; // Green
-                    } else if (stats.attendanceRate >= 60) {
+                    } else if (stats.attendanceRate >= attendanceThresholds.warning) {
                         statCards[0].style.borderLeft = '4px solid #ffc107'; // Yellow
                     } else {
                         statCards[0].style.borderLeft = '4px solid #dc3545'; // Red
                     }
                     
-                    // Students needing attention: Red if >3, Yellow if 1-3, Green if 0
-                    if (stats.studentsNeedingAttention > 3) {
+                    // Students needing attention: dynamic thresholds
+                    const attentionThresholds = { high: 5, medium: 2 };
+                    if (stats.studentsNeedingAttention > attentionThresholds.high) {
                         statCards[1].style.borderLeft = '4px solid #dc3545'; // Red
-                    } else if (stats.studentsNeedingAttention > 0) {
+                    } else if (stats.studentsNeedingAttention > attentionThresholds.medium) {
                         statCards[1].style.borderLeft = '4px solid #ffc107'; // Yellow
                     } else {
                         statCards[1].style.borderLeft = '4px solid #28a745'; // Green
                     }
                     
-                    // Pending grades: Red if >5, Yellow if 1-5, Green if 0
-                    if (stats.assignmentsPending > 5) {
+                    // Pending grades: dynamic thresholds
+                    const gradingThresholds = { high: 8, medium: 3 };
+                    if (stats.assignmentsPending > gradingThresholds.high) {
                         statCards[2].style.borderLeft = '4px solid #dc3545'; // Red
-                    } else if (stats.assignmentsPending > 0) {
+                    } else if (stats.assignmentsPending > gradingThresholds.medium) {
                         statCards[2].style.borderLeft = '4px solid #ffc107'; // Yellow
                     } else {
                         statCards[2].style.borderLeft = '4px solid #28a745'; // Green
                     }
                     
-                    // Engagement: Green if >80%, Yellow if 60-80%, Red if <60%
-                    if (stats.classEngagement >= 80) {
+                    // Engagement: dynamic thresholds
+                    const engagementThresholds = { good: 85, warning: 70 };
+                    if (stats.classEngagement >= engagementThresholds.good) {
                         statCards[3].style.borderLeft = '4px solid #28a745'; // Green
-                    } else if (stats.classEngagement >= 60) {
+                    } else if (stats.classEngagement >= engagementThresholds.warning) {
                         statCards[3].style.borderLeft = '4px solid #ffc107'; // Yellow
                     } else {
                         statCards[3].style.borderLeft = '4px solid #dc3545'; // Red
@@ -1111,10 +1042,26 @@
             try {
                 // Get current user's assigned class
                 const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
-                                       classTeacherData?.assignedClass || 
-                                       's1'; // fallback
+                                       classTeacherData?.assignedClass;
                 
                 console.log('👤 Current user assigned class:', currentUserClass);
+                
+                // If no class is assigned, return empty statistics
+                if (!currentUserClass) {
+                    console.log('⚠️ No class assigned to current user');
+                    return {
+                        attendanceRate: 0,
+                        studentsNeedingAttention: 0,
+                        assignmentsPending: 0,
+                        classEngagement: 0,
+                        totalStudents: 0,
+                        activeStudents: 0,
+                        averagePerformance: 0,
+                        passRate: 0,
+                        assignedClass: null,
+                        mySubjects: 0
+                    };
+                }
                 
                 // Filter students for current user's class
                 const classStudents = students.filter(student => {
@@ -1205,8 +1152,8 @@
                                     student.attendanceRate || 0;
                     return {
                         attendance: attendance,
-                        needsAlert: attendance < 80, // Students with <80% attendance
-                        perfect: attendance >= 95
+                        needsAlert: attendance < 70, // Students with low attendance
+                        perfect: attendance >= 90
                     };
                 });
                 
@@ -1243,8 +1190,8 @@
                                 student.overallAverage || 0;
                     return {
                         score: score,
-                        needsAttention: score < 60, // Students scoring <60%
-                        failing: score < 50,       // Students scoring <50%
+                        needsAttention: score < 70, // Students scoring below average
+                        failing: score < 50,       // Students scoring failing grade
                         passing: score >= 50
                     };
                 });
@@ -1277,7 +1224,7 @@
                 // Try to load actual assignments from Firebase
                 try {
                     const assignmentsSnapshot = await db.collection('assignments')
-                        .where('class', '==', classTeacherData?.academicInfo?.assignedClass || 's1')
+                        .where('class', '==', classTeacherData?.academicInfo?.assignedClass || classTeacherData?.assignedClass)
                         .get();
                     
                     if (!assignmentsSnapshot.empty) {
@@ -1289,7 +1236,7 @@
                         return {
                             assignmentsPending: pendingAssignments,
                             assignmentsCompleted: assignments.length - pendingAssignments,
-                            averageGradeTime: '2.5 days' // Would come from actual grading data
+                            averageGradeTime: 'Calculating...' // Will be calculated from actual grading data
                         };
                     }
                 } catch (firebaseError) {
@@ -1311,7 +1258,7 @@
                 return {
                     assignmentsPending: assignmentsPending,
                     assignmentsCompleted: totalStudents - assignmentsPending,
-                    averageGradeTime: '2.5 days'
+                    averageGradeTime: 'Calculating...'
                 };
                 
             } catch (error) {
@@ -1369,9 +1316,9 @@
         // Update class table
         function updateClassTable() {
             try {
-                const tbody = document.querySelector('.table tbody');
+                const tbody = document.getElementById('studentsTableBody');
                 if (!tbody) {
-                    console.warn('⚠️ Table body not found');
+                    console.warn('⚠️ Students table body not found');
                     return;
                 }
                 
@@ -1446,69 +1393,82 @@
                 
                 console.log('📊 Updating class performance overview with Firebase data:', stats);
                 
+                // Calculate class students for statistics
+                const classStudents = students.filter(student => {
+                    const studentClass = student.class || 
+                                       student.academicInfo?.assignedClass || 
+                                       student.currentClass;
+                    const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
+                                           classTeacherData?.assignedClass;
+                    return studentClass && currentUserClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                });
+                
+                const maleStudents = classStudents.filter(student => 
+                    (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'male'
+                ).length;
+                const femaleStudents = classStudents.filter(student => 
+                    (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'female'
+                ).length;
+                
+                const topPerformer = classStudents.length > 0 ? 
+                    classStudents.reduce((top, student) => {
+                        const topScore = top.academicInfo?.averageScore || top.averageScore || top.overallAverage || 0;
+                        const studentScore = student.academicInfo?.averageScore || student.averageScore || student.overallAverage || 0;
+                        return studentScore > topScore ? student : top;
+                    }) : null;
+                
                 // Update class statistics table
-                const statsTable = document.querySelector('.table-sm');
+                const statsTable = document.getElementById('classStatsTable');
                 if (statsTable) {
-                    const rows = statsTable.querySelectorAll('tr');
-                    if (rows.length >= 5) {
-                        rows[0].cells[1].textContent = stats.totalStudents;
+                    const tbody = document.getElementById('classStatsTableBody');
+                    if (tbody) {
+                        tbody.innerHTML = '';
                         
-                        // Calculate male/female distribution
-                        const classStudents = students.filter(student => {
-                            const studentClass = student.class || 
-                                               student.academicInfo?.assignedClass || 
-                                               student.currentClass;
-                            const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
-                                                   classTeacherData?.assignedClass || 
-                                                   's1';
-                            return studentClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                        // Create dynamic rows
+                        const statsRows = [
+                            { label: 'Total Students', value: stats.totalStudents },
+                            { label: 'Male Students', value: maleStudents },
+                            { label: 'Female Students', value: femaleStudents },
+                            { label: 'Average Age', value: calculateAverageAge(classStudents) },
+                            { label: 'Average Score', value: `${stats.averagePerformance}%` }
+                        ];
+                        
+                        statsRows.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><strong>${row.label}:</strong></td>
+                                <td>${row.value}</td>
+                            `;
+                            tbody.appendChild(tr);
                         });
-                        
-                        const maleStudents = classStudents.filter(student => 
-                            (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'male'
-                        ).length;
-                        const femaleStudents = classStudents.filter(student => 
-                            (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'female'
-                        ).length;
-                        
-                        rows[1].cells[1].textContent = maleStudents;
-                        rows[2].cells[1].textContent = femaleStudents;
-                        rows[3].cells[1].textContent = calculateAverageAge(classStudents);
-                        rows[4].cells[1].textContent = `${stats.averagePerformance}%`;
                     }
                 }
                 
                 // Update performance metrics table
-                const performanceTable = document.querySelector('.col-md-6:last-child .table-sm');
+                const performanceTable = document.getElementById('performanceMetricsTable');
                 if (performanceTable) {
-                    const rows = performanceTable.querySelectorAll('tr');
-                    if (rows.length >= 5) {
-                        rows[0].cells[1].textContent = `${stats.passRate}%`;
+                    const tbody = document.getElementById('performanceMetricsTableBody');
+                    if (tbody) {
+                        tbody.innerHTML = '';
                         
-                        // Find top performer
-                        const classStudents = students.filter(student => {
-                            const studentClass = student.class || 
-                                               student.academicInfo?.assignedClass || 
-                                               student.currentClass;
-                            const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
-                                                   classTeacherData?.assignedClass || 
-                                                   's1';
-                            return studentClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                        // Create dynamic rows
+                        const performanceRows = [
+                            { label: 'Pass Rate', value: `${stats.passRate}%` },
+                            { label: 'Top Performer', value: topPerformer ? 
+                                `${topPerformer.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || topPerformer.averageScore || topPerformer.overallAverage || 0).toFixed(1)}%)` : 'N/A' },
+                            { label: 'Attendance Rate', value: `${stats.attendanceRate}%` },
+                            { label: 'Discipline Score', value: await calculateDisciplineScore(classStudents) },
+                            { label: 'Class Rank', value: await calculateClassRank(stats.averagePerformance) }
+                        ];
+                        
+                        performanceRows.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><strong>${row.label}:</strong></td>
+                                <td>${row.value}</td>
+                            `;
+                            tbody.appendChild(tr);
                         });
-                        
-                        const topPerformer = classStudents.length > 0 ? 
-                            classStudents.reduce((top, student) => {
-                                const topScore = top.academicInfo?.averageScore || top.averageScore || top.overallAverage || 0;
-                                const studentScore = student.academicInfo?.averageScore || student.averageScore || student.overallAverage || 0;
-                                return studentScore > topScore ? student : top;
-                            }) : null;
-                        
-                        rows[1].cells[1].textContent = topPerformer ? 
-                            `${topPerformer.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || topPerformer.averageScore || topPerformer.overallAverage || 0).toFixed(1)}%)` : 'N/A';
-                        
-                        rows[2].cells[1].textContent = `${stats.attendanceRate}%`;
-                        rows[3].cells[1].textContent = await calculateDisciplineScore(classStudents);
-                        rows[4].cells[1].textContent = await calculateClassRank(stats.averagePerformance);
                     }
                 }
                 
@@ -1555,8 +1515,7 @@
                 // Try to load actual discipline records from Firebase
                 try {
                     const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
-                                           classTeacherData?.assignedClass || 
-                                           's1';
+                                           classTeacherData?.assignedClass;
                     
                     const disciplineSnapshot = await db.collection('discipline_records')
                         .where('class', '==', currentUserClass)
@@ -1643,8 +1602,7 @@
                         // Sort classes by performance and find current class rank
                         classPerformances.sort((a, b) => b.performance - a.performance);
                         const currentClass = classTeacherData?.academicInfo?.assignedClass || 
-                                          classTeacherData?.assignedClass || 
-                                          's1';
+                                          classTeacherData?.assignedClass;
                         
                         const rank = classPerformances.findIndex(c => 
                             c.className.toLowerCase() === currentClass.toLowerCase()
