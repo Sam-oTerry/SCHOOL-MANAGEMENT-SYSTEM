@@ -528,38 +528,9 @@
         ];
         
         function initializeUserManagement() {
-            users = [...sampleUsers];
+            allUsers = [...sampleUsers];
+            filteredUsers = [...allUsers];
             displayUsers();
-        }
-        
-        function displayUsers() {
-            const tbody = document.getElementById('users-tbody');
-            tbody.innerHTML = '';
-            
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.firstName} ${user.lastName}</td>
-                    <td><span class="badge ${getRoleColor(user.role)}">${user.role}</span></td>
-                    <td>${user.email}</td>
-                    <td>${formatDate(user.lastLogin)}</td>
-                    <td><span class="badge ${getStatusColor(user.status)}">${user.status}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewUser('${user.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="editUser('${user.id}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${user.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
         }
         
         function getRoleColor(role) {
@@ -778,7 +749,6 @@
 
     <script>
         // System Admin User Management Functionality
-        let users = [];
         let currentUserId = 1001;
         
         // Global variables
@@ -887,13 +857,33 @@
         }
 
         function updateUserDisplay(userResult) {
-            // Use the standardized updateUserDisplay function from system-admin-utils.js
-            window.updateUserDisplay(userResult);
-            
-            console.log('System Admin user loaded:', {
-                name: userResult.userName,
-                staffId: userResult.staffId
-            });
+            try {
+                // Update the sidebar user info
+                const userNameElement = document.querySelector('.sidebar .user-name');
+                const staffIdElement = document.querySelector('.sidebar .staff-id');
+                
+                if (userNameElement) {
+                    userNameElement.textContent = userResult.userName || 'System Administrator';
+                }
+                
+                if (staffIdElement) {
+                    staffIdElement.textContent = `Staff ID: ${userResult.staffId || 'SYS-ADMIN'}`;
+                }
+                
+                // Update any other user-related displays
+                const pageTitle = document.querySelector('.page-title');
+                if (pageTitle && userResult.userName) {
+                    pageTitle.textContent = `User Management - ${userResult.userName}`;
+                }
+                
+                console.log('System Admin user loaded:', {
+                    name: userResult.userName,
+                    staffId: userResult.staffId
+                });
+                
+            } catch (error) {
+                console.error('Error updating user display:', error);
+            }
         }
         
         // Load departments from Firestore
