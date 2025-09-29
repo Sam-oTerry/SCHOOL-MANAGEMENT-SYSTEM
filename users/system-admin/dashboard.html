@@ -308,28 +308,28 @@
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-user-graduate"></i>
-                            <div class="number">1,248</div>
+                            <div class="number">-</div>
                             <div class="label">Total Students</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-users"></i>
-                            <div class="number">93</div>
+                            <div class="number">-</div>
                             <div class="label">Total Staff</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-chalkboard-teacher"></i>
-                            <div class="number">45</div>
+                            <div class="number">-</div>
                             <div class="label">Total Classes</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <i class="fas fa-building"></i>
-                            <div class="number">8</div>
+                            <div class="number">-</div>
                             <div class="label">Departments</div>
                         </div>
                     </div>
@@ -405,63 +405,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="user-avatar me-2">JK</div>
-                                                        <div>
-                                                            <strong>j.kamya</strong><br>
-                                                            <small class="text-muted">Active</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Juliet Kamya</td>
-                                                <td>Class Teacher</td>
-                                                <td>2023-10-15 08:42</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
-                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="user-avatar me-2">PO</div>
-                                                        <div>
-                                                            <strong>p.owino</strong><br>
-                                                            <small class="text-muted">Active</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Peter Owino</td>
-                                                <td>Subject Teacher</td>
-                                                <td>2023-10-14 14:30</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
-                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="user-avatar me-2">MN</div>
-                                                        <div>
-                                                            <strong>m.nakato</strong><br>
-                                                            <small class="text-muted">Active</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Nakato Mary</td>
-                                                <td>Bursar</td>
-                                                <td>2023-10-15 09:15</td>
-                                                <td><span class="badge bg-success">Active</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></button>
-                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                                </td>
-                                            </tr>
+                                            <!-- User data will be loaded dynamically here -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -549,14 +493,12 @@
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" value="2023">
+                                    <input type="text" class="form-control" id="academic-year-input" placeholder="Loading...">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Term</label>
-                                    <select class="form-select">
-                                        <option>First Term</option>
-                                        <option>Second Term</option>
-                                        <option selected>Third Term</option>
+                                    <select class="form-select" id="term-select">
+                                        <option value="">Loading...</option>
                                     </select>
                                 </div>
                                 <div class="form-check form-switch mb-3">
@@ -647,8 +589,9 @@
                 }
                 
                 // Load user data using utility function
+                let userResult = null;
                 if (typeof loadSystemAdminUserData === 'function') {
-                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    userResult = await loadSystemAdminUserData(db, currentUser);
                     if (!userResult.success) {
                         if (typeof showError === 'function') {
                             showError(userResult.error);
@@ -842,15 +785,29 @@
                     const settings = settingsDoc.data();
                     
                     // Update academic year
-                    const academicYearInput = document.querySelector('input[value="2023"]');
+                    const academicYearInput = document.getElementById('academic-year-input');
                     if (academicYearInput && settings.academicYear) {
                         academicYearInput.value = settings.academicYear;
+                    } else if (academicYearInput) {
+                        academicYearInput.value = new Date().getFullYear();
                     }
                     
                     // Update term
-                    const termSelect = document.querySelector('select');
+                    const termSelect = document.getElementById('term-select');
                     if (termSelect && settings.currentTerm) {
                         termSelect.value = settings.currentTerm;
+                    }
+                    
+                    // Populate term options if not already done
+                    if (termSelect && termSelect.children.length <= 1) {
+                        const terms = ['First Term', 'Second Term', 'Third Term'];
+                        termSelect.innerHTML = '<option value="">Select Term</option>';
+                        terms.forEach(term => {
+                            const option = document.createElement('option');
+                            option.value = term;
+                            option.textContent = term;
+                            termSelect.appendChild(option);
+                        });
                     }
                     
                     // Update grade entry setting
@@ -867,8 +824,8 @@
         // Save system settings
         async function saveSystemSettings() {
             try {
-                const academicYear = document.querySelector('input[value="2023"]').value;
-                const currentTerm = document.querySelector('select').value;
+                const academicYear = document.getElementById('academic-year-input').value;
+                const currentTerm = document.getElementById('term-select').value;
                 const allowGradeEntry = document.getElementById('flexSwitchCheckDefault').checked;
                 
                 await db.collection('system_settings').doc('current').set({
