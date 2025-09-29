@@ -758,9 +758,11 @@
                 const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                 const dayEvents = getEventsForDate(dayDate);
                 
-                // Check if this is today
+                // Check if this is today (using local date comparison)
                 const today = new Date();
-                const isToday = dayDate.toDateString() === today.toDateString();
+                const isToday = dayDate.getFullYear() === today.getFullYear() &&
+                               dayDate.getMonth() === today.getMonth() &&
+                               dayDate.getDate() === today.getDate();
                 
                 // Set cell classes
                 let cellClasses = 'calendar-cell';
@@ -809,11 +811,17 @@
         }
         
         function getEventsForDate(date) {
-            const dateStr = date.toISOString().split('T')[0];
+            // Create date string in YYYY-MM-DD format without timezone conversion
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
             return events.filter(event => {
-                const startDate = new Date(event.startDate);
-                const endDate = new Date(event.endDate);
-                const checkDate = new Date(dateStr);
+                // Parse event dates as local dates to avoid timezone issues
+                const startDate = new Date(event.startDate + 'T00:00:00');
+                const endDate = new Date(event.endDate + 'T23:59:59');
+                const checkDate = new Date(dateStr + 'T12:00:00'); // Use noon to avoid DST issues
                 
                 // Check if the date falls within the event range
                 return checkDate >= startDate && checkDate <= endDate;
@@ -849,10 +857,10 @@
             const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
             
             const upcomingEvents = allEvents.filter(event => {
-                const eventDate = new Date(event.startDate);
-                eventDate.setHours(0, 0, 0, 0);
+                // Parse event date as local date to avoid timezone issues
+                const eventDate = new Date(event.startDate + 'T00:00:00');
                 return eventDate >= today && eventDate <= nextMonth;
-            }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            }).sort((a, b) => new Date(a.startDate + 'T00:00:00') - new Date(b.startDate + 'T00:00:00'));
             
             if (upcomingEvents.length === 0) {
                 container.innerHTML = `
@@ -870,8 +878,8 @@
                 eventCard.style.cursor = 'pointer';
                 eventCard.onclick = () => viewEvent(event.id);
                 
-                const eventDate = new Date(event.startDate);
-                eventDate.setHours(0, 0, 0, 0);
+                // Parse event date as local date to avoid timezone issues
+                const eventDate = new Date(event.startDate + 'T00:00:00');
                 const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
                 const isToday = daysUntil === 0;
                 const isTomorrow = daysUntil === 1;
