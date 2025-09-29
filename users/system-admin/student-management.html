@@ -669,14 +669,14 @@
             try {
                 // Wait for authentication and get the user
                 if (typeof waitForAuth === 'function') {
-                    currentUser = await waitForAuth();
+                    window.currentUser = await waitForAuth();
                 } else {
                     throw new Error('waitForAuth function not available');
                 }
                 
                 // Load user data using utility function
                 if (typeof loadSystemAdminUserData === 'function') {
-                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    const userResult = await loadSystemAdminUserData(db, window.currentUser);
                     if (!userResult.success) {
                         if (typeof showError === 'function') {
                             showError(userResult.error);
@@ -1181,7 +1181,7 @@
                     },
                     status: 'active',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: currentUser.uid
+                    createdBy: window.currentUser.uid
                 };
                 
                 await db.collection('students').add(studentData);
@@ -1338,7 +1338,7 @@
                     },
                     status: status,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
+                    updatedBy: window.currentUser.uid
                 });
                 
                 hideLoading();
