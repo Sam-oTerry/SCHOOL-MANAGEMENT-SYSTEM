@@ -6,6 +6,7 @@
     <title>Class Performance - Class Teacher</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
@@ -335,7 +336,7 @@
                                                 <th>Grade</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="topPerformersTable">
                                             <tr>
                                                 <td>1st</td>
                                                 <td>John Doe</td>
@@ -388,7 +389,7 @@
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="studentsNeedingAttentionTable">
                                             <tr>
                                                 <td>Alice Green</td>
                                                 <td>45.2%</td>
@@ -434,27 +435,385 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
+    <script src="../../assets/js/database-service.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/class-teacher.js"></script>
     <script>
         // Class Performance Functionality
         let gradeChart, subjectChart, trendChart;
+        let currentUser = null;
+        let classTeacherData = null;
+        let performanceData = {
+            students: [],
+            subjects: [],
+            results: [],
+            classes: [],
+            teachers: []
+        };
         
-        function initializeClassPerformance() {
-            createGradeChart();
-            createSubjectChart();
-            createTrendChart();
+        // Immediate authentication check
+        function checkAuthentication() {
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    console.log('❌ No authenticated user found, redirecting to login...');
+                    window.location.href = '../../index.html';
+                }
+            });
+        }
+        
+        // Initialize page
+        async function initializeClassPerformance() {
+            try {
+                console.log('🚀 Starting class performance initialization...');
+                
+                // Wait for authentication
+                currentUser = await waitForAuth();
+                if (!currentUser) {
+                    console.log('❌ No user authenticated, redirecting to login...');
+                    window.location.href = '../../index.html';
+                    return;
+                }
+                
+                console.log('✅ User authenticated:', currentUser.uid);
+                
+                // Load user data
+                await loadClassTeacherData();
+                
+                // Load performance data
+                await loadPerformanceData();
+                
+                // Initialize charts
+                createGradeChart();
+                createSubjectChart();
+                createTrendChart();
+                
+                // Update UI
+                updatePerformanceSummary();
+                updateTopPerformers();
+                updateStudentsNeedingAttention();
+                
+                console.log('✅ Class performance initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing class performance:', error);
+                showError('Failed to initialize class performance: ' + error.message);
+            }
+        }
+        
+        // Wait for authentication
+        function waitForAuth() {
+            return new Promise((resolve) => {
+                const unsubscribe = auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    resolve(user);
+                });
+            });
+        }
+        
+        // Load class teacher data
+        async function loadClassTeacherData() {
+            try {
+                console.log('👤 Loading class teacher data for user:', currentUser.uid);
+                
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    classTeacherData = userDoc.data();
+                    console.log('👤 Class teacher data loaded:', classTeacherData);
+                    
+                    // Extract user information from different possible data structures
+                    const fullName = classTeacherData.personalInfo?.fullName || 
+                                   `${classTeacherData.personalInfo?.firstName || ''} ${classTeacherData.personalInfo?.lastName || ''}`.trim() ||
+                                   classTeacherData.fullName ||
+                                   `${classTeacherData.firstName || ''} ${classTeacherData.lastName || ''}`.trim();
+                    
+                    const staffId = classTeacherData.staffId || 
+                                  classTeacherData.employmentInfo?.staffId ||
+                                  classTeacherData.personalInfo?.staffId;
+                    
+                    const email = classTeacherData.email || 
+                                classTeacherData.personalInfo?.email ||
+                                currentUser.email;
+                    
+                    const role = classTeacherData.role || 
+                                classTeacherData.accountStatus ||
+                                'class_teacher';
+                    
+                    // Update UI with comprehensive user info
+                    const currentUserElement = document.getElementById('current-user');
+                    if (currentUserElement) {
+                        currentUserElement.textContent = fullName || 'Unknown User';
+                    }
+                    
+                    // Update staff ID in sidebar
+                    const staffIdElement = document.querySelector('.text-muted');
+                    if (staffIdElement) {
+                        staffIdElement.textContent = `Staff ID: ${staffId || 'N/A'}`;
+                    }
+                    
+                    // Update page title with user name
+                    document.title = `${fullName || 'Class Teacher'} - Class Performance`;
+                    
+                    // Log comprehensive user data
+                    console.log('👤 User Details:', {
+                        uid: currentUser.uid,
+                        fullName: fullName,
+                        staffId: staffId,
+                        email: email,
+                        role: role,
+                        assignedClass: classTeacherData.academicInfo?.assignedClass,
+                        subjects: classTeacherData.academicInfo?.subjects,
+                        departments: classTeacherData.academicInfo?.departments
+                    });
+                    
+                } else {
+                    console.warn('⚠️ User document not found in Firestore');
+                    throw new Error('User data not found in database');
+                }
+            } catch (error) {
+                console.error('❌ Error loading class teacher data:', error);
+                throw error;
+            }
+        }
+        
+        // Load performance data from Firestore
+        async function loadPerformanceData() {
+            try {
+                console.log('📊 Loading comprehensive performance data from Firestore...');
+                
+                // Load students with comprehensive data
+                console.log('👥 Loading students...');
+                const studentsSnapshot = await db.collection('students').get();
+                performanceData.students = studentsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        // Ensure we have proper name structure
+                        fullName: data.personalInfo?.fullName || 
+                                 `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                 data.fullName ||
+                                 `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                        studentId: data.studentId || data.personalInfo?.studentId,
+                        averageScore: data.academicInfo?.averageScore || data.averageScore || 0,
+                        attendance: data.academicInfo?.attendance || data.attendance || 0,
+                        gender: data.personalInfo?.gender || data.gender,
+                        class: data.academicInfo?.assignedClass || data.class
+                    };
+                });
+                
+                // Load subjects with comprehensive data
+                console.log('📚 Loading subjects...');
+                const subjectsSnapshot = await db.collection('subjects').get();
+                performanceData.subjects = subjectsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        name: data.name || data.subjectName,
+                        averageScore: data.averageScore || 0,
+                        department: data.department || data.departmentName
+                    };
+                });
+                
+                // Load student results with comprehensive data
+                console.log('📈 Loading student results...');
+                const resultsSnapshot = await db.collection('student_results').get();
+                performanceData.results = resultsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        studentName: data.studentName || data.student?.name,
+                        subjectName: data.subjectName || data.subject?.name,
+                        score: data.score || data.marks || 0,
+                        grade: data.grade || calculateGrade(data.score || data.marks || 0),
+                        term: data.term || data.academicTerm,
+                        year: data.year || data.academicYear
+                    };
+                });
+                
+                // Load classes with comprehensive data
+                console.log('🏫 Loading classes...');
+                const classesSnapshot = await db.collection('classes').get();
+                performanceData.classes = classesSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        name: data.name || data.className,
+                        level: data.level || data.classLevel,
+                        stream: data.stream || data.classStream,
+                        department: data.department || data.departmentName
+                    };
+                });
+                
+                // Load teachers for additional context
+                console.log('👨‍🏫 Loading teachers...');
+                const teachersSnapshot = await db.collection('users')
+                    .where('role', 'in', ['teacher', 'subject_teacher', 'class_teacher']).get();
+                performanceData.teachers = teachersSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        fullName: data.personalInfo?.fullName || 
+                                 `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                 data.fullName ||
+                                 `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                        staffId: data.staffId || data.employmentInfo?.staffId,
+                        subjects: data.academicInfo?.subjects || data.subjects,
+                        assignedClass: data.academicInfo?.assignedClass || data.assignedClass
+                    };
+                });
+                
+                console.log('📊 Comprehensive data loaded:', {
+                    students: performanceData.students.length,
+                    subjects: performanceData.subjects.length,
+                    results: performanceData.results.length,
+                    classes: performanceData.classes.length,
+                    teachers: performanceData.teachers.length
+                });
+                
+                // Log sample data for debugging
+                if (performanceData.students.length > 0) {
+                    console.log('👥 Sample student data:', performanceData.students[0]);
+                }
+                if (performanceData.subjects.length > 0) {
+                    console.log('📚 Sample subject data:', performanceData.subjects[0]);
+                }
+                
+                // Populate dropdowns
+                populateClassDropdown();
+                populateSubjectDropdown();
+                
+            } catch (error) {
+                console.error('❌ Error loading performance data:', error);
+                console.log('📊 Falling back to sample data...');
+                // Use sample data as fallback
+                loadSampleData();
+            }
+        }
+        
+        // Helper function to calculate grade from score
+        function calculateGrade(score) {
+            if (score >= 80) return 'A';
+            if (score >= 70) return 'B';
+            if (score >= 60) return 'C';
+            if (score >= 50) return 'D';
+            if (score >= 40) return 'E';
+            return 'F';
+        }
+        
+        // Load sample data as fallback
+        function loadSampleData() {
+            console.log('📊 Loading sample data as fallback...');
+            
+            performanceData.students = [
+                { id: '1', personalInfo: { fullName: 'John Doe', firstName: 'John', lastName: 'Doe' }, studentId: 'S00123', academicInfo: { averageScore: 92.5, attendance: 98 } },
+                { id: '2', personalInfo: { fullName: 'Mary Smith', firstName: 'Mary', lastName: 'Smith' }, studentId: 'S00124', academicInfo: { averageScore: 89.2, attendance: 95 } },
+                { id: '3', personalInfo: { fullName: 'Peter Johnson', firstName: 'Peter', lastName: 'Johnson' }, studentId: 'S00125', academicInfo: { averageScore: 87.8, attendance: 92 } },
+                { id: '4', personalInfo: { fullName: 'Sarah Wilson', firstName: 'Sarah', lastName: 'Wilson' }, studentId: 'S00126', academicInfo: { averageScore: 85.3, attendance: 90 } },
+                { id: '5', personalInfo: { fullName: 'David Brown', firstName: 'David', lastName: 'Brown' }, studentId: 'S00127', academicInfo: { averageScore: 83.7, attendance: 88 } }
+            ];
+            
+            performanceData.subjects = [
+                { id: '1', name: 'Mathematics', averageScore: 85.2 },
+                { id: '2', name: 'Physics', averageScore: 78.9 },
+                { id: '3', name: 'Chemistry', averageScore: 82.1 },
+                { id: '4', name: 'Biology', averageScore: 88.7 },
+                { id: '5', name: 'English', averageScore: 76.3 }
+            ];
+            
+            performanceData.classes = [
+                { id: '1', name: 'S.4 Science A', level: 'O Level' },
+                { id: '2', name: 'S.4 Science B', level: 'O Level' },
+                { id: '3', name: 'S.3 Science', level: 'O Level' },
+                { id: '4', name: 'S.2 Science', level: 'O Level' },
+                { id: '5', name: 'S.1 Science', level: 'O Level' }
+            ];
+            
+            populateClassDropdown();
+            populateSubjectDropdown();
+        }
+        
+        // Populate class dropdown
+        function populateClassDropdown() {
+            const classFilter = document.getElementById('class-filter');
+            classFilter.innerHTML = '';
+            
+            performanceData.classes.forEach(classItem => {
+                const option = document.createElement('option');
+                option.value = classItem.id;
+                option.textContent = classItem.name;
+                classFilter.appendChild(option);
+            });
+        }
+        
+        // Populate subject dropdown
+        function populateSubjectDropdown() {
+            const subjectFilter = document.getElementById('subject-filter');
+            subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+            
+            performanceData.subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectFilter.appendChild(option);
+            });
+        }
+        
+        // Calculate grade distribution
+        function calculateGradeDistribution() {
+            const grades = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            
+            performanceData.students.forEach(student => {
+                const score = student.academicInfo?.averageScore || 0;
+                if (score >= 80) grades.A++;
+                else if (score >= 70) grades.B++;
+                else if (score >= 60) grades.C++;
+                else if (score >= 50) grades.D++;
+                else if (score >= 40) grades.E++;
+                else grades.F++;
+            });
+            
+            return [grades.A, grades.B, grades.C, grades.D, grades.E, grades.F];
+        }
+        
+        // Calculate subject performance
+        function calculateSubjectPerformance() {
+            return performanceData.subjects.map(subject => subject.averageScore || 0);
+        }
+        
+        // Calculate performance trends
+        function calculatePerformanceTrends() {
+            // Generate sample trend data based on current performance
+            const baseScore = performanceData.students.reduce((sum, student) => 
+                sum + (student.academicInfo?.averageScore || 0), 0) / performanceData.students.length;
+            
+            const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'];
+            const classAverage = weeks.map((_, index) => Math.max(0, baseScore - 10 + (index * 2) + Math.random() * 5));
+            const topPerformer = classAverage.map(score => score + 10 + Math.random() * 5);
+            const bottomPerformer = classAverage.map(score => Math.max(0, score - 15 + Math.random() * 5));
+            
+            return { weeks, classAverage, topPerformer, bottomPerformer };
         }
         
         function createGradeChart() {
             const ctx = document.getElementById('gradeChart').getContext('2d');
+            const gradeData = calculateGradeDistribution();
+            
             gradeChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['A (80-100%)', 'B (70-79%)', 'C (60-69%)', 'D (50-59%)', 'E (40-49%)', 'F (0-39%)'],
                     datasets: [{
-                        data: [15, 12, 8, 5, 3, 2],
+                        data: gradeData,
                         backgroundColor: [
                             '#28a745',
                             '#007bff',
@@ -481,13 +840,16 @@
         
         function createSubjectChart() {
             const ctx = document.getElementById('subjectChart').getContext('2d');
+            const subjectData = calculateSubjectPerformance();
+            const subjectLabels = performanceData.subjects.map(subject => subject.name);
+            
             subjectChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English'],
+                    labels: subjectLabels,
                     datasets: [{
                         label: 'Average Score (%)',
-                        data: [85.2, 78.9, 82.1, 88.7, 76.3],
+                        data: subjectData,
                         backgroundColor: [
                             '#007bff',
                             '#28a745',
@@ -519,27 +881,29 @@
         
         function createTrendChart() {
             const ctx = document.getElementById('trendChart').getContext('2d');
+            const trendData = calculatePerformanceTrends();
+            
             trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    labels: trendData.weeks,
                     datasets: [{
                         label: 'Class Average',
-                        data: [75, 78, 80, 82, 85, 83, 87, 89],
+                        data: trendData.classAverage,
                         borderColor: '#007bff',
                         backgroundColor: 'rgba(0, 123, 255, 0.1)',
                         tension: 0.4,
                         fill: true
                     }, {
                         label: 'Top Performer',
-                        data: [85, 88, 90, 92, 95, 93, 97, 99],
+                        data: trendData.topPerformer,
                         borderColor: '#28a745',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         tension: 0.4,
                         fill: false
                     }, {
                         label: 'Bottom Performer',
-                        data: [65, 68, 70, 72, 75, 73, 77, 79],
+                        data: trendData.bottomPerformer,
                         borderColor: '#dc3545',
                         backgroundColor: 'rgba(220, 53, 69, 0.1)',
                         tension: 0.4,
@@ -564,12 +928,88 @@
             });
         }
         
+        // Update performance summary
+        function updatePerformanceSummary() {
+            const students = performanceData.students;
+            const totalStudents = students.length;
+            const averageScore = students.reduce((sum, student) => 
+                sum + (student.academicInfo?.averageScore || 0), 0) / totalStudents;
+            const passedStudents = students.filter(student => 
+                (student.academicInfo?.averageScore || 0) >= 50).length;
+            const belowAverageStudents = students.filter(student => 
+                (student.academicInfo?.averageScore || 0) < 50).length;
+            const passRate = (passedStudents / totalStudents) * 100;
+            
+            // Update summary cards
+            document.querySelector('.bg-primary .card-body h3').textContent = `${averageScore.toFixed(1)}%`;
+            document.querySelector('.bg-success .card-body h3').textContent = passedStudents;
+            document.querySelector('.bg-warning .card-body h3').textContent = belowAverageStudents;
+            document.querySelector('.bg-info .card-body h3').textContent = `${passRate.toFixed(0)}%`;
+        }
+        
+        // Update top performers table
+        function updateTopPerformers() {
+            const tbody = document.querySelector('#topPerformersTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const sortedStudents = performanceData.students
+                .sort((a, b) => (b.academicInfo?.averageScore || 0) - (a.academicInfo?.averageScore || 0))
+                .slice(0, 5);
+            
+            sortedStudents.forEach((student, index) => {
+                const score = student.academicInfo?.averageScore || 0;
+                const grade = score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : score >= 50 ? 'D' : 'E';
+                const gradeClass = score >= 80 ? 'bg-success' : score >= 70 ? 'bg-primary' : score >= 60 ? 'bg-info' : 'bg-warning';
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}${index === 0 ? 'st' : index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'}</td>
+                    <td>${student.personalInfo?.fullName || `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim()}</td>
+                    <td>${score.toFixed(1)}%</td>
+                    <td><span class="badge ${gradeClass}">${grade}</span></td>
+                `;
+            });
+        }
+        
+        // Update students needing attention table
+        function updateStudentsNeedingAttention() {
+            const tbody = document.querySelector('#studentsNeedingAttentionTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const strugglingStudents = performanceData.students
+                .filter(student => (student.academicInfo?.averageScore || 0) < 60)
+                .sort((a, b) => (a.academicInfo?.averageScore || 0) - (b.academicInfo?.averageScore || 0))
+                .slice(0, 4);
+            
+            strugglingStudents.forEach(student => {
+                const score = student.academicInfo?.averageScore || 0;
+                const grade = score >= 50 ? 'D' : 'E';
+                const gradeClass = score >= 50 ? 'bg-warning' : 'bg-danger';
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${student.personalInfo?.fullName || `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim()}</td>
+                    <td>${score.toFixed(1)}%</td>
+                    <td><span class="badge ${gradeClass}">${grade}</span></td>
+                    <td><button class="btn btn-sm btn-warning">Support</button></td>
+                `;
+            });
+        }
+        
         function updatePerformance() {
             const classFilter = document.getElementById('class-filter').value;
             const term = document.getElementById('term-filter').value;
             const subject = document.getElementById('subject-filter').value;
             
             // Update charts based on filters
+            if (gradeChart) gradeChart.update();
+            if (subjectChart) subjectChart.update();
+            if (trendChart) trendChart.update();
+            
             showNotification('Performance data updated!', 'info');
         }
         
@@ -579,15 +1019,33 @@
         
         function refreshData() {
             // Refresh all charts and data
-            if (gradeChart) gradeChart.update();
-            if (subjectChart) subjectChart.update();
-            if (trendChart) trendChart.update();
-            
-            showNotification('Performance data refreshed!', 'success');
+            loadPerformanceData().then(() => {
+                if (gradeChart) gradeChart.update();
+                if (subjectChart) subjectChart.update();
+                if (trendChart) trendChart.update();
+                updatePerformanceSummary();
+                updateTopPerformers();
+                updateStudentsNeedingAttention();
+                showNotification('Performance data refreshed!', 'success');
+            });
+        }
+        
+        // Error handling
+        function showError(message) {
+            console.error('Error:', message);
+            alert('Error: ' + message);
+        }
+        
+        function showNotification(message, type = 'info') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            // You can implement a proper notification system here
         }
         
         // Mobile Sidebar Functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication first
+            checkAuthentication();
+            
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');

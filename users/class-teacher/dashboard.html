@@ -7,6 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
     <link rel="stylesheet" href="../../assets/css/users/class-teacher.css">
@@ -547,12 +548,510 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
+    <script src="../../assets/js/database-service.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
     <script src="../../assets/js/users/class-teacher.js"></script>
     <script>
+        // Dashboard Functionality
+        let currentUser = null;
+        let classTeacherData = null;
+        let dashboardData = {
+            students: [],
+            subjects: [],
+            classes: [],
+            teachers: [],
+            recentActivity: []
+        };
+        
+        // Immediate authentication check
+        function checkAuthentication() {
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    console.log('❌ No authenticated user found, redirecting to login...');
+                    window.location.href = '../../index.html';
+                }
+            });
+        }
+        
+        // Initialize dashboard
+        async function initializeDashboard() {
+            try {
+                console.log('🚀 Starting dashboard initialization...');
+                
+                // Wait for authentication
+                currentUser = await waitForAuth();
+                if (!currentUser) {
+                    console.log('❌ No user authenticated, redirecting to login...');
+                    window.location.href = '../../index.html';
+                    return;
+                }
+                
+                console.log('✅ User authenticated:', currentUser.uid);
+                
+                // Load user data
+                await loadClassTeacherData();
+                
+                // Load dashboard data
+                await loadDashboardData();
+                
+                // Update UI
+                updateStatisticsCards();
+                updateClassTable();
+                updateRecentActivity();
+                
+                console.log('✅ Dashboard initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing dashboard:', error);
+                showError('Failed to initialize dashboard: ' + error.message);
+            }
+        }
+        
+        // Wait for authentication
+        function waitForAuth() {
+            return new Promise((resolve) => {
+                const unsubscribe = auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    resolve(user);
+                });
+            });
+        }
+        
+        // Load class teacher data
+        async function loadClassTeacherData() {
+            try {
+                console.log('👤 Loading class teacher data for user:', currentUser.uid);
+                
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    classTeacherData = userDoc.data();
+                    console.log('👤 Class teacher data loaded:', classTeacherData);
+                    
+                    // Extract user information from different possible data structures
+                    const fullName = classTeacherData.personalInfo?.fullName || 
+                                   `${classTeacherData.personalInfo?.firstName || ''} ${classTeacherData.personalInfo?.lastName || ''}`.trim() ||
+                                   classTeacherData.fullName ||
+                                   `${classTeacherData.firstName || ''} ${classTeacherData.lastName || ''}`.trim();
+                    
+                    const staffId = classTeacherData.staffId || 
+                                  classTeacherData.employmentInfo?.staffId ||
+                                  classTeacherData.personalInfo?.staffId;
+                    
+                    const email = classTeacherData.email || 
+                                classTeacherData.personalInfo?.email ||
+                                currentUser.email;
+                    
+                    const role = classTeacherData.role || 
+                                classTeacherData.accountStatus ||
+                                'class_teacher';
+                    
+                    // Update UI with comprehensive user info
+                    const currentUserElement = document.getElementById('current-user');
+                    if (currentUserElement) {
+                        currentUserElement.textContent = fullName || 'Unknown User';
+                    }
+                    
+                    // Update staff ID in sidebar
+                    const staffIdElement = document.querySelector('.text-white-50');
+                    if (staffIdElement) {
+                        staffIdElement.textContent = `Staff ID: ${staffId || 'N/A'}`;
+                    }
+                    
+                    // Update page title with user name
+                    document.title = `${fullName || 'Class Teacher'} - Dashboard`;
+                    
+                    // Log comprehensive user data
+                    console.log('👤 User Details:', {
+                        uid: currentUser.uid,
+                        fullName: fullName,
+                        staffId: staffId,
+                        email: email,
+                        role: role,
+                        assignedClass: classTeacherData.academicInfo?.assignedClass,
+                        subjects: classTeacherData.academicInfo?.subjects,
+                        departments: classTeacherData.academicInfo?.departments
+                    });
+                    
+                } else {
+                    console.warn('⚠️ User document not found in Firestore');
+                    throw new Error('User data not found in database');
+                }
+            } catch (error) {
+                console.error('❌ Error loading class teacher data:', error);
+                throw error;
+            }
+        }
+        
+        // Load dashboard data from Firestore
+        async function loadDashboardData() {
+            try {
+                console.log('📊 Loading comprehensive dashboard data from Firestore...');
+                
+                // Load students with comprehensive data
+                console.log('👥 Loading students...');
+                const studentsSnapshot = await db.collection('students').get();
+                dashboardData.students = studentsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        // Ensure we have proper name structure
+                        fullName: data.personalInfo?.fullName || 
+                                 `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                 data.fullName ||
+                                 `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                        studentId: data.studentId || data.personalInfo?.studentId,
+                        averageScore: data.academicInfo?.averageScore || data.averageScore || 0,
+                        attendance: data.academicInfo?.attendance || data.attendance || 0,
+                        gender: data.personalInfo?.gender || data.gender,
+                        class: data.academicInfo?.assignedClass || data.class,
+                        dateOfBirth: data.personalInfo?.dateOfBirth || data.dateOfBirth,
+                        phone: data.personalInfo?.phone || data.phone,
+                        address: data.personalInfo?.address || data.address
+                    };
+                });
+                
+                // Load subjects with comprehensive data
+                console.log('📚 Loading subjects...');
+                const subjectsSnapshot = await db.collection('subjects').get();
+                dashboardData.subjects = subjectsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        name: data.name || data.subjectName,
+                        averageScore: data.averageScore || 0,
+                        department: data.department || data.departmentName,
+                        level: data.level || data.subjectLevel,
+                        code: data.code || data.subjectCode
+                    };
+                });
+                
+                // Load classes with comprehensive data
+                console.log('🏫 Loading classes...');
+                const classesSnapshot = await db.collection('classes').get();
+                dashboardData.classes = classesSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        name: data.name || data.className,
+                        level: data.level || data.classLevel,
+                        stream: data.stream || data.classStream,
+                        department: data.department || data.departmentName,
+                        capacity: data.capacity || data.maxStudents,
+                        currentStudents: data.currentStudents || 0
+                    };
+                });
+                
+                // Load teachers for additional context
+                console.log('👨‍🏫 Loading teachers...');
+                const teachersSnapshot = await db.collection('users')
+                    .where('role', 'in', ['teacher', 'subject_teacher', 'class_teacher']).get();
+                dashboardData.teachers = teachersSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        fullName: data.personalInfo?.fullName || 
+                                 `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                 data.fullName ||
+                                 `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                        staffId: data.staffId || data.employmentInfo?.staffId,
+                        subjects: data.academicInfo?.subjects || data.subjects,
+                        assignedClass: data.academicInfo?.assignedClass || data.assignedClass,
+                        email: data.email || data.personalInfo?.email,
+                        phone: data.personalInfo?.phone || data.phone,
+                        department: data.academicInfo?.departments || data.department
+                    };
+                });
+                
+                // Load recent activity from various sources
+                console.log('📋 Loading recent activity...');
+                dashboardData.recentActivity = await loadRecentActivity();
+                
+                console.log('📊 Comprehensive dashboard data loaded:', {
+                    students: dashboardData.students.length,
+                    subjects: dashboardData.subjects.length,
+                    classes: dashboardData.classes.length,
+                    teachers: dashboardData.teachers.length,
+                    activities: dashboardData.recentActivity.length
+                });
+                
+                // Log sample data for debugging
+                if (dashboardData.students.length > 0) {
+                    console.log('👥 Sample student data:', dashboardData.students[0]);
+                }
+                if (dashboardData.teachers.length > 0) {
+                    console.log('👨‍🏫 Sample teacher data:', dashboardData.teachers[0]);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+                console.log('📊 Falling back to sample data...');
+                // Use sample data as fallback
+                loadSampleDashboardData();
+            }
+        }
+        
+        // Load recent activity from various Firestore collections
+        async function loadRecentActivity() {
+            try {
+                const activities = [];
+                
+                // Get recent student additions
+                const recentStudents = await db.collection('students')
+                    .orderBy('createdAt', 'desc')
+                    .limit(3)
+                    .get();
+                
+                recentStudents.docs.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'student_added',
+                        message: `New student: ${data.personalInfo?.fullName || data.fullName || 'Unknown'}`,
+                        time: formatTimeAgo(data.createdAt),
+                        timestamp: data.createdAt
+                    });
+                });
+                
+                // Get recent results entries
+                const recentResults = await db.collection('student_results')
+                    .orderBy('createdAt', 'desc')
+                    .limit(2)
+                    .get();
+                
+                recentResults.docs.forEach(doc => {
+                    const data = doc.data();
+                    activities.push({
+                        type: 'result_added',
+                        message: `Grade entered for ${data.studentName || 'student'}`,
+                        time: formatTimeAgo(data.createdAt),
+                        timestamp: data.createdAt
+                    });
+                });
+                
+                // Sort by timestamp and return top 3
+                return activities
+                    .sort((a, b) => (b.timestamp?.toDate?.() || new Date(b.timestamp)) - (a.timestamp?.toDate?.() || new Date(a.timestamp)))
+                    .slice(0, 3);
+                    
+            } catch (error) {
+                console.error('❌ Error loading recent activity:', error);
+                return [
+                    { type: 'student_added', message: 'New student: Mukasa John', time: '1 hour ago' },
+                    { type: 'comment_added', message: 'Report card comment', time: '2 hours ago' },
+                    { type: 'report_approved', message: 'S.4 Science A reports', time: '1 day ago' }
+                ];
+            }
+        }
+        
+        // Helper function to format time ago
+        function formatTimeAgo(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            
+            const now = new Date();
+            const time = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Just now';
+            if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+            
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+            
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+        }
+        
+        // Load sample data as fallback
+        function loadSampleDashboardData() {
+            console.log('📊 Loading sample dashboard data as fallback...');
+            
+            dashboardData.students = [
+                { 
+                    id: '1', 
+                    personalInfo: { fullName: 'Mukasa John', firstName: 'Mukasa', lastName: 'John', gender: 'Male' }, 
+                    studentId: 'S00123', 
+                    academicInfo: { averageScore: 92.5, attendance: 98 } 
+                },
+                { 
+                    id: '2', 
+                    personalInfo: { fullName: 'Nakato Mary', firstName: 'Nakato', lastName: 'Mary', gender: 'Female' }, 
+                    studentId: 'S00124', 
+                    academicInfo: { averageScore: 89.2, attendance: 95 } 
+                },
+                { 
+                    id: '3', 
+                    personalInfo: { fullName: 'Okot David', firstName: 'Okot', lastName: 'David', gender: 'Male' }, 
+                    studentId: 'S00125', 
+                    academicInfo: { averageScore: 85.7, attendance: 92 } 
+                }
+            ];
+            
+            dashboardData.subjects = [
+                { id: '1', name: 'Mathematics' },
+                { id: '2', name: 'Physics' },
+                { id: '3', name: 'Chemistry' },
+                { id: '4', name: 'Biology' }
+            ];
+            
+            dashboardData.classes = [
+                { id: '1', name: 'S.4 Science A', level: 'O Level' }
+            ];
+            
+            dashboardData.recentActivity = [
+                { type: 'student_added', message: 'New student: Mukasa John', time: '1 hour ago' },
+                { type: 'comment_added', message: 'Report card comment', time: '2 hours ago' },
+                { type: 'report_approved', message: 'S.4 Science A reports', time: '1 day ago' }
+            ];
+        }
+        
+        // Update statistics cards
+        function updateStatisticsCards() {
+            const students = dashboardData.students;
+            const subjects = dashboardData.subjects;
+            const classes = dashboardData.classes;
+            
+            // Calculate class performance
+            const averageScore = students.length > 0 ? 
+                students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
+            
+            // Update stat cards
+            document.querySelector('.stat-card:nth-child(1) .number').textContent = classes.length;
+            document.querySelector('.stat-card:nth-child(2) .number').textContent = students.length;
+            document.querySelector('.stat-card:nth-child(3) .number').textContent = subjects.length;
+            document.querySelector('.stat-card:nth-child(4) .number').textContent = `${averageScore.toFixed(0)}%`;
+        }
+        
+        // Update class table
+        function updateClassTable() {
+            const tbody = document.querySelector('.table tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            dashboardData.students.forEach(student => {
+                const score = student.academicInfo?.averageScore || 0;
+                const attendance = student.academicInfo?.attendance || 0;
+                const status = score >= 80 ? 'Active' : score >= 60 ? 'Needs Attention' : 'At Risk';
+                const statusClass = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-danger';
+                
+                const initials = `${student.personalInfo?.firstName?.charAt(0) || ''}${student.personalInfo?.lastName?.charAt(0) || ''}`;
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="student-avatar me-2">${initials}</div>
+                            <div>
+                                <strong>${student.personalInfo?.fullName || `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim()}</strong><br>
+                                <small class="text-muted">${student.personalInfo?.gender || 'Unknown'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${student.studentId || 'N/A'}</td>
+                    <td>${score.toFixed(1)}%</td>
+                    <td>${attendance.toFixed(0)}%</td>
+                    <td><span class="badge ${statusClass}">${status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                    </td>
+                `;
+            });
+        }
+        
+        // Update recent activity
+        function updateRecentActivity() {
+            const activityContainer = document.querySelector('.card:nth-child(2) .card-body');
+            if (!activityContainer) return;
+            
+            activityContainer.innerHTML = '';
+            
+            dashboardData.recentActivity.forEach(activity => {
+                const iconClass = activity.type === 'student_added' ? 'fa-user-plus' : 
+                                activity.type === 'comment_added' ? 'fa-comment' : 'fa-check-circle';
+                
+                const activityDiv = document.createElement('div');
+                activityDiv.className = 'd-flex align-items-center mb-3';
+                activityDiv.innerHTML = `
+                    <div class="feature-icon">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h6>
+                        <p class="text-muted mb-0">${activity.message}</p>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                `;
+                activityContainer.appendChild(activityDiv);
+            });
+        }
+        
+        // Update class performance overview
+        function updateClassPerformanceOverview() {
+            const students = dashboardData.students;
+            const totalStudents = students.length;
+            const maleStudents = students.filter(s => s.personalInfo?.gender === 'Male').length;
+            const femaleStudents = students.filter(s => s.personalInfo?.gender === 'Female').length;
+            const averageScore = students.length > 0 ? 
+                students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
+            const averageAge = 17.2; // This would need to be calculated from birth dates
+            const passRate = students.length > 0 ? 
+                (students.filter(s => (s.academicInfo?.averageScore || 0) >= 50).length / students.length) * 100 : 0;
+            const topPerformer = students.length > 0 ? 
+                students.reduce((top, student) => 
+                    (student.academicInfo?.averageScore || 0) > (top.academicInfo?.averageScore || 0) ? student : top
+                ) : null;
+            const attendanceRate = students.length > 0 ? 
+                students.reduce((sum, student) => sum + (student.academicInfo?.attendance || 0), 0) / students.length : 0;
+            
+            // Update class statistics table
+            const statsTable = document.querySelector('.table-sm');
+            if (statsTable) {
+                const rows = statsTable.querySelectorAll('tr');
+                if (rows.length >= 5) {
+                    rows[0].cells[1].textContent = totalStudents;
+                    rows[1].cells[1].textContent = maleStudents;
+                    rows[2].cells[1].textContent = femaleStudents;
+                    rows[3].cells[1].textContent = `${averageAge} years`;
+                    rows[4].cells[1].textContent = `${averageScore.toFixed(1)}%`;
+                }
+            }
+            
+            // Update performance metrics table
+            const performanceTable = document.querySelector('.col-md-6:last-child .table-sm');
+            if (performanceTable) {
+                const rows = performanceTable.querySelectorAll('tr');
+                if (rows.length >= 5) {
+                    rows[0].cells[1].textContent = `${passRate.toFixed(1)}%`;
+                    rows[1].cells[1].textContent = topPerformer ? 
+                        `${topPerformer.personalInfo?.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || 0).toFixed(1)}%)` : 'N/A';
+                    rows[2].cells[1].textContent = `${attendanceRate.toFixed(1)}%`;
+                    rows[3].cells[1].textContent = '8.7/10'; // This would need to be calculated
+                    rows[4].cells[1].textContent = '1st'; // This would need to be calculated
+                }
+            }
+        }
+        
+        // Error handling
+        function showError(message) {
+            console.error('Error:', message);
+            alert('Error: ' + message);
+        }
+        
         // Mobile Sidebar Functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication first
+            checkAuthentication();
+            
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -587,6 +1086,9 @@
                     sidebarOverlay.classList.remove('show');
                 }
             });
+            
+            // Initialize dashboard
+            initializeDashboard();
         });
 
         function logout() {
@@ -594,6 +1096,5 @@
                 window.location.href = '../../index.html';
             }
         }
-    </script>
 </body>
 </html>
