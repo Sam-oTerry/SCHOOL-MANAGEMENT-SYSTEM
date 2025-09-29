@@ -764,6 +764,13 @@
                                dayDate.getMonth() === today.getMonth() &&
                                dayDate.getDate() === today.getDate();
                 
+                // Check for multi-day events
+                const hasMultiDayEvent = dayEvents.some(event => {
+                    const startDate = new Date(event.startDate + 'T00:00:00');
+                    const endDate = new Date(event.endDate + 'T23:59:59');
+                    return endDate > startDate;
+                });
+                
                 // Set cell classes
                 let cellClasses = 'calendar-cell';
                 if (isToday) {
@@ -771,6 +778,9 @@
                 }
                 if (dayEvents.length > 0) {
                     cellClasses += ' has-events';
+                }
+                if (hasMultiDayEvent) {
+                    cellClasses += ' has-multi-day-event';
                 }
                 
                 dayCell.className = cellClasses;
@@ -780,13 +790,23 @@
                     <div class="day-events">
                         ${dayEvents.map(event => `
                             <div class="event-item ${getEventTypeClass(event.type)}" 
-                                 title="${event.title}" 
-                                 onclick="viewEvent(${event.id})">
+                                 title="${event.title} - Click to edit" 
+                                 onclick="event.stopPropagation(); editEvent(${event.id})">
                                 ${event.title}
                             </div>
                         `).join('')}
                     </div>
+                    <div class="add-event-btn" onclick="event.stopPropagation(); addEventToDate('${dayDate.toISOString().split('T')[0]}')">
+                        <i class="fas fa-plus"></i>
+                    </div>
                 `;
+                
+                // Add click handler for the entire cell
+                dayCell.onclick = () => {
+                    if (dayEvents.length === 0) {
+                        addEventToDate(dayDate.toISOString().split('T')[0]);
+                    }
+                };
                 
                 currentRow.appendChild(dayCell);
                 
@@ -1320,6 +1340,20 @@
             showNotification('Navigated to current month', 'info');
         }
         
+        function addEventToDate(dateStr) {
+            // Populate the form with the selected date
+            document.getElementById('start-date').value = dateStr;
+            document.getElementById('end-date').value = dateStr;
+            
+            // Reset modal title
+            document.querySelector('#createEventModal .modal-title').textContent = 'Create Academic Event';
+            document.getElementById('create-event-form').removeAttribute('data-editing-id');
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('createEventModal'));
+            modal.show();
+        }
+        
         async function refreshCalendar() {
             if (typeof dbService !== 'undefined' && dbService) {
                 await loadEventsFromFirestore();
@@ -1511,13 +1545,309 @@
         }
 
         /* Enhanced Calendar Styles */
-        .event-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        .calendar-container {
+            max-width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-
-        .event-card:hover {
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .calendar-header h4 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .calendar-header button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-header button:hover {
+            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-grid {
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .calendar-row {
+            display: flex;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-row:hover {
+            background: #f8f9fa;
+        }
+        
+        .calendar-cell {
+            flex: 1;
+            min-height: 120px;
+            padding: 12px 8px;
+            border-right: 1px solid #e9ecef;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .calendar-cell:hover {
+            background: #f8f9fa;
+            transform: scale(1.02);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .calendar-cell.empty {
+            background-color: #f8f9fa;
+            cursor: default;
+        }
+        
+        .calendar-cell.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .calendar-header-row {
+            background: linear-gradient(135deg, #343a40 0%, #495057 100%) !important;
+            color: white !important;
+            font-weight: bold;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+        }
+        
+        .calendar-header-row .calendar-cell {
+            text-align: center;
+            padding: 16px 8px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            color: white !important;
+            background: transparent !important;
+            cursor: default;
+            flex: 1;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .calendar-header-row .calendar-cell:hover {
+            transform: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            color: white !important;
+        }
+        
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: #495057;
+        }
+        
+        .calendar-cell.today .day-number {
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px auto;
+        }
+        
+        .calendar-cell.today {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196f3;
+        }
+        
+        .calendar-cell.has-events {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        }
+        
+        .day-events {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+        
+        .event-item {
+            font-size: 0.75rem;
+            padding: 4px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        
+        .event-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .event-item:hover::after {
+            content: " ✏️";
+            font-size: 0.8em;
+        }
+        
+        .event-academic {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border-left-color: #0056b3;
+        }
+        
+        .event-examination {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-left-color: #c82333;
+        }
+        
+        .event-holiday {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+            border-left-color: #1e7e34;
+        }
+        
+        .event-meeting {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+            border-left-color: #e0a800;
+        }
+        
+        .event-sports {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-left-color: #138496;
+        }
+        
+        .event-default {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border-left-color: #5a6268;
+        }
+        
+        .add-event-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0,123,255,0.1);
+            border: 1px solid rgba(0,123,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 0.7rem;
+            color: #007bff;
+        }
+        
+        .calendar-cell:hover .add-event-btn {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .add-event-btn:hover {
+            background: #007bff;
+            color: white;
+            transform: scale(1.2);
+        }
+        
+        /* Event overlay lines for multi-day events */
+        .event-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #007bff 50%, transparent 100%);
+            opacity: 0.7;
+            z-index: 5;
+        }
+        
+        .calendar-cell.has-multi-day-event {
+            position: relative;
+        }
+        
+        .calendar-cell.has-multi-day-event::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #007bff 50%, transparent 100%);
+            opacity: 0.7;
+            z-index: 5;
+        }
+        
+        /* Animation for calendar transitions */
+        .calendar-grid {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .calendar-cell {
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Enhanced event card styles */
+        .event-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
         .list-month-header {
@@ -1525,27 +1855,9 @@
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
         }
-
+        
         .list-event-item {
             margin-bottom: 0.5rem;
-        }
-
-        .calendar-cell:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .calendar-cell.today {
-            background-color: #e3f2fd;
-            border: 2px solid #2196f3;
-        }
-        
-        .calendar-cell.has-events {
-            background-color: #fff3e0;
-        }
-        
-        .event-item:hover {
-            opacity: 0.8;
-            transform: scale(1.02);
         }
         
         .badge.event-academic {
