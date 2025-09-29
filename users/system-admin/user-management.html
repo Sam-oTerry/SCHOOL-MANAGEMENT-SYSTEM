@@ -418,23 +418,21 @@
                             <input type="text" class="form-control" id="new-class-name" placeholder="e.g., S1, S2, S3" required>
                         </div>
                         <div class="mb-3">
-                            <label for="new-class-level" class="form-label">Class Level</label>
-                            <input type="text" class="form-control" id="new-class-level" placeholder="e.g., Senior 1, Senior 2" required>
+                            <label for="new-class-level" class="form-label">Level</label>
+                            <select class="form-select" id="new-class-level" required>
+                                <option value="">Select Level</option>
+                                <option value="O Level">O Level</option>
+                                <option value="A Level">A Level</option>
+                            </select>
                         </div>
                         <div class="mb-3">
-                            <label for="new-class-stream" class="form-label">Stream</label>
+                            <label for="new-class-stream" class="form-label">Stream (Optional)</label>
                             <select class="form-select" id="new-class-stream">
+                                <option value="">No Stream</option>
                                 <option value="A">A</option>
                                 <option value="B">B</option>
                                 <option value="C">C</option>
                                 <option value="D">D</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="new-class-department" class="form-label">Department</label>
-                            <select class="form-select" id="new-class-department">
-                                <option value="">Select Department</option>
-                                <!-- Departments will be loaded dynamically -->
                             </select>
                         </div>
                         <div class="mb-3">
@@ -1105,19 +1103,13 @@
         // Create new class function
         async function createNewClass() {
             const className = document.getElementById('new-class-name').value.trim();
-            const classLevel = document.getElementById('new-class-level').value.trim();
+            const classLevel = document.getElementById('new-class-level').value;
             const classStream = document.getElementById('new-class-stream').value;
-            const classDepartment = document.getElementById('new-class-department').value;
             const classDescription = document.getElementById('new-class-description').value.trim();
             
             // Validation
             if (!className || !classLevel) {
-                showError('Please fill in class name and level.');
-                return;
-            }
-            
-            if (!classDepartment) {
-                showError('Please select a department for the class.');
+                showError('Please fill in class name and select level.');
                 return;
             }
             
@@ -1132,8 +1124,7 @@
                     id: classId,
                     name: className,
                     level: classLevel,
-                    stream: classStream,
-                    department: classDepartment,
+                    stream: classStream || null,
                     description: classDescription || '',
                     status: 'active',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1167,29 +1158,6 @@
                 showError('Failed to create class. Please try again.');
             } finally {
                 hideLoading();
-            }
-        }
-        
-        // Populate department dropdown for class creation
-        function populateClassDepartmentDropdown() {
-            const deptSelect = document.getElementById('new-class-department');
-            if (!deptSelect) {
-                console.warn('Class department dropdown element not found');
-                return;
-            }
-            
-            deptSelect.innerHTML = '<option value="">Select Department</option>';
-            
-            if (departments && departments.length > 0) {
-                departments.forEach(dept => {
-                    const option = document.createElement('option');
-                    option.value = dept.id;
-                    option.textContent = dept.name;
-                    deptSelect.appendChild(option);
-                });
-                console.log(`✅ Populated class department dropdown with ${departments.length} departments`);
-            } else {
-                console.warn('No departments available to populate dropdown');
             }
         }
         
@@ -2162,8 +2130,6 @@
             const addClassBtn = document.getElementById('add-class-btn');
             if (addClassBtn) {
                 addClassBtn.addEventListener('click', function() {
-                    // Populate department dropdown before showing modal
-                    populateClassDepartmentDropdown();
                     // Show the create class modal
                     const createClassModal = new bootstrap.Modal(document.getElementById('createClassModal'));
                     createClassModal.show();
@@ -2176,8 +2142,6 @@
                 createClassModal.addEventListener('show.bs.modal', function() {
                     // Clear the form
                     document.getElementById('create-class-form').reset();
-                    // Populate department dropdown
-                    populateClassDepartmentDropdown();
                 });
             }
         });
