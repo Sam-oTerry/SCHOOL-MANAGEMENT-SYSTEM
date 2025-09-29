@@ -4,140 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management - Class Teacher</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
     <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #1a4f8b;
-            --secondary: #3a7cbd;
-            --accent: #ff9e1b;
-            --light: #f5f7fa;
-            --dark: #2c3e50;
+        .filter-status {
+            transition: all 0.3s ease;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
+        .filter-status.text-info {
+            background-color: rgba(13, 202, 240, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #0dcaf0;
         }
-        
-        /* Mobile Menu Toggle Button */
-        .mobile-menu-toggle {
-            display: none;
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1050;
-            background: var(--primary);
+        .search-input:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .filter-select:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+        }
+        .btn-clear-filters:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
             color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        .mobile-menu-toggle:hover {
-            background: var(--secondary);
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            z-index: 1000;
-            transition: transform 0.3s ease-in-out;
-            overflow-y: auto;
-        }
-        
-        /* Sidebar Overlay for Mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-        
-        .sidebar-overlay.show {
-            display: block;
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            transition: margin-left 0.3s ease-in-out;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 60px 15px 20px 15px;
-            }
-            
-            .header {
-                padding: 10px 15px;
-                margin-bottom: 15px;
-            }
-            
-            .card {
-                margin-bottom: 15px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .main-content {
-                padding: 60px 10px 20px 10px;
-            }
-            
-            .header h4 {
-                font-size: 1.2rem;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Mobile Menu Toggle Button -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-    
-    <!-- Sidebar Overlay for Mobile -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="sidebar" id="sidebar">
-                <div class="position-sticky pt-3 d-flex flex-column h-100">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" style="z-index: 1000;">
+                <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
                         <h6 class="text-muted">Class Teacher</h6>
-                        <small class="text-muted">Staff ID: CT1234</small>
+                        <small class="text-muted" id="staffIdDisplay">Staff ID: Loading...</small>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -152,13 +60,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="student-management.html">
-                                <i class="fas fa-users"></i> Student Management
+                            <a class="nav-link" href="grade-entry.html">
+                                <i class="fas fa-edit"></i> Grade Entry
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="grade-entry.html">
-                                <i class="fas fa-edit"></i> Grade Entry
+                            <a class="nav-link active" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="class-performance.html">
+                                <i class="fas fa-chart-line"></i> Class Performance
                             </a>
                         </li>
                         <li class="nav-item">
@@ -167,8 +80,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="class-performance.html">
-                                <i class="fas fa-chart-line"></i> Class Performance
+                            <a class="nav-link" href="timetable.html">
+                                <i class="fas fa-calendar-alt"></i> Timetable
                             </a>
                         </li>
                         <li class="nav-item">
@@ -178,8 +91,9 @@
                         </li>
                     </ul>
                     
-                    <div class="mt-auto p-3 text-center">
-                        <button class="btn btn-sm btn-outline-light" onclick="logout()">
+                    <hr>
+                    <div class="text-center">
+                        <button class="btn btn-outline-danger btn-sm" onclick="logout()">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                     </div>
@@ -187,129 +101,120 @@
             </nav>
 
             <!-- Main content -->
-            <main class="col-12 main-content">
-                <div class="header">
-                    <div>
-                        <h4>Student Management</h4>
-                        <span class="role-badge">Class Teacher</span>
-                    </div>
-                    <div>
-                        <span id="current-user">John Doe</span>
-                        <i class="fas fa-user-circle ms-2 text-primary"></i>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Student Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportStudents()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printStudents()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                            <i class="fas fa-plus"></i> Add Student
+                        </button>
                     </div>
                 </div>
-                
-                <!-- Student Management Controls -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Student Management Controls</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label class="form-label">Class</label>
-                                <select class="form-select" id="class-filter" onchange="filterStudents()">
-                                    <option value="">All Classes</option>
-                                    <option value="s4-science-a">S.4 Science A</option>
-                                    <option value="s4-science-b">S.4 Science B</option>
-                                    <option value="s3-science">S.3 Science</option>
-                                    <option value="s2-science">S.2 Science</option>
-                                    <option value="s1-science">S.1 Science</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Search</label>
-                                <input type="text" class="form-control" id="search-students" placeholder="Search students...">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" id="status-filter" onchange="filterStudents()">
-                                    <option value="">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="transferred">Transferred</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Actions</label>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                                        <i class="fas fa-plus"></i> Add Student
-                                    </button>
-                                    <button class="btn btn-info btn-sm" onclick="exportStudents()">
-                                        <i class="fas fa-download"></i> Export
-                                    </button>
-                                </div>
-                            </div>
+
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control search-input" id="searchInput" placeholder="Search students..." onkeyup="searchStudents()">
                         </div>
                     </div>
+                    <div class="col-md-2">
+                        <select class="form-select filter-select" id="classFilter" onchange="filterStudents()">
+                            <option value="all">All Classes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select filter-select" id="statusFilter" onchange="filterStudents()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="graduated">Graduated</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select filter-select" id="yearFilter" onchange="filterStudents()">
+                            <option value="all">All Years</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100 btn-clear-filters" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
                 </div>
-                
+
                 <!-- Student Statistics -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Class Statistics</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-graduate text-primary mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Total Students</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="card bg-primary text-white text-center">
-                                    <div class="card-body">
-                                        <h3>35</h3>
-                                        <p class="mb-0">Total Students</p>
-                                    </div>
-                                </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle text-success mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Active</p>
                             </div>
-                            <div class="col-md-3">
-                                <div class="card bg-success text-white text-center">
-                                    <div class="card-body">
-                                        <h3>32</h3>
-                                        <p class="mb-0">Active</p>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-graduation-cap text-info mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Graduated</p>
                             </div>
-                            <div class="col-md-3">
-                                <div class="card bg-warning text-white text-center">
-                                    <div class="card-body">
-                                        <h3>2</h3>
-                                        <p class="mb-0">Pending</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card bg-info text-white text-center">
-                                    <div class="card-body">
-                                        <h3>1</h3>
-                                        <p class="mb-0">Transferred</p>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-times-circle text-danger mb-2"></i>
+                                <h4 class="number">0</h4>
+                                <p class="text-muted">Inactive</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Students List -->
+
+                <!-- Students Table -->
                 <div class="card">
-                    <div class="card-header">
-                        <h5>Students List</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Students</h5>
+                        <div class="filter-status">
+                            <small class="text-muted" id="filterStatus">Showing all students</small>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="studentsTable">
                                 <thead>
                                     <tr>
-                                        <th>Student ID</th>
-                                        <th>Name</th>
-                                        <th>Class</th>
-                                        <th>Date of Birth</th>
+                                        <th>Student</th>
+                                        <th>Payment Code</th>
+                                        <th>Class & Year</th>
                                         <th>Parent/Guardian</th>
-                                        <th>Contact</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="students-tbody">
-                                    <!-- Students will be populated here -->
+                                <tbody>
+                                    <!-- Students will be loaded here -->
                                 </tbody>
                             </table>
                         </div>
@@ -328,32 +233,78 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-student-form">
+                    <form id="addStudentForm">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first-name" required>
+                                    <label for="studentFirstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="studentFirstName" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last-name" required>
+                                    <label for="studentLastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="studentLastName" required>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Date of Birth</label>
-                                    <input type="date" class="form-control" id="date-of-birth" required>
+                                    <label for="studentEmail" class="form-label">Email (Optional)</label>
+                                    <input type="email" class="form-control" id="studentEmail">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Gender</label>
-                                    <select class="form-select" id="gender" required>
+                                    <label for="studentPhone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="studentPhone">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="studentClass" class="form-label">Class</label>
+                                    <select class="form-select" id="studentClass" required onchange="updateStreamOptions()">
+                                        <option value="">Select Class</option>
+                                        <!-- Classes will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="studentStream" class="form-label">Stream (Optional)</label>
+                                    <select class="form-select" id="studentStream">
+                                        <option value="">No Stream</option>
+                                        <option value="Science">Science</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Technical">Technical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="studentYear" class="form-label">Academic Year</label>
+                                    <select class="form-select" id="studentYear" required>
+                                        <option value="">Select Year</option>
+                                        <!-- Academic years will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="studentDateOfBirth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="studentDateOfBirth" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="studentGender" class="form-label">Gender</label>
+                                    <select class="form-select" id="studentGender" required>
                                         <option value="">Select Gender</option>
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
@@ -361,44 +312,104 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Class</label>
-                                    <select class="form-select" id="student-class" required>
-                                        <option value="">Select Class</option>
-                                        <option value="s4-science-a">S.4 Science A</option>
-                                        <option value="s4-science-b">S.4 Science B</option>
-                                        <option value="s3-science">S.3 Science</option>
-                                        <option value="s2-science">S.2 Science</option>
-                                        <option value="s1-science">S.1 Science</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Admission Date</label>
-                                    <input type="date" class="form-control" id="admission-date" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Parent/Guardian Name</label>
-                                    <input type="text" class="form-control" id="parent-name" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Parent/Guardian Contact</label>
-                                    <input type="tel" class="form-control" id="parent-contact" required>
-                                </div>
-                            </div>
-                        </div>
                         <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <textarea class="form-control" id="address" rows="3" placeholder="Enter student's address..."></textarea>
+                            <label for="studentAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="studentAddress" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="studentPaymentCode" class="form-label">Student Payment Code</label>
+                                    <input type="text" class="form-control" id="studentPaymentCode" required placeholder="Enter payment code">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="studentAdmissionNumber" class="form-label">Admission Number</label>
+                                    <input type="text" class="form-control" id="studentAdmissionNumber" placeholder="Auto-generated if empty">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Parent/Guardian Information -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Parent/Guardian Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentName" class="form-label">Parent/Guardian Name</label>
+                                            <input type="text" class="form-control" id="parentName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentRelationship" class="form-label">Relationship</label>
+                                            <select class="form-select" id="parentRelationship" required>
+                                                <option value="">Select Relationship</option>
+                                                <option value="Father">Father</option>
+                                                <option value="Mother">Mother</option>
+                                                <option value="Guardian">Guardian</option>
+                                                <option value="Uncle">Uncle</option>
+                                                <option value="Aunt">Aunt</option>
+                                                <option value="Grandfather">Grandfather</option>
+                                                <option value="Grandmother">Grandmother</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentPhone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="parentPhone" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="parentEmail">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentOccupation" class="form-label">Occupation</label>
+                                            <input type="text" class="form-control" id="parentOccupation">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parentWorkplace" class="form-label">Workplace</label>
+                                            <input type="text" class="form-control" id="parentWorkplace">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="parentAddress" class="form-label">Parent/Guardian Address</label>
+                                    <textarea class="form-control" id="parentAddress" rows="2"></textarea>
+                                </div>
+                                
+                                <!-- Emergency Contact -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
+                                            <input type="text" class="form-control" id="emergencyContactName">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                            <input type="tel" class="form-control" id="emergencyContactPhone">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -410,375 +421,1436 @@
         </div>
     </div>
 
-    <!-- View Student Modal -->
-    <div class="modal fade" id="viewStudentModal" tabindex="-1">
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="view-student-title">Student Details</h5>
+                    <h5 class="modal-title">Edit Student</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="view-student-content">
-                        <!-- Student details will be populated here -->
-                    </div>
+                    <form id="editStudentForm">
+                        <input type="hidden" id="editStudentId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentFirstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="editStudentFirstName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentLastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="editStudentLastName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentEmail" class="form-label">Email (Optional)</label>
+                                    <input type="email" class="form-control" id="editStudentEmail">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentPhone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="editStudentPhone">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editStudentClass" class="form-label">Class</label>
+                                    <select class="form-select" id="editStudentClass" required onchange="updateEditStreamOptions()">
+                                        <option value="">Select Class</option>
+                                        <!-- Classes will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editStudentStream" class="form-label">Stream (Optional)</label>
+                                    <select class="form-select" id="editStudentStream">
+                                        <option value="">No Stream</option>
+                                        <option value="Science">Science</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Technical">Technical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="editStudentYear" class="form-label">Academic Year</label>
+                                    <select class="form-select" id="editStudentYear" required>
+                                        <option value="">Select Year</option>
+                                        <!-- Academic years will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentDateOfBirth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="editStudentDateOfBirth" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentGender" class="form-label">Gender</label>
+                                    <select class="form-select" id="editStudentGender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStudentAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="editStudentAddress" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentPaymentCode" class="form-label">Student Payment Code</label>
+                                    <input type="text" class="form-control" id="editStudentPaymentCode" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editStudentAdmissionNumber" class="form-label">Admission Number</label>
+                                    <input type="text" class="form-control" id="editStudentAdmissionNumber">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Parent/Guardian Information -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Parent/Guardian Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentName" class="form-label">Parent/Guardian Name</label>
+                                            <input type="text" class="form-control" id="editParentName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentRelationship" class="form-label">Relationship</label>
+                                            <select class="form-select" id="editParentRelationship" required>
+                                                <option value="">Select Relationship</option>
+                                                <option value="Father">Father</option>
+                                                <option value="Mother">Mother</option>
+                                                <option value="Guardian">Guardian</option>
+                                                <option value="Uncle">Uncle</option>
+                                                <option value="Aunt">Aunt</option>
+                                                <option value="Grandfather">Grandfather</option>
+                                                <option value="Grandmother">Grandmother</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentPhone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="editParentPhone" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="editParentEmail">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentOccupation" class="form-label">Occupation</label>
+                                            <input type="text" class="form-control" id="editParentOccupation">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editParentWorkplace" class="form-label">Workplace</label>
+                                            <input type="text" class="form-control" id="editParentWorkplace">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editParentAddress" class="form-label">Parent/Guardian Address</label>
+                                    <textarea class="form-control" id="editParentAddress" rows="2"></textarea>
+                                </div>
+                                
+                                <!-- Emergency Contact -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editEmergencyContactName" class="form-label">Emergency Contact Name</label>
+                                            <input type="text" class="form-control" id="editEmergencyContactName">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="editEmergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                            <input type="tel" class="form-control" id="editEmergencyContactPhone">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStudentStatus" class="form-label">Status</label>
+                            <select class="form-select" id="editStudentStatus" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="graduated">Graduated</option>
+                            </select>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="editStudent()">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button type="button" class="btn btn-danger" onclick="deleteStudent()">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateStudent()">Update Student</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteStudent()">Delete Student</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/users/class-teacher.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
+    <script src="../../assets/js/database-service.js"></script>
+    
     <script>
-        // Student Management Functionality
+        // Class Teacher Student Management Functionality
         let students = [];
-        let currentStudentId = 1001;
+        let filteredStudents = [];
+        let classes = [];
+        let academicYears = [];
+        let currentUser = null;
+        let classTeacherData = null;
+        let assignedClass = null;
         
-        // Sample students data
-        const sampleStudents = [
-            {
-                id: 'ST001',
-                firstName: 'John',
-                lastName: 'Doe',
-                fullName: 'John Doe',
-                dateOfBirth: '2005-03-15',
-                gender: 'male',
-                class: 'S.4 Science A',
-                admissionDate: '2023-01-15',
-                parentName: 'Jane Doe',
-                parentContact: '+256 700 123 456',
-                address: 'Kampala, Uganda',
-                status: 'active'
-            },
-            {
-                id: 'ST002',
-                firstName: 'Mary',
-                lastName: 'Smith',
-                fullName: 'Mary Smith',
-                dateOfBirth: '2005-07-22',
-                gender: 'female',
-                class: 'S.4 Science A',
-                admissionDate: '2023-01-15',
-                parentName: 'Peter Smith',
-                parentContact: '+256 700 234 567',
-                address: 'Entebbe, Uganda',
-                status: 'active'
-            },
-            {
-                id: 'ST003',
-                firstName: 'Peter',
-                lastName: 'Johnson',
-                fullName: 'Peter Johnson',
-                dateOfBirth: '2005-11-08',
-                gender: 'male',
-                class: 'S.4 Science B',
-                admissionDate: '2023-01-15',
-                parentName: 'Sarah Johnson',
-                parentContact: '+256 700 345 678',
-                address: 'Jinja, Uganda',
-                status: 'active'
-            },
-            {
-                id: 'ST004',
-                firstName: 'Sarah',
-                lastName: 'Wilson',
-                fullName: 'Sarah Wilson',
-                dateOfBirth: '2006-01-12',
-                gender: 'female',
-                class: 'S.3 Science',
-                admissionDate: '2023-01-15',
-                parentName: 'David Wilson',
-                parentContact: '+256 700 456 789',
-                address: 'Masaka, Uganda',
-                status: 'pending'
-            },
-            {
-                id: 'ST005',
-                firstName: 'David',
-                lastName: 'Brown',
-                fullName: 'David Brown',
-                dateOfBirth: '2006-05-30',
-                gender: 'male',
-                class: 'S.2 Science',
-                admissionDate: '2023-01-15',
-                parentName: 'Lisa Brown',
-                parentContact: '+256 700 567 890',
-                address: 'Mukono, Uganda',
-                status: 'transferred'
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+        });
+
+        // Check authentication and redirect if needed
+        function checkAuthentication() {
+            if (!firebase.auth().currentUser) {
+                console.log('❌ No authenticated user, redirecting to login');
+                window.location.href = '../../index.html';
+                return;
             }
-        ];
+            initializeStudentManagement();
+        }
+
+        async function initializeStudentManagement() {
+            console.log('🚀 Starting class teacher student management initialization...');
+            try {
+                // Wait for authentication
+                currentUser = await waitForAuth();
+                console.log('✅ User authenticated:', currentUser?.uid);
+                
+                // Load class teacher data
+                await loadClassTeacherData();
+                
+                // Load student data (only for assigned class)
+                console.log('📚 Loading students for assigned class...');
+                await loadStudents();
+                
+                // Load classes and academic years
+                console.log('📚 Loading classes...');
+                await loadClasses();
+                console.log('📅 Loading academic years...');
+                await loadAcademicYears();
+                
+                // Set up real-time listeners
+                console.log('🔄 Setting up real-time listeners...');
+                setupRealTimeListeners();
+                
+                console.log('✅ Class teacher student management initialization complete!');
+                
+            } catch (error) {
+                console.error('❌ Error initializing student management:', error);
+                showError('Failed to initialize student management. Please refresh and try again.');
+            }
+        }
+
+        // Wait for authentication
+        async function waitForAuth() {
+            return new Promise((resolve) => {
+                const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+                    unsubscribe();
+                    resolve(user);
+                });
+            });
+        }
+
+        // Load class teacher data
+        async function loadClassTeacherData() {
+            try {
+                console.log('👤 Loading class teacher data for user:', currentUser.uid);
+                
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists) {
+                    throw new Error('User data not found');
+                }
+                
+                classTeacherData = userDoc.data();
+                console.log('👤 Class teacher data loaded:', classTeacherData);
+                
+                // Extract assigned class
+                assignedClass = classTeacherData?.academicInfo?.assignedClass || 
+                               classTeacherData?.assignedClass;
+                
+                console.log('📚 Assigned class:', assignedClass);
+                
+                // Update UI with user data
+                updateUserDisplay();
+                
+            } catch (error) {
+                console.error('❌ Error loading class teacher data:', error);
+                throw error;
+            }
+        }
+
+        // Update user display
+        function updateUserDisplay() {
+            try {
+                // Update staff ID display
+                const staffIdElement = document.getElementById('staffIdDisplay');
+                if (staffIdElement && classTeacherData?.staffId) {
+                    staffIdElement.textContent = `Staff ID: ${classTeacherData.staffId}`;
+                }
+                
+                // Update page title with assigned class
+                const pageTitle = document.querySelector('h1.h2');
+                if (pageTitle && assignedClass) {
+                    pageTitle.textContent = `Student Management - ${assignedClass.toUpperCase()}`;
+                }
+                
+                console.log('✅ User display updated for class teacher');
+                
+            } catch (error) {
+                console.error('Error updating user display:', error);
+            }
+        }
+
         
-        function initializeStudentManagement() {
-            students = [...sampleStudents];
-            displayStudents();
+        // Load students from Firebase (only for assigned class)
+        async function loadStudents() {
+            console.log('📚 Starting to load students from Firestore for assigned class:', assignedClass);
+            try {
+                if (!assignedClass) {
+                    console.log('⚠️ No assigned class found, cannot load students');
+                    students = [];
+                    filteredStudents = [];
+                    displayStudents();
+                    updateStudentStats();
+                    updateFilterStatus(0, 0);
+                    return;
+                }
+                
+                console.log('🔍 Querying students collection for class:', assignedClass);
+                const studentsSnapshot = await db.collection('students')
+                    .where('class', '==', assignedClass)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                console.log('📊 Students snapshot received:', studentsSnapshot.size, 'documents');
+                
+                students = [];
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    students.push({
+                        id: doc.id,
+                        ...studentData
+                    });
+                });
+                
+                console.log('✅ Processed', students.length, 'students for class:', assignedClass);
+                
+                filteredStudents = [...students];
+                displayStudents();
+                updateStudentStats();
+                updateFilterStatus(students.length, students.length);
+                populateFilterDropdowns();
+                
+                console.log(`✅ Loaded ${students.length} students from Firestore for class ${assignedClass}`);
+                
+            } catch (error) {
+                console.error('❌ Error loading students:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                showError('Failed to load students. Please try again.');
+            }
         }
         
-        function displayStudents() {
-            const tbody = document.getElementById('students-tbody');
-            tbody.innerHTML = '';
+        // Load classes dynamically from Firestore (only assigned class)
+        async function loadClasses() {
+            console.log('📚 Starting to load assigned class from Firestore...');
+            try {
+                if (!assignedClass) {
+                    console.log('⚠️ No assigned class found');
+                    classes = [];
+                    populateClassSelects();
+                    return;
+                }
+                
+                console.log('🔍 Querying classes collection for assigned class:', assignedClass);
+                const classesSnapshot = await db.collection('classes')
+                    .where('name', '==', assignedClass)
+                    .where('status', '==', 'active')
+                    .get();
+                
+                console.log('📊 Classes snapshot received:', classesSnapshot.size, 'documents');
+                
+                classes = [];
+                classesSnapshot.forEach(doc => {
+                    const classData = doc.data();
+                    classes.push({
+                        id: doc.id,
+                        ...classData
+                    });
+                });
+                
+                // If no class found in Firestore, create a default entry for the assigned class
+                if (classes.length === 0) {
+                    console.log('⚠️ Assigned class not found in Firestore, creating default entry');
+                    classes = [{
+                        id: assignedClass.toLowerCase(),
+                        name: assignedClass,
+                        level: assignedClass.includes('S5') || assignedClass.includes('S6') ? 'A Level' : 'O Level',
+                        stream: null
+                    }];
+                }
+                
+                console.log('✅ Processed', classes.length, 'classes');
+                
+                populateClassSelects();
+                console.log(`✅ Loaded assigned class: ${assignedClass}`);
+                
+            } catch (error) {
+                console.error('❌ Error loading classes:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                // Fallback to assigned class only
+                console.log('🔄 Using fallback for assigned class');
+                classes = [{
+                    id: assignedClass.toLowerCase(),
+                    name: assignedClass,
+                    level: assignedClass.includes('S5') || assignedClass.includes('S6') ? 'A Level' : 'O Level',
+                    stream: null
+                }];
+                populateClassSelects();
+            }
+        }
+        
+        // Load academic years dynamically from Firestore
+        async function loadAcademicYears() {
+            try {
+                const yearsSnapshot = await db.collection('academic_years')
+                    .orderBy('year', 'desc')
+                    .get();
+                
+                academicYears = [];
+                yearsSnapshot.forEach(doc => {
+                    const yearData = doc.data();
+                    academicYears.push({
+                        id: doc.id,
+                        ...yearData
+                    });
+                });
+                
+                // If no academic years found, create current year
+                if (academicYears.length === 0) {
+                    console.log('No academic years found in Firestore, creating current year');
+                    const currentYear = new Date().getFullYear();
+                    academicYears = [
+                        { id: 'current', year: currentYear.toString(), isActive: true },
+                        { id: 'previous', year: (currentYear - 1).toString(), isActive: false }
+                    ];
+                }
+                
+                populateYearSelects();
+                console.log(`✅ Loaded ${academicYears.length} academic years from Firestore`);
+                
+            } catch (error) {
+                console.error('Error loading academic years:', error);
+                // Fallback to current year
+                const currentYear = new Date().getFullYear();
+                academicYears = [
+                    { id: 'current', year: currentYear.toString(), isActive: true },
+                    { id: 'previous', year: (currentYear - 1).toString(), isActive: false }
+                ];
+                populateYearSelects();
+            }
+        }
+        
+        // Populate class selects with assigned class only (read-only for class teacher)
+        function populateClassSelects() {
+            const classSelects = ['studentClass', 'editStudentClass'];
+            classSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">Select Class</option>';
+                    
+                    // Only show assigned class
+                    if (assignedClass && classes.length > 0) {
+                        const assignedClassData = classes.find(cls => cls.name === assignedClass);
+                        if (assignedClassData) {
+                            const option = document.createElement('option');
+                            option.value = assignedClassData.name;
+                            option.textContent = `${assignedClassData.name} (${assignedClassData.level})`;
+                            option.selected = true; // Pre-select the assigned class
+                            select.appendChild(option);
+                        }
+                    }
+                    
+                    // Make the select read-only for class teacher
+                    select.disabled = true;
+                    select.title = 'Class is fixed to your assigned class';
+                }
+            });
             
-            students.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.id}</td>
-                    <td>${student.fullName}</td>
-                    <td>${student.class}</td>
-                    <td>${formatDate(student.dateOfBirth)}</td>
-                    <td>${student.parentName}</td>
-                    <td>${student.parentContact}</td>
-                    <td><span class="badge ${getStatusColor(student.status)}">${student.status.toUpperCase()}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudent('${student.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="editStudent('${student.id}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${student.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+            // Hide class filter since class teacher only manages one class
+            const classFilter = document.getElementById('classFilter');
+            if (classFilter) {
+                classFilter.style.display = 'none';
+            }
+        }
+        
+        // Populate filter dropdowns with actual student data
+        function populateFilterDropdowns() {
+            // Get unique classes from students
+            const uniqueClasses = [...new Set(students.map(student => student.class).filter(Boolean))];
+            const classFilter = document.getElementById('classFilter');
+            if (classFilter) {
+                classFilter.innerHTML = '<option value="all">All Classes</option>';
+                uniqueClasses.sort().forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classFilter.appendChild(option);
+                });
+            }
+            
+            // Get unique academic years from students
+            const uniqueYears = [...new Set(students.map(student => student.academicYear).filter(Boolean))];
+            const yearFilter = document.getElementById('yearFilter');
+            if (yearFilter) {
+                yearFilter.innerHTML = '<option value="all">All Years</option>';
+                uniqueYears.sort((a, b) => b - a).forEach(year => { // Sort descending (newest first)
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearFilter.appendChild(option);
+                });
+            }
+        }
+        
+        // Populate year selects with dynamic data
+        function populateYearSelects() {
+            const yearSelects = ['studentYear', 'editStudentYear', 'yearFilter'];
+            yearSelects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    if (selectId === 'yearFilter') {
+                    select.innerHTML = '<option value="all">All Years</option>';
+                    } else {
+                        select.innerHTML = '<option value="">Select Year</option>';
+                    }
+                    academicYears.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year.year;
+                        option.textContent = year.year;
+                        if (year.isActive) {
+                            option.selected = true; // Select active year by default
+                        }
+                        select.appendChild(option);
+                    });
+                }
             });
         }
         
-        function getStatusColor(status) {
-            switch(status.toLowerCase()) {
-                case 'active': return 'bg-success';
-                case 'pending': return 'bg-warning';
-                case 'transferred': return 'bg-info';
-                case 'inactive': return 'bg-secondary';
-                default: return 'bg-secondary';
+        // Display students in the table
+        function displayStudents() {
+            const tbody = document.querySelector('#studentsTable tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
+                            No students found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredStudents.forEach(student => {
+                const row = createStudentRow(student);
+                tbody.appendChild(row);
+            });
+            
+            console.log(`📊 Displayed ${filteredStudents.length} students`);
+        }
+        
+        // Create student row
+        function createStudentRow(student) {
+            const row = document.createElement('tr');
+            const fullName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
+            const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+            const statusColors = {
+                'active': 'success',
+                'inactive': 'danger',
+                'graduated': 'info'
+            };
+            const statusColor = statusColors[student.status] || 'secondary';
+            
+            // Format class with stream if available
+            const classDisplay = student.stream ? `${student.class} (${student.stream})` : student.class;
+            
+            row.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar me-2">${initials}</div>
+                        <div>
+                            <strong>${fullName}</strong><br>
+                            <small class="text-muted">${student.email || 'No email'}</small><br>
+                            <small class="text-muted">ID: ${student.studentId || 'N/A'}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <strong>${student.paymentCode || 'N/A'}</strong><br>
+                        <small class="text-muted">Payment Code</small>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <strong>${classDisplay || 'N/A'}</strong><br>
+                        <small class="text-muted">${student.academicYear || 'N/A'}</small>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <strong>${student.parent?.name || 'N/A'}</strong><br>
+                        <small class="text-muted">${student.parent?.relationship || ''}</small>
+                    </div>
+                </td>
+                <td><span class="badge bg-${statusColor}">${student.status || 'Unknown'}</span></td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editStudent('${student.id}')" title="Edit Student">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewStudentDetails('${student.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="viewStudentGrades('${student.id}')" title="View Grades">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteStudent('${student.id}')" title="Delete Student">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        // Update student statistics
+        function updateStudentStats() {
+            const totalStudents = students.length;
+            const activeStudents = students.filter(student => student.status === 'active').length;
+            const graduatedStudents = students.filter(student => student.status === 'graduated').length;
+            const inactiveStudents = students.filter(student => student.status === 'inactive').length;
+            
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalStudents;
+                statsCards[1].textContent = activeStudents;
+                statsCards[2].textContent = graduatedStudents;
+                statsCards[3].textContent = inactiveStudents;
+            }
+            
+            console.log(`📊 Student Stats - Total: ${totalStudents}, Active: ${activeStudents}, Graduated: ${graduatedStudents}, Inactive: ${inactiveStudents}`);
+        }
+        
+        // Update stream options based on class selection
+        function updateStreamOptions() {
+            const classSelect = document.getElementById('studentClass');
+            const streamSelect = document.getElementById('studentStream');
+            
+            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+                // A-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+                // O-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else {
+                // S.1 and S.2 - no streams typically
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                `;
             }
         }
         
-        function viewStudent(studentId) {
+        // Generate unique student ID (ASS + Level + YY + 4 digits)
+        async function generateStudentId(studentClass) {
+            try {
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = currentYear.toString().slice(-2); // Last 2 digits of year
+                
+                // Determine level based on class
+                let levelPrefix = 'ST'; // Default for O-Level
+                if (studentClass === 'S.5' || studentClass === 'S.6') {
+                    levelPrefix = 'AL'; // A-Level
+                } else if (studentClass === 'S.1' || studentClass === 'S.2' || studentClass === 'S.3' || studentClass === 'S.4') {
+                    levelPrefix = 'OL'; // O-Level
+                }
+                
+                const prefix = 'ASS' + levelPrefix + yearPrefix; // e.g., ASSOL24, ASSAL24
+                
+                // Get the latest student ID for this level and year
+                const querySnapshot = await db.collection('students')
+                    .where('studentId', '>=', prefix + '0001')
+                    .where('studentId', '<', prefix + '9999')
+                    .orderBy('studentId', 'desc')
+                    .limit(1)
+                    .get();
+                
+                let nextNumber = 1;
+                if (!querySnapshot.empty) {
+                    const latestStudentId = querySnapshot.docs[0].data().studentId;
+                    const currentNumber = parseInt(latestStudentId.substring(6)); // Remove 'ASSXXYY' prefix (6 chars)
+                    nextNumber = currentNumber + 1;
+                }
+                
+                return prefix + String(nextNumber).padStart(4, '0');
+            } catch (error) {
+                console.error('Error generating student ID:', error);
+                // Fallback to timestamp-based ID
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = currentYear.toString().slice(-2);
+                const levelPrefix = (studentClass === 'S.5' || studentClass === 'S.6') ? 'AL' : 'OL';
+                return 'ASS' + levelPrefix + yearPrefix + String(Date.now()).slice(-4);
+            }
+        }
+        
+        // Add new student (automatically assigned to class teacher's class)
+        async function addStudent() {
+            const firstName = document.getElementById('studentFirstName').value;
+            const lastName = document.getElementById('studentLastName').value;
+            const email = document.getElementById('studentEmail').value;
+            const phone = document.getElementById('studentPhone').value;
+            const studentClass = assignedClass; // Always use assigned class
+            const studentStream = document.getElementById('studentStream').value;
+            const academicYear = document.getElementById('studentYear').value;
+            const dateOfBirth = document.getElementById('studentDateOfBirth').value;
+            const gender = document.getElementById('studentGender').value;
+            const address = document.getElementById('studentAddress').value;
+            const paymentCode = document.getElementById('studentPaymentCode').value;
+            const admissionNumber = document.getElementById('studentAdmissionNumber').value;
+            
+            // Parent/Guardian information
+            const parentName = document.getElementById('parentName').value;
+            const parentRelationship = document.getElementById('parentRelationship').value;
+            const parentPhone = document.getElementById('parentPhone').value;
+            const parentEmail = document.getElementById('parentEmail').value;
+            const parentOccupation = document.getElementById('parentOccupation').value;
+            const parentWorkplace = document.getElementById('parentWorkplace').value;
+            const parentAddress = document.getElementById('parentAddress').value;
+            const emergencyContactName = document.getElementById('emergencyContactName').value;
+            const emergencyContactPhone = document.getElementById('emergencyContactPhone').value;
+            
+            if (!firstName || !lastName || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            if (!assignedClass) {
+                showError('You are not assigned to any class. Please contact the system administrator.');
+                return;
+            }
+            
+            try {
+                showLoading('Adding student...');
+                
+                // Generate student ID with level and year prefix and sequential numbering
+                const studentId = await generateStudentId(studentClass);
+                const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
+                
+                const studentData = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email || '',
+                    phone: phone || '',
+                    studentId: studentId,
+                    admissionNumber: finalAdmissionNumber,
+                    paymentCode: paymentCode,
+                    class: studentClass, // Always assigned to class teacher's class
+                    stream: studentStream || null,
+                    academicYear: academicYear,
+                    dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
+                    gender: gender,
+                    address: address || '',
+                    parent: {
+                        name: parentName,
+                        relationship: parentRelationship,
+                        phone: parentPhone,
+                        email: parentEmail || '',
+                        occupation: parentOccupation || '',
+                        workplace: parentWorkplace || '',
+                        address: parentAddress || ''
+                    },
+                    emergencyContact: {
+                        name: emergencyContactName || '',
+                        phone: emergencyContactPhone || ''
+                    },
+                    status: 'active',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: currentUser.uid
+                };
+                
+                await db.collection('students').add(studentData);
+                
+                hideLoading();
+                showSuccess(`Student added successfully to ${assignedClass}! Student ID: ${studentId}`);
+                document.getElementById('addStudentForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
+                loadStudents();
+                
+            } catch (error) {
+                console.error('Error adding student:', error);
+                hideLoading();
+                showError('Error adding student: ' + error.message);
+            }
+        }
+        
+        // Update edit stream options based on class selection
+        function updateEditStreamOptions() {
+            const classSelect = document.getElementById('editStudentClass');
+            const streamSelect = document.getElementById('editStudentStream');
+            
+            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+                // A-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+                // O-Level streams
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Technical">Technical</option>
+                `;
+            } else {
+                // S.1 and S.2 - no streams typically
+                streamSelect.innerHTML = `
+                    <option value="">No Stream</option>
+                `;
+            }
+        }
+        
+        // Edit student
+        function editStudent(studentId) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
             
-            // Populate modal
-            document.getElementById('view-student-title').textContent = `${student.fullName} - Student Details`;
-            document.getElementById('view-student-content').innerHTML = `
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <p><strong>Student ID:</strong> ${student.id}</p>
-                        <p><strong>Full Name:</strong> ${student.fullName}</p>
-                        <p><strong>Date of Birth:</strong> ${formatDate(student.dateOfBirth)}</p>
-                        <p><strong>Gender:</strong> ${student.gender}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Class:</strong> ${student.class}</p>
-                        <p><strong>Admission Date:</strong> ${formatDate(student.admissionDate)}</p>
-                        <p><strong>Status:</strong> <span class="badge ${getStatusColor(student.status)}">${student.status.toUpperCase()}</span></p>
-                    </div>
+            document.getElementById('editStudentId').value = student.id;
+            document.getElementById('editStudentFirstName').value = student.firstName || '';
+            document.getElementById('editStudentLastName').value = student.lastName || '';
+            document.getElementById('editStudentEmail').value = student.email || '';
+            document.getElementById('editStudentPhone').value = student.phone || '';
+            document.getElementById('editStudentClass').value = student.class || '';
+            document.getElementById('editStudentStream').value = student.stream || '';
+            document.getElementById('editStudentYear').value = student.academicYear || '';
+            document.getElementById('editStudentDateOfBirth').value = student.dateOfBirth ? 
+                new Date(student.dateOfBirth.seconds * 1000).toISOString().split('T')[0] : '';
+            document.getElementById('editStudentGender').value = student.gender || '';
+            document.getElementById('editStudentAddress').value = student.address || '';
+            document.getElementById('editStudentPaymentCode').value = student.paymentCode || '';
+            document.getElementById('editStudentAdmissionNumber').value = student.admissionNumber || '';
+            
+            // Parent/Guardian information
+            document.getElementById('editParentName').value = student.parent?.name || '';
+            document.getElementById('editParentRelationship').value = student.parent?.relationship || '';
+            document.getElementById('editParentPhone').value = student.parent?.phone || '';
+            document.getElementById('editParentEmail').value = student.parent?.email || '';
+            document.getElementById('editParentOccupation').value = student.parent?.occupation || '';
+            document.getElementById('editParentWorkplace').value = student.parent?.workplace || '';
+            document.getElementById('editParentAddress').value = student.parent?.address || '';
+            document.getElementById('editEmergencyContactName').value = student.emergencyContact?.name || '';
+            document.getElementById('editEmergencyContactPhone').value = student.emergencyContact?.phone || '';
+            
+            document.getElementById('editStudentStatus').value = student.status || 'active';
+            
+            new bootstrap.Modal(document.getElementById('editStudentModal')).show();
+        }
+        
+        // Update student (class cannot be changed by class teacher)
+        async function updateStudent() {
+            const studentId = document.getElementById('editStudentId').value;
+            const firstName = document.getElementById('editStudentFirstName').value;
+            const lastName = document.getElementById('editStudentLastName').value;
+            const email = document.getElementById('editStudentEmail').value;
+            const phone = document.getElementById('editStudentPhone').value;
+            const studentClass = assignedClass; // Always keep assigned class
+            const studentStream = document.getElementById('editStudentStream').value;
+            const academicYear = document.getElementById('editStudentYear').value;
+            const dateOfBirth = document.getElementById('editStudentDateOfBirth').value;
+            const gender = document.getElementById('editStudentGender').value;
+            const address = document.getElementById('editStudentAddress').value;
+            const paymentCode = document.getElementById('editStudentPaymentCode').value;
+            const admissionNumber = document.getElementById('editStudentAdmissionNumber').value;
+            
+            // Parent/Guardian information
+            const parentName = document.getElementById('editParentName').value;
+            const parentRelationship = document.getElementById('editParentRelationship').value;
+            const parentPhone = document.getElementById('editParentPhone').value;
+            const parentEmail = document.getElementById('editParentEmail').value;
+            const parentOccupation = document.getElementById('editParentOccupation').value;
+            const parentWorkplace = document.getElementById('editParentWorkplace').value;
+            const parentAddress = document.getElementById('editParentAddress').value;
+            const emergencyContactName = document.getElementById('editEmergencyContactName').value;
+            const emergencyContactPhone = document.getElementById('editEmergencyContactPhone').value;
+            const status = document.getElementById('editStudentStatus').value;
+            
+            if (!firstName || !lastName || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                showLoading('Updating student...');
+                
+                await db.collection('students').doc(studentId).update({
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email || '',
+                    phone: phone || '',
+                    class: studentClass, // Always keep assigned class
+                    stream: studentStream || null,
+                    academicYear: academicYear,
+                    dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
+                    gender: gender,
+                    address: address || '',
+                    paymentCode: paymentCode,
+                    admissionNumber: admissionNumber || '',
+                    parent: {
+                        name: parentName,
+                        relationship: parentRelationship,
+                        phone: parentPhone,
+                        email: parentEmail || '',
+                        occupation: parentOccupation || '',
+                        workplace: parentWorkplace || '',
+                        address: parentAddress || ''
+                    },
+                    emergencyContact: {
+                        name: emergencyContactName || '',
+                        phone: emergencyContactPhone || ''
+                    },
+                    status: status,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: currentUser.uid
+                });
+                
+                hideLoading();
+                showSuccess('Student updated successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('editStudentModal')).hide();
+                loadStudents();
+                
+            } catch (error) {
+                console.error('Error updating student:', error);
+                hideLoading();
+                showError('Error updating student: ' + error.message);
+            }
+        }
+        
+        // Delete student
+        async function deleteStudent(studentId) {
+            if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+                try {
+                    showLoading('Deleting student...');
+                    await db.collection('students').doc(studentId).delete();
+                    hideLoading();
+                    showSuccess('Student deleted successfully!');
+                    loadStudents();
+                } catch (error) {
+                    console.error('Error deleting student:', error);
+                    hideLoading();
+                    if (typeof showError === 'function') {
+                    showError('Error deleting student: ' + error.message);
+                    } else {
+                        console.error('Error deleting student: ' + error.message);
+                    }
+                }
+            }
+        }
+        
+        // View student details
+        function viewStudentDetails(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const dateOfBirth = student.dateOfBirth ? new Date(student.dateOfBirth.seconds * 1000).toLocaleDateString() : 'Not set';
+            const createdDate = student.createdAt ? new Date(student.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown';
+            const classDisplay = student.stream ? `${student.class} (${student.stream})` : student.class;
+            
+            const details = `
+                <div style="text-align: left; max-width: 500px;">
+                    <h4>Student Details</h4>
+                    <hr>
+                    
+                    <h5>Personal Information</h5>
+                    <strong>Name:</strong> ${student.firstName} ${student.lastName}<br>
+                    <strong>Student ID:</strong> ${student.studentId || 'N/A'}<br>
+                    <strong>Admission Number:</strong> ${student.admissionNumber || 'N/A'}<br>
+                    <strong>Payment Code:</strong> ${student.paymentCode || 'N/A'}<br>
+                    <strong>Email:</strong> ${student.email || 'Not provided'}<br>
+                    <strong>Phone:</strong> ${student.phone || 'Not provided'}<br>
+                    <strong>Date of Birth:</strong> ${dateOfBirth}<br>
+                    <strong>Gender:</strong> ${student.gender || 'Not specified'}<br>
+                    <strong>Address:</strong> ${student.address || 'Not provided'}<br>
+                    <strong>Status:</strong> ${student.status || 'Unknown'}<br><br>
+                    
+                    <h5>Academic Information</h5>
+                    <strong>Class:</strong> ${classDisplay || 'N/A'}<br>
+                    <strong>Academic Year:</strong> ${student.academicYear || 'N/A'}<br><br>
+                    
+                    <h5>Parent/Guardian Information</h5>
+                    <strong>Name:</strong> ${student.parent?.name || 'Not provided'}<br>
+                    <strong>Relationship:</strong> ${student.parent?.relationship || 'Not specified'}<br>
+                    <strong>Phone:</strong> ${student.parent?.phone || 'Not provided'}<br>
+                    <strong>Email:</strong> ${student.parent?.email || 'Not provided'}<br>
+                    <strong>Occupation:</strong> ${student.parent?.occupation || 'Not provided'}<br>
+                    <strong>Workplace:</strong> ${student.parent?.workplace || 'Not provided'}<br>
+                    <strong>Address:</strong> ${student.parent?.address || 'Not provided'}<br><br>
+                    
+                    <h5>Emergency Contact</h5>
+                    <strong>Name:</strong> ${student.emergencyContact?.name || 'Not provided'}<br>
+                    <strong>Phone:</strong> ${student.emergencyContact?.phone || 'Not provided'}<br><br>
+                    
+                    <strong>Created:</strong> ${createdDate}
                 </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <p><strong>Parent/Guardian:</strong> ${student.parentName}</p>
-                        <p><strong>Contact:</strong> ${student.parentContact}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Address:</strong> ${student.address}</p>
+            `;
+            
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'studentDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Student Details - ${student.firstName} ${student.lastName}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             `;
             
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
-            modal.show();
-        }
-        
-        function editStudent(studentId) {
-            if (studentId) {
-                const student = students.find(s => s.id === studentId);
-                if (student) {
-                    alert(`Edit Student:\n\nName: ${student.fullName}\nClass: ${student.class}\n\nThis feature will open the edit form for the student.`);
-                }
-            } else {
-                alert('Edit Student feature:\n\nThis will open the edit form for the student.');
-            }
-        }
-        
-        function deleteStudent(studentId) {
-            if (studentId) {
-                if (confirm('Are you sure you want to delete this student?')) {
-                    students = students.filter(s => s.id !== studentId);
-                    displayStudents();
-                    showNotification('Student deleted successfully!', 'success');
-                }
-            } else {
-                if (confirm('Are you sure you want to delete this student?')) {
-                    showNotification('Student deleted successfully!', 'success');
-                    
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('viewStudentModal'));
-                    modal.hide();
-                }
-            }
-        }
-        
-        function addStudent() {
-            const firstName = document.getElementById('first-name').value;
-            const lastName = document.getElementById('last-name').value;
-            const dateOfBirth = document.getElementById('date-of-birth').value;
-            const gender = document.getElementById('gender').value;
-            const studentClass = document.getElementById('student-class').value;
-            const admissionDate = document.getElementById('admission-date').value;
-            const parentName = document.getElementById('parent-name').value;
-            const parentContact = document.getElementById('parent-contact').value;
-            const address = document.getElementById('address').value;
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
             
-            if (!firstName || !lastName || !dateOfBirth || !gender || !studentClass || !admissionDate || !parentName || !parentContact) {
-                alert('Please fill in all required fields.');
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // View student grades (placeholder)
+        function viewStudentGrades(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            alert(`View grades for ${student.firstName} ${student.lastName} - This feature will be implemented in the grades module.`);
+        }
+        
+        
+        // Clear filters
+        function clearFilters() {
+            console.log('🧹 Clearing all filters');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('classFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('yearFilter').value = 'all';
+            filteredStudents = [...students];
+            displayStudents();
+            updateFilterStatus(students.length, students.length);
+            console.log(`📊 Reset to show all ${students.length} students`);
+        }
+        
+        // Export students
+        function exportStudents() {
+            const studentsData = students.map(student => ({
+                firstName: student.firstName,
+                lastName: student.lastName,
+                email: student.email,
+                phone: student.phone,
+                studentId: student.studentId,
+                class: student.class,
+                academicYear: student.academicYear,
+                gender: student.gender,
+                status: student.status,
+                guardianName: student.guardian?.name,
+                guardianPhone: student.guardian?.phone,
+                guardianEmail: student.guardian?.email
+            }));
+            
+            const dataStr = JSON.stringify(studentsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `students-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showSuccess('Students exported successfully!');
+        }
+        
+        // Print students
+        function printStudents() {
+            window.print();
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show loading message
+        function showLoading(message = 'Loading...') {
+            // Remove any existing loading messages
+            hideLoading();
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-message';
+            loadingDiv.className = 'alert alert-info alert-dismissible fade show';
+            loadingDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    ${message}
+                </div>
+            `;
+            document.body.insertBefore(loadingDiv, document.body.firstChild);
+        }
+        
+        // Hide loading message
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading-message');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+        
+        // Setup real-time listeners for dynamic updates (only for assigned class)
+        function setupRealTimeListeners() {
+            if (!assignedClass) {
+                console.log('⚠️ No assigned class, skipping real-time listeners');
                 return;
             }
             
-            const newStudent = {
-                id: `ST${currentStudentId.toString().padStart(3, '0')}`,
-                firstName,
-                lastName,
-                fullName: `${firstName} ${lastName}`,
-                dateOfBirth,
-                gender,
-                class: studentClass,
-                admissionDate,
-                parentName,
-                parentContact,
-                address,
-                status: 'active'
-            };
+            // Listen for student changes in assigned class only
+            db.collection('students')
+                .where('class', '==', assignedClass)
+                .onSnapshot((snapshot) => {
+                    console.log('📊 Students collection updated for class:', assignedClass);
+                    loadStudents();
+                    updateStudentStats();
+                });
             
-            currentStudentId++;
-            students.unshift(newStudent);
-            displayStudents();
+            // Listen for class changes (only assigned class)
+            db.collection('classes')
+                .where('name', '==', assignedClass)
+                .onSnapshot((snapshot) => {
+                    console.log('📚 Assigned class updated:', assignedClass);
+                    loadClasses();
+                });
             
-            // Close modal and reset form
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
-            modal.hide();
-            document.getElementById('add-student-form').reset();
-            
-            showNotification('Student added successfully!', 'success');
+            // Listen for academic year changes
+            db.collection('academic_years').onSnapshot((snapshot) => {
+                console.log('📅 Academic years collection updated');
+                loadAcademicYears();
+            });
         }
         
+        // Update student statistics
+        function updateStudentStats() {
+            const totalStudents = students.length;
+            const activeStudents = students.filter(student => student.isActive !== false).length;
+            const maleStudents = students.filter(student => student.personalInfo?.gender === 'male').length;
+            const femaleStudents = students.filter(student => student.personalInfo?.gender === 'female').length;
+            
+            // Update stats cards if they exist
+            const statsCards = document.querySelectorAll('.stat-card .number');
+            if (statsCards.length >= 4) {
+                statsCards[0].textContent = totalStudents;
+                statsCards[1].textContent = activeStudents;
+                statsCards[2].textContent = maleStudents;
+                statsCards[3].textContent = femaleStudents;
+            }
+        }
+        
+        // Update class selector dropdown
+        function updateClassSelector() {
+            const classSelector = document.getElementById('class-filter');
+            if (classSelector) {
+                classSelector.innerHTML = '<option value="">All Classes</option>';
+                classes.forEach(classItem => {
+                    const option = document.createElement('option');
+                    option.value = classItem.id;
+                    option.textContent = classItem.name;
+                    classSelector.appendChild(option);
+                });
+            }
+        }
+        
+        // Update academic year selector dropdown
+        function updateAcademicYearSelector() {
+            const yearSelector = document.getElementById('academic-year-filter');
+            if (yearSelector) {
+                yearSelector.innerHTML = '<option value="">All Years</option>';
+                academicYears.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year.id;
+                    option.textContent = year.year;
+                    yearSelector.appendChild(option);
+                });
+            }
+        }
+        
+        // Enhanced search with real-time filtering
+        function searchStudents() {
+            const searchTerm = document.getElementById('search-students').value.toLowerCase();
+            const filteredStudents = students.filter(student => 
+                student.personalInfo?.fullName?.toLowerCase().includes(searchTerm) ||
+                student.personalInfo?.studentId?.toLowerCase().includes(searchTerm) ||
+                student.personalInfo?.phone?.includes(searchTerm) ||
+                student.personalInfo?.email?.toLowerCase().includes(searchTerm)
+            );
+            displayStudents(filteredStudents);
+        }
+        
+        // Enhanced filter with real-time updates
         function filterStudents() {
             const classFilter = document.getElementById('class-filter').value;
-            const statusFilter = document.getElementById('status-filter').value;
-            const searchTerm = document.getElementById('search-students').value.toLowerCase();
+            const yearFilter = document.getElementById('academic-year-filter').value;
+            const genderFilter = document.getElementById('gender-filter').value;
             
             let filteredStudents = students;
             
             if (classFilter) {
-                filteredStudents = filteredStudents.filter(s => s.class.toLowerCase().includes(classFilter.toLowerCase()));
+                filteredStudents = filteredStudents.filter(student => student.academicInfo?.currentClass === classFilter);
             }
             
-            if (statusFilter) {
-                filteredStudents = filteredStudents.filter(s => s.status === statusFilter);
+            if (yearFilter) {
+                filteredStudents = filteredStudents.filter(student => student.academicInfo?.academicYear === yearFilter);
             }
             
-            if (searchTerm) {
-                filteredStudents = filteredStudents.filter(s => 
-                    s.fullName.toLowerCase().includes(searchTerm) ||
-                    s.id.toLowerCase().includes(searchTerm) ||
-                    s.parentName.toLowerCase().includes(searchTerm)
+            if (genderFilter) {
+                filteredStudents = filteredStudents.filter(student => student.personalInfo?.gender === genderFilter);
+            }
+            
+            displayStudents(filteredStudents);
+        }
+        
+        // Logout function
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Combined search and filter function
+        function applyFiltersAndSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const classFilter = document.getElementById('classFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            
+            console.log('🔍 Applying filters and search:', { searchTerm, classFilter, statusFilter, yearFilter });
+            
+            // Start with all students
+            let results = [...students];
+            
+            // Apply filters first
+            if (classFilter !== 'all') {
+                results = results.filter(student => student.class === classFilter);
+            }
+            
+            if (statusFilter !== 'all') {
+                results = results.filter(student => student.status === statusFilter);
+            }
+            
+            if (yearFilter !== 'all') {
+                results = results.filter(student => student.academicYear === yearFilter);
+            }
+            
+            // Apply search filter
+            if (searchTerm !== '') {
+                results = results.filter(student => 
+                    (student.firstName || '').toLowerCase().includes(searchTerm) ||
+                    (student.lastName || '').toLowerCase().includes(searchTerm) ||
+                    (student.email || '').toLowerCase().includes(searchTerm) ||
+                    (student.studentId || '').toLowerCase().includes(searchTerm) ||
+                    (student.paymentCode || '').toLowerCase().includes(searchTerm) ||
+                    (student.admissionNumber || '').toLowerCase().includes(searchTerm) ||
+                    (student.parent?.name || '').toLowerCase().includes(searchTerm) ||
+                    (student.parent?.phone || '').includes(searchTerm) ||
+                    (student.class || '').toLowerCase().includes(searchTerm) ||
+                    (student.stream || '').toLowerCase().includes(searchTerm)
                 );
             }
             
-            displayFilteredStudents(filteredStudents);
+            // Update filtered students and display
+            filteredStudents = results;
+            displayStudents();
+            updateFilterStatus(results.length, students.length);
+            showActiveFilters();
+            
+            console.log(`📊 Applied filters: ${results.length} students from ${students.length} total`);
         }
         
-        function displayFilteredStudents(filteredStudents) {
-            const tbody = document.getElementById('students-tbody');
-            tbody.innerHTML = '';
-            
-            filteredStudents.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.id}</td>
-                    <td>${student.fullName}</td>
-                    <td>${student.class}</td>
-                    <td>${formatDate(student.dateOfBirth)}</td>
-                    <td>${student.parentName}</td>
-                    <td>${student.parentContact}</td>
-                    <td><span class="badge ${getStatusColor(student.status)}">${student.status.toUpperCase()}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudent('${student.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="editStudent('${student.id}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${student.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+        // Update search function to use combined approach
+        function searchStudents() {
+            applyFiltersAndSearch();
         }
         
-        function exportStudents() {
-            alert('Export Students feature:\n\nThis will download the student list as an Excel file.');
+        // Update filter function to use combined approach
+        function filterStudents() {
+            applyFiltersAndSearch();
         }
         
-        // Mobile Sidebar Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            
-            // Toggle sidebar on mobile
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-                sidebarOverlay.classList.toggle('show');
-            });
-            
-            // Close sidebar when clicking overlay
-            sidebarOverlay.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            });
-            
-            // Close sidebar when clicking on nav links (mobile)
-            const navLinks = document.querySelectorAll('.sidebar .nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                    }
-                });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
+        // Update filter status indicator
+        function updateFilterStatus(filteredCount, totalCount) {
+            const statusElement = document.getElementById('filterStatus');
+            if (statusElement) {
+                if (filteredCount === totalCount) {
+                    statusElement.textContent = `Showing all ${totalCount} students`;
+                    statusElement.className = 'text-muted';
+                } else {
+                    statusElement.textContent = `Showing ${filteredCount} of ${totalCount} students`;
+                    statusElement.className = 'text-info fw-bold';
                 }
-            });
-        });
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
             }
         }
         
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeStudentManagement();
-        });
+        // Show active filter indicators
+        function showActiveFilters() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const classFilter = document.getElementById('classFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            
+            const activeFilters = [];
+            if (searchTerm) activeFilters.push(`Search: "${searchTerm}"`);
+            if (classFilter !== 'all') activeFilters.push(`Class: ${classFilter}`);
+            if (statusFilter !== 'all') activeFilters.push(`Status: ${statusFilter}`);
+            if (yearFilter !== 'all') activeFilters.push(`Year: ${yearFilter}`);
+            
+            console.log('🔍 Active filters:', activeFilters);
+            return activeFilters;
+        }
+
+        // Make functions globally available
+        window.addStudent = addStudent;
+        window.editStudent = editStudent;
+        window.updateStudent = updateStudent;
+        window.deleteStudent = deleteStudent;
+        window.viewStudentDetails = viewStudentDetails;
+        window.viewStudentGrades = viewStudentGrades;
+        window.searchStudents = searchStudents;
+        window.filterStudents = filterStudents;
+        window.clearFilters = clearFilters;
+        window.exportStudents = exportStudents;
+        window.printStudents = printStudents;
+        window.updateStreamOptions = updateStreamOptions;
+        window.updateEditStreamOptions = updateEditStreamOptions;
+        window.logout = logout;
     </script>
 </body>
 </html>
