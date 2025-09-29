@@ -832,31 +832,40 @@
                 }
 
                 if (typeof db !== 'undefined' && db) {
-                    // Query teachers by department (check both departmentId and department fields)
-                    const snapshot = await db.collection('teachers')
-                        .where('department', '==', departmentId)
+                    // Query users collection for teachers in this department
+                    // Check both academicInfo.department and personalInfo.department
+                    const snapshot = await db.collection('users')
+                        .where('role', 'in', ['subject_teacher', 'class_teacher', 'hod'])
                         .where('status', '==', 'active')
                         .get();
 
                     teachersData = [];
                     snapshot.forEach(doc => {
-                        teachersData.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
+                        const userData = doc.data();
+                        
+                        // Check if user belongs to this department
+                        const userDepartment = userData.academicInfo?.department || 
+                                             userData.personalInfo?.department || 
+                                             userData.department;
+                        
+                        if (userDepartment === departmentId) {
+                            teachersData.push({
+                                id: doc.id,
+                                ...userData
+                            });
+                        }
                     });
 
                     console.log(`Loaded ${teachersData.length} teachers for department: ${departmentId}`);
                 } else {
-                    // Use sample data if Firestore is not available
+                    console.warn('Firestore not available, using sample data');
                     teachersData = sampleTeachers.filter(teacher => teacher.department === departmentId);
-                    console.log(`Using ${teachersData.length} sample teachers for department: ${departmentId}`);
                 }
 
-                // If no teachers found in Firestore, use sample data
+                // If no teachers found, use sample data as fallback
                 if (teachersData.length === 0) {
+                    console.log(`No teachers found in Firestore for department ${departmentId}, using sample data`);
                     teachersData = sampleTeachers.filter(teacher => teacher.department === departmentId);
-                    console.log(`Using ${teachersData.length} sample teachers as fallback for department: ${departmentId}`);
                 }
 
                 return { success: true, data: teachersData };
@@ -876,6 +885,7 @@
                 }
 
                 if (typeof db !== 'undefined' && db) {
+                    // Query teacher_assignments collection for this department
                     const snapshot = await db.collection('teacher_assignments')
                         .where('department', '==', departmentId)
                         .where('status', '==', 'active')
@@ -891,15 +901,14 @@
 
                     console.log(`Loaded ${assignmentsData.length} assignments for department: ${departmentId}`);
                 } else {
-                    // Use sample data if Firestore is not available
+                    console.warn('Firestore not available, using sample data');
                     assignmentsData = sampleAssignments.filter(assignment => assignment.department === departmentId);
-                    console.log(`Using ${assignmentsData.length} sample assignments for department: ${departmentId}`);
                 }
 
-                // If no assignments found in Firestore, use sample data
+                // If no assignments found, use sample data as fallback
                 if (assignmentsData.length === 0) {
+                    console.log(`No assignments found in Firestore for department ${departmentId}, using sample data`);
                     assignmentsData = sampleAssignments.filter(assignment => assignment.department === departmentId);
-                    console.log(`Using ${assignmentsData.length} sample assignments as fallback for department: ${departmentId}`);
                 }
 
                 return { success: true, data: assignmentsData };
@@ -919,6 +928,7 @@
                 }
 
                 if (typeof db !== 'undefined' && db) {
+                    // Query classes collection for this department
                     const snapshot = await db.collection('classes')
                         .where('department', '==', departmentId)
                         .where('status', '==', 'active')
@@ -934,15 +944,14 @@
 
                     console.log(`Loaded ${classesData.length} classes for department: ${departmentId}`);
                 } else {
-                    // Use sample data if Firestore is not available
+                    console.warn('Firestore not available, using sample data');
                     classesData = sampleClasses.filter(cls => cls.department === departmentId);
-                    console.log(`Using ${classesData.length} sample classes for department: ${departmentId}`);
                 }
 
-                // If no classes found in Firestore, use sample data
+                // If no classes found, use sample data as fallback
                 if (classesData.length === 0) {
+                    console.log(`No classes found in Firestore for department ${departmentId}, using sample data`);
                     classesData = sampleClasses.filter(cls => cls.department === departmentId);
-                    console.log(`Using ${classesData.length} sample classes as fallback for department: ${departmentId}`);
                 }
 
                 return { success: true, data: classesData };
@@ -962,6 +971,7 @@
                 }
 
                 if (typeof db !== 'undefined' && db) {
+                    // Query subjects collection for this department
                     const snapshot = await db.collection('subjects')
                         .where('department', '==', departmentId)
                         .where('status', '==', 'active')
@@ -977,15 +987,14 @@
 
                     console.log(`Loaded ${subjectsData.length} subjects for department: ${departmentId}`);
                 } else {
-                    // Use sample data if Firestore is not available
+                    console.warn('Firestore not available, using sample data');
                     subjectsData = sampleSubjects.filter(subject => subject.department === departmentId);
-                    console.log(`Using ${subjectsData.length} sample subjects for department: ${departmentId}`);
                 }
 
-                // If no subjects found in Firestore, use sample data
+                // If no subjects found, use sample data as fallback
                 if (subjectsData.length === 0) {
+                    console.log(`No subjects found in Firestore for department ${departmentId}, using sample data`);
                     subjectsData = sampleSubjects.filter(subject => subject.department === departmentId);
-                    console.log(`Using ${subjectsData.length} sample subjects as fallback for department: ${departmentId}`);
                 }
 
                 return { success: true, data: subjectsData };
@@ -1043,20 +1052,57 @@
 
             // Create rows for each teacher
             teachersData.forEach(teacher => {
+                // Get teacher assignments from assignmentsData
                 const teacherAssignments = assignmentsData.filter(a => a.teacherId === teacher.id);
+                
+                // Get classes from teacher's academicInfo or assignments
                 const classes = teacherAssignments.map(a => {
                     const classData = classesData.find(c => c.id === a.classId);
                     return classData ? classData.name : 'Unknown Class';
                 });
                 
+                // Get subjects from teacher's academicInfo or assignments
                 const subjects = teacherAssignments.map(a => {
                     const subjectData = subjectsData.find(s => s.id === a.subjectId);
                     return subjectData ? subjectData.name : 'Unknown Subject';
                 });
 
+                // If no assignments, try to get subjects from teacher's academicInfo
+                if (subjects.length === 0 && teacher.academicInfo?.subjects) {
+                    teacher.academicInfo.subjects.forEach(subject => {
+                        if (typeof subject === 'string') {
+                            subjects.push(subject);
+                        } else if (subject.name) {
+                            subjects.push(subject.name);
+                        }
+                    });
+                }
+
                 const totalHours = teacherAssignments.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0);
                 const performance = Math.floor(Math.random() * 20) + 80;
                 const attendance = Math.floor(Math.random() * 10) + 90;
+
+                // Get teacher name from personalInfo or fallback
+                const teacherName = teacher.personalInfo?.fullName || 
+                                 `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() ||
+                                 teacher.fullName ||
+                                 `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() ||
+                                 'Unknown Teacher';
+
+                // Get teacher email
+                const teacherEmail = teacher.email || teacher.personalInfo?.email || 'No email';
+
+                // Get teacher phone
+                const teacherPhone = teacher.personalInfo?.phone || teacher.phone || 'No phone';
+
+                // Get staff ID
+                const staffId = teacher.staffId || teacher.employmentInfo?.staffId || 'No ID';
+
+                // Get assigned class for class teachers
+                const assignedClass = teacher.academicInfo?.assignedClass || 'Not assigned';
+                const assignedClassDisplay = assignedClass !== 'Not assigned' ? 
+                    `<span class="badge bg-success">${assignedClass}</span>` : 
+                    '<span class="text-muted">Not assigned</span>';
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1066,14 +1112,16 @@
                                 <i class="fas fa-user-circle fa-2x text-primary"></i>
                             </div>
                             <div>
-                                <strong>${teacher.firstName} ${teacher.lastName}</strong><br>
-                                <small class="text-muted">${teacher.staffId || teacher.id}</small>
+                                <strong>${teacherName}</strong><br>
+                                <small class="text-muted">${staffId}</small><br>
+                                <small class="text-muted">${teacherEmail}</small>
                             </div>
                         </div>
                     </td>
                     <td>${subjects.join(', ') || 'No subjects assigned'}</td>
                     <td>
                         ${classes.map(cls => `<span class="badge bg-primary me-1">${cls}</span>`).join('')}
+                        ${assignedClassDisplay}
                     </td>
                     <td>
                         <div class="progress" style="width: 60px; height: 20px;">
@@ -1086,7 +1134,7 @@
                         </div>
                     </td>
                     <td>${totalHours} hrs/week</td>
-                    <td><span class="badge bg-success">${teacher.status || 'Active'}</span></td>
+                    <td><span class="badge bg-success">${teacher.status || teacher.accountStatus || 'Active'}</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="viewTeacher('${teacher.id}')">
                             <i class="fas fa-eye"></i> View
