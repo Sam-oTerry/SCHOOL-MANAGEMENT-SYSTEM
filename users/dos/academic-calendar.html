@@ -484,8 +484,8 @@
                 id: 1,
                 title: 'Term 1 Begins',
                 type: 'academic',
-                startDate: '2023-09-04',
-                endDate: '2023-09-04',
+                startDate: '2024-09-04',
+                endDate: '2024-09-04',
                 startTime: '08:00',
                 endTime: '17:00',
                 description: 'First day of Term 1',
@@ -496,8 +496,8 @@
                 id: 2,
                 title: 'Mid-term Examinations',
                 type: 'examination',
-                startDate: '2023-10-16',
-                endDate: '2023-10-20',
+                startDate: '2024-10-16',
+                endDate: '2024-10-20',
                 startTime: '08:00',
                 endTime: '17:00',
                 description: 'Mid-term examinations for all classes',
@@ -508,8 +508,8 @@
                 id: 3,
                 title: 'Parent-Teacher Meeting',
                 type: 'meeting',
-                startDate: '2023-10-21',
-                endDate: '2023-10-21',
+                startDate: '2024-10-21',
+                endDate: '2024-10-21',
                 startTime: '09:00',
                 endTime: '12:00',
                 description: 'Quarterly parent-teacher meeting',
@@ -520,8 +520,8 @@
                 id: 4,
                 title: 'Independence Day Holiday',
                 type: 'holiday',
-                startDate: '2023-10-09',
-                endDate: '2023-10-09',
+                startDate: '2024-10-09',
+                endDate: '2024-10-09',
                 startTime: '00:00',
                 endTime: '23:59',
                 description: 'Uganda Independence Day',
@@ -532,13 +532,49 @@
                 id: 5,
                 title: 'End of Term 1',
                 type: 'academic',
-                startDate: '2023-12-15',
-                endDate: '2023-12-15',
+                startDate: '2024-12-15',
+                endDate: '2024-12-15',
                 startTime: '17:00',
                 endTime: '17:00',
                 description: 'Last day of Term 1',
                 location: 'School',
                 allDay: true
+            },
+            {
+                id: 6,
+                title: 'Term 2 Begins',
+                type: 'academic',
+                startDate: '2025-01-15',
+                endDate: '2025-01-15',
+                startTime: '08:00',
+                endTime: '17:00',
+                description: 'First day of Term 2',
+                location: 'School',
+                allDay: true
+            },
+            {
+                id: 7,
+                title: 'Final Examinations',
+                type: 'examination',
+                startDate: '2025-04-15',
+                endDate: '2025-04-25',
+                startTime: '08:00',
+                endTime: '17:00',
+                description: 'Final examinations for all classes',
+                location: 'Various Classrooms',
+                allDay: true
+            },
+            {
+                id: 8,
+                title: 'Sports Day',
+                type: 'sports',
+                startDate: '2025-03-20',
+                endDate: '2025-03-20',
+                startTime: '09:00',
+                endTime: '15:00',
+                description: 'Annual sports day competition',
+                location: 'School Field',
+                allDay: false
             }
         ];
         
@@ -546,7 +582,7 @@
             // Initialize Firebase
             if (!initializeFirebase()) {
                 console.warn('Firebase not available, using sample data');
-                events = [...sampleEvents];
+            events = [...sampleEvents];
             } else {
                 // Load events from Firestore
                 await loadEventsFromFirestore();
@@ -633,13 +669,22 @@
         }
         
         function updateStatistics() {
-            // Calculate statistics
+            // Calculate statistics from all events (not just filtered ones)
+            let allEvents = [];
+            if (typeof dbService !== 'undefined' && dbService) {
+                // Use events loaded from Firestore
+                allEvents = [...events];
+            } else {
+                // Use sample events
+                allEvents = [...sampleEvents];
+            }
+            
             const terms = new Set();
             let academicDays = 0;
             let examinations = 0;
             let holidays = 0;
             
-            events.forEach(event => {
+            allEvents.forEach(event => {
                 // Count terms based on event dates
                 const eventDate = new Date(event.startDate);
                 const month = eventDate.getMonth() + 1;
@@ -772,12 +817,20 @@
             const container = document.getElementById('upcoming-events');
             container.innerHTML = '';
             
-            // Get upcoming events (next 30 days)
+            // Get all events (not just filtered ones) for upcoming events
+            let allEvents = [];
+            if (typeof dbService !== 'undefined' && dbService) {
+                allEvents = [...events];
+            } else {
+                allEvents = [...sampleEvents];
+            }
+            
+            // Get upcoming events (next 30 days) from current date
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
             
-            const upcomingEvents = events.filter(event => {
+            const upcomingEvents = allEvents.filter(event => {
                 const eventDate = new Date(event.startDate);
                 eventDate.setHours(0, 0, 0, 0);
                 return eventDate >= today && eventDate <= nextMonth;
@@ -800,6 +853,7 @@
                 eventCard.onclick = () => viewEvent(event.id);
                 
                 const eventDate = new Date(event.startDate);
+                eventDate.setHours(0, 0, 0, 0);
                 const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
                 const isToday = daysUntil === 0;
                 const isTomorrow = daysUntil === 1;
@@ -851,11 +905,15 @@
         function previousMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
             displayCalendar();
+            displayUpcomingEvents();
+            updateStatistics();
         }
         
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
             displayCalendar();
+            displayUpcomingEvents();
+            updateStatistics();
         }
         
         function updateCalendar() {
@@ -978,7 +1036,7 @@
                                 id: result.id,
                                 ...eventData
                             };
-                            events.push(newEvent);
+            events.push(newEvent);
                             showNotification('Event created successfully!', 'success');
                         } else {
                             showNotification('Failed to create event: ' + result.error, 'error');
@@ -998,14 +1056,14 @@
                 // Repopulate academic year dropdown with new events
                 populateAcademicYearDropdown();
                 
-                displayCalendar();
-                displayUpcomingEvents();
+            displayCalendar();
+            displayUpcomingEvents();
                 updateStatistics();
-                
-                // Close modal and reset form
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createEventModal'));
-                modal.hide();
-                document.getElementById('create-event-form').reset();
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createEventModal'));
+            modal.hide();
+            document.getElementById('create-event-form').reset();
                 document.getElementById('create-event-form').removeAttribute('data-editing-id');
                 
                 // Reset modal title
@@ -1231,6 +1289,8 @@
         function goToToday() {
             currentDate = new Date();
             displayCalendar();
+            displayUpcomingEvents();
+            updateStatistics();
             showNotification('Navigated to current month', 'info');
         }
         
