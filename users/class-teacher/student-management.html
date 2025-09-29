@@ -103,7 +103,10 @@
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Student Management</h1>
+                    <div>
+                        <h1 class="h2" id="pageTitle">Student Management</h1>
+                        <p class="text-muted mb-0" id="classInfo">Loading...</p>
+                    </div>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group me-2">
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportStudents()">
@@ -127,12 +130,12 @@
                             <input type="text" class="form-control search-input" id="searchInput" placeholder="Search students..." onkeyup="searchStudents()">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2" id="classFilterColumn" style="display: none;">
                         <select class="form-select filter-select" id="classFilter" onchange="filterStudents()">
                             <option value="all">All Classes</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <select class="form-select filter-select" id="statusFilter" onchange="filterStudents()">
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
@@ -140,7 +143,7 @@
                             <option value="graduated">Graduated</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <select class="form-select filter-select" id="yearFilter" onchange="filterStudents()">
                             <option value="all">All Years</option>
                         </select>
@@ -265,11 +268,14 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="studentClass" class="form-label">Class</label>
-                                    <select class="form-select" id="studentClass" required onchange="updateStreamOptions()">
+                                    <label for="studentClass" class="form-label">Class <span class="text-muted">(Fixed to your assigned class)</span></label>
+                                    <select class="form-select" id="studentClass" required onchange="updateStreamOptions()" disabled>
                                         <option value="">Select Class</option>
                                         <!-- Classes will be loaded dynamically -->
                                     </select>
+                                    <div class="form-text text-info">
+                                        <i class="fas fa-info-circle"></i> Class is automatically set to your assigned class
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -463,11 +469,14 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="editStudentClass" class="form-label">Class</label>
-                                    <select class="form-select" id="editStudentClass" required onchange="updateEditStreamOptions()">
+                                    <label for="editStudentClass" class="form-label">Class <span class="text-muted">(Fixed to your assigned class)</span></label>
+                                    <select class="form-select" id="editStudentClass" required onchange="updateEditStreamOptions()" disabled>
                                         <option value="">Select Class</option>
                                         <!-- Classes will be loaded dynamically -->
                                     </select>
+                                    <div class="form-text text-info">
+                                        <i class="fas fa-info-circle"></i> Class cannot be changed - student remains in your assigned class
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -653,22 +662,25 @@
         });
 
         // Check authentication and redirect if needed
-        function checkAuthentication() {
-            if (!firebase.auth().currentUser) {
-                console.log('❌ No authenticated user, redirecting to login');
+        async function checkAuthentication() {
+            try {
+                currentUser = await waitForAuth();
+                if (!currentUser) {
+                    console.log('❌ No authenticated user, redirecting to login');
+                    window.location.href = '../../index.html';
+                    return;
+                }
+                console.log('✅ User authenticated:', currentUser.uid);
+                initializeStudentManagement();
+            } catch (error) {
+                console.error('❌ Authentication error:', error);
                 window.location.href = '../../index.html';
-                return;
             }
-            initializeStudentManagement();
         }
 
         async function initializeStudentManagement() {
             console.log('🚀 Starting class teacher student management initialization...');
             try {
-                // Wait for authentication
-                currentUser = await waitForAuth();
-                console.log('✅ User authenticated:', currentUser?.uid);
-                
                 // Load class teacher data
                 await loadClassTeacherData();
                 
@@ -741,10 +753,25 @@
                     staffIdElement.textContent = `Staff ID: ${classTeacherData.staffId}`;
                 }
                 
-                // Update page title with assigned class
-                const pageTitle = document.querySelector('h1.h2');
-                if (pageTitle && assignedClass) {
-                    pageTitle.textContent = `Student Management - ${assignedClass.toUpperCase()}`;
+                // Update page title and class info
+                const pageTitle = document.getElementById('pageTitle');
+                const classInfo = document.getElementById('classInfo');
+                
+                if (assignedClass) {
+                    if (pageTitle) {
+                        pageTitle.textContent = `Student Management - ${assignedClass.toUpperCase()}`;
+                    }
+                    if (classInfo) {
+                        classInfo.textContent = `Managing students in ${assignedClass.toUpperCase()} class`;
+                    }
+                } else {
+                    if (pageTitle) {
+                        pageTitle.textContent = 'Student Management';
+                    }
+                    if (classInfo) {
+                        classInfo.textContent = 'No class assigned - Contact system administrator';
+                        classInfo.className = 'text-danger mb-0';
+                    }
                 }
                 
                 console.log('✅ User display updated for class teacher');
@@ -937,10 +964,10 @@
                 }
             });
             
-            // Hide class filter since class teacher only manages one class
-            const classFilter = document.getElementById('classFilter');
-            if (classFilter) {
-                classFilter.style.display = 'none';
+            // Hide class filter column since class teacher only manages one class
+            const classFilterColumn = document.getElementById('classFilterColumn');
+            if (classFilterColumn) {
+                classFilterColumn.style.display = 'none';
             }
         }
         
