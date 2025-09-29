@@ -755,10 +755,23 @@
             // Add cells for each day of the month
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayCell = document.createElement('div');
-                dayCell.className = 'calendar-cell';
-                
                 const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                 const dayEvents = getEventsForDate(dayDate);
+                
+                // Check if this is today
+                const today = new Date();
+                const isToday = dayDate.toDateString() === today.toDateString();
+                
+                // Set cell classes
+                let cellClasses = 'calendar-cell';
+                if (isToday) {
+                    cellClasses += ' today';
+                }
+                if (dayEvents.length > 0) {
+                    cellClasses += ' has-events';
+                }
+                
+                dayCell.className = cellClasses;
                 
                 dayCell.innerHTML = `
                     <div class="day-number">${day}</div>
@@ -797,9 +810,14 @@
         
         function getEventsForDate(date) {
             const dateStr = date.toISOString().split('T')[0];
-            return events.filter(event => 
-                event.startDate <= dateStr && event.endDate >= dateStr
-            );
+            return events.filter(event => {
+                const startDate = new Date(event.startDate);
+                const endDate = new Date(event.endDate);
+                const checkDate = new Date(dateStr);
+                
+                // Check if the date falls within the event range
+                return checkDate >= startDate && checkDate <= endDate;
+            });
         }
         
         function getEventTypeClass(type) {
