@@ -727,7 +727,30 @@
                 
                 console.log('📚 Assigned subject IDs:', assignedSubjectIds);
                 
-                if (!Array.isArray(assignedSubjectIds) || assignedSubjectIds.length === 0) {
+                // Convert subject IDs to strings (handle both string and object formats)
+                const subjectIdStrings = [];
+                if (Array.isArray(assignedSubjectIds)) {
+                    assignedSubjectIds.forEach(item => {
+                        if (typeof item === 'string') {
+                            subjectIdStrings.push(item);
+                        } else if (typeof item === 'object' && item !== null) {
+                            // Handle object format - try different possible ID fields
+                            if (item.id) {
+                                subjectIdStrings.push(item.id);
+                            } else if (item.subjectId) {
+                                subjectIdStrings.push(item.subjectId);
+                            } else if (item.docId) {
+                                subjectIdStrings.push(item.docId);
+                            } else {
+                                console.warn('⚠️ Unknown subject object format:', item);
+                            }
+                        }
+                    });
+                }
+                
+                console.log('📚 Converted subject ID strings:', subjectIdStrings);
+                
+                if (!Array.isArray(subjectIdStrings) || subjectIdStrings.length === 0) {
                     console.log('⚠️ No subjects assigned to this teacher');
                     updateSubjectCounts([]);
                     renderSubjectsTable([]);
@@ -738,8 +761,8 @@
                 const subjects = [];
                 const batchSize = 10;
                 
-                for (let i = 0; i < assignedSubjectIds.length; i += batchSize) {
-                    const batch = assignedSubjectIds.slice(i, i + batchSize);
+                for (let i = 0; i < subjectIdStrings.length; i += batchSize) {
+                    const batch = subjectIdStrings.slice(i, i + batchSize);
                     console.log('🔄 Processing subject batch:', batch);
                     
                     try {
