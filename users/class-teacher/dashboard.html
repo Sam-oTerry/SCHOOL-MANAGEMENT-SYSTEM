@@ -7,7 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="stylesheet" href="../../assets/css/main.css">
     <link rel="stylesheet" href="../../assets/css/components/sidebar.css">
     <link rel="stylesheet" href="../../assets/css/users/class-teacher.css">
@@ -661,9 +661,13 @@
                     }
                     
                     // Update staff ID in sidebar
-                    const staffIdElement = document.querySelector('.text-white-50');
+                    const staffIdElement = document.querySelector('.text-white-50') || 
+                                        document.querySelector('.sidebar .text-muted') ||
+                                        document.querySelector('p.small');
                     if (staffIdElement) {
                         staffIdElement.textContent = `Staff ID: ${staffId || 'N/A'}`;
+                    } else {
+                        console.warn('⚠️ Staff ID element not found in sidebar');
                     }
                     
                     // Update page title with user name
@@ -1034,57 +1038,73 @@
         
         // Update statistics cards
         function updateStatisticsCards() {
-            const students = dashboardData.students;
-            const subjects = dashboardData.subjects;
-            const classes = dashboardData.classes;
-            
-            // Calculate class performance
-            const averageScore = students.length > 0 ? 
-                students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
-            
-            // Update stat cards
-            document.querySelector('.stat-card:nth-child(1) .number').textContent = classes.length;
-            document.querySelector('.stat-card:nth-child(2) .number').textContent = students.length;
-            document.querySelector('.stat-card:nth-child(3) .number').textContent = subjects.length;
-            document.querySelector('.stat-card:nth-child(4) .number').textContent = `${averageScore.toFixed(0)}%`;
+            try {
+                const students = dashboardData.students;
+                const subjects = dashboardData.subjects;
+                const classes = dashboardData.classes;
+                
+                // Calculate class performance
+                const averageScore = students.length > 0 ? 
+                    students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
+                
+                // Update stat cards with null checks
+                const statCards = document.querySelectorAll('.stat-card .number');
+                if (statCards.length >= 4) {
+                    statCards[0].textContent = classes.length;
+                    statCards[1].textContent = students.length;
+                    statCards[2].textContent = subjects.length;
+                    statCards[3].textContent = `${averageScore.toFixed(0)}%`;
+                } else {
+                    console.warn('⚠️ Stat cards not found or insufficient elements');
+                }
+            } catch (error) {
+                console.error('❌ Error updating statistics cards:', error);
+            }
         }
         
         // Update class table
         function updateClassTable() {
-            const tbody = document.querySelector('.table tbody');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            dashboardData.students.forEach(student => {
-                const score = student.academicInfo?.averageScore || 0;
-                const attendance = student.academicInfo?.attendance || 0;
-                const status = score >= 80 ? 'Active' : score >= 60 ? 'Needs Attention' : 'At Risk';
-                const statusClass = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-danger';
+            try {
+                const tbody = document.querySelector('.table tbody');
+                if (!tbody) {
+                    console.warn('⚠️ Table body not found');
+                    return;
+                }
                 
-                const initials = `${student.personalInfo?.firstName?.charAt(0) || ''}${student.personalInfo?.lastName?.charAt(0) || ''}`;
+                tbody.innerHTML = '';
                 
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="student-avatar me-2">${initials}</div>
-                            <div>
-                                <strong>${student.personalInfo?.fullName || `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim()}</strong><br>
-                                <small class="text-muted">${student.personalInfo?.gender || 'Unknown'}</small>
+                dashboardData.students.forEach(student => {
+                    const score = student.academicInfo?.averageScore || student.averageScore || 0;
+                    const attendance = student.academicInfo?.attendance || student.attendance || 0;
+                    const status = score >= 80 ? 'Active' : score >= 60 ? 'Needs Attention' : 'At Risk';
+                    const statusClass = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-danger';
+                    
+                    const initials = `${student.firstName?.charAt(0) || ''}${student.lastName?.charAt(0) || ''}`;
+                    
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="student-avatar me-2">${initials}</div>
+                                <div>
+                                    <strong>${student.fullName || 'Unknown Student'}</strong><br>
+                                    <small class="text-muted">${student.gender || 'Unknown'}</small>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>${student.studentId || 'N/A'}</td>
-                    <td>${score.toFixed(1)}%</td>
-                    <td>${attendance.toFixed(0)}%</td>
-                    <td><span class="badge ${statusClass}">${status}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
-                    </td>
-                `;
-            });
+                        </td>
+                        <td>${student.studentId || 'N/A'}</td>
+                        <td>${score.toFixed(1)}%</td>
+                        <td>${attendance.toFixed(0)}%</td>
+                        <td><span class="badge ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></button>
+                        </td>
+                    `;
+                });
+            } catch (error) {
+                console.error('❌ Error updating class table:', error);
+            }
         }
         
         // Update recent activity
