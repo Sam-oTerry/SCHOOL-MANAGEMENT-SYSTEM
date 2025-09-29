@@ -488,6 +488,9 @@
                 // Load performance data
                 await loadPerformanceData();
                 
+                // Set up real-time student updates
+                await loadStudentsWithRealtimeUpdates();
+                
                 // Initialize charts
                 createGradeChart();
                 createSubjectChart();
@@ -587,25 +590,68 @@
                 console.log('📊 Loading comprehensive performance data from Firestore...');
                 
                 // Load students with comprehensive data
-                console.log('👥 Loading students...');
+                console.log('👥 Loading students from Firestore...');
                 const studentsSnapshot = await db.collection('students').get();
-                performanceData.students = studentsSnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        ...data,
-                        // Ensure we have proper name structure
-                        fullName: data.personalInfo?.fullName || 
-                                 `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
-                                 data.fullName ||
-                                 `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-                        studentId: data.studentId || data.personalInfo?.studentId,
-                        averageScore: data.academicInfo?.averageScore || data.averageScore || 0,
-                        attendance: data.academicInfo?.attendance || data.attendance || 0,
-                        gender: data.personalInfo?.gender || data.gender,
-                        class: data.academicInfo?.assignedClass || data.class
-                    };
-                });
+                
+                if (studentsSnapshot.empty) {
+                    console.log('⚠️ No students found in Firestore');
+                    performanceData.students = [];
+                } else {
+                    performanceData.students = studentsSnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const student = {
+                            id: doc.id,
+                            ...data,
+                            // Ensure we have proper name structure
+                            fullName: data.personalInfo?.fullName || 
+                                     `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                     data.fullName ||
+                                     `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                            firstName: data.personalInfo?.firstName || data.firstName || '',
+                            lastName: data.personalInfo?.lastName || data.lastName || '',
+                            studentId: data.studentId || data.personalInfo?.studentId || data.studentNumber,
+                            averageScore: data.academicInfo?.averageScore || data.averageScore || data.overallAverage || 0,
+                            attendance: data.academicInfo?.attendance || data.attendance || data.attendanceRate || 0,
+                            gender: data.personalInfo?.gender || data.gender || 'Unknown',
+                            class: data.academicInfo?.assignedClass || data.class || data.currentClass,
+                            dateOfBirth: data.personalInfo?.dateOfBirth || data.dateOfBirth,
+                            phone: data.personalInfo?.phone || data.phone || data.contactNumber,
+                            email: data.personalInfo?.email || data.email,
+                            address: data.personalInfo?.address || data.address || data.residence,
+                            parentName: data.personalInfo?.parentName || data.parentName || data.guardianName,
+                            parentPhone: data.personalInfo?.parentPhone || data.parentPhone || data.guardianPhone,
+                            admissionDate: data.academicInfo?.admissionDate || data.admissionDate,
+                            status: data.status || data.accountStatus || 'active',
+                            subjects: data.academicInfo?.subjects || data.subjects || [],
+                            results: data.results || [],
+                            createdAt: data.createdAt,
+                            updatedAt: data.updatedAt
+                        };
+                        
+                        // Calculate age if dateOfBirth is available
+                        if (student.dateOfBirth) {
+                            const birthDate = student.dateOfBirth.toDate ? student.dateOfBirth.toDate() : new Date(student.dateOfBirth);
+                            const today = new Date();
+                            student.age = today.getFullYear() - birthDate.getFullYear();
+                        }
+                        
+                        return student;
+                    });
+                    
+                    console.log(`✅ Loaded ${performanceData.students.length} students from Firestore`);
+                    
+                    // Log sample student data for debugging
+                    if (performanceData.students.length > 0) {
+                        console.log('👥 Sample student data:', {
+                            id: performanceData.students[0].id,
+                            fullName: performanceData.students[0].fullName,
+                            studentId: performanceData.students[0].studentId,
+                            averageScore: performanceData.students[0].averageScore,
+                            class: performanceData.students[0].class,
+                            gender: performanceData.students[0].gender
+                        });
+                    }
+                }
                 
                 // Load subjects with comprehensive data
                 console.log('📚 Loading subjects...');
@@ -699,6 +745,88 @@
                 loadSampleData();
             }
         }
+        
+        // Load students with real-time updates
+        async function loadStudentsWithRealtimeUpdates() {
+            try {
+                console.log('👥 Setting up real-time student data...');
+                
+                // Set up real-time listener for students
+                const unsubscribeStudents = db.collection('students')
+                    .onSnapshot((snapshot) => {
+                        console.log('🔄 Real-time student update received');
+                        
+                        if (snapshot.empty) {
+                            console.log('⚠️ No students found in real-time update');
+                            performanceData.students = [];
+                        } else {
+                            performanceData.students = snapshot.docs.map(doc => {
+                                const data = doc.data();
+                                const student = {
+                                    id: doc.id,
+                                    ...data,
+                                    fullName: data.personalInfo?.fullName || 
+                                             `${data.personalInfo?.firstName || ''} ${data.personalInfo?.lastName || ''}`.trim() ||
+                                             data.fullName ||
+                                             `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+                                    firstName: data.personalInfo?.firstName || data.firstName || '',
+                                    lastName: data.personalInfo?.lastName || data.lastName || '',
+                                    studentId: data.studentId || data.personalInfo?.studentId || data.studentNumber,
+                                    averageScore: data.academicInfo?.averageScore || data.averageScore || data.overallAverage || 0,
+                                    attendance: data.academicInfo?.attendance || data.attendance || data.attendanceRate || 0,
+                                    gender: data.personalInfo?.gender || data.gender || 'Unknown',
+                                    class: data.academicInfo?.assignedClass || data.class || data.currentClass,
+                                    status: data.status || data.accountStatus || 'active'
+                                };
+                                
+                                // Calculate age if dateOfBirth is available
+                                if (data.personalInfo?.dateOfBirth || data.dateOfBirth) {
+                                    const birthDate = (data.personalInfo?.dateOfBirth || data.dateOfBirth).toDate ? 
+                                        (data.personalInfo?.dateOfBirth || data.dateOfBirth).toDate() : 
+                                        new Date(data.personalInfo?.dateOfBirth || data.dateOfBirth);
+                                    const today = new Date();
+                                    student.age = today.getFullYear() - birthDate.getFullYear();
+                                }
+                                
+                                return student;
+                            });
+                            
+                            console.log(`✅ Real-time update: ${performanceData.students.length} students loaded`);
+                            
+                            // Update UI with new data
+                            updatePerformanceSummary();
+                            updateTopPerformers();
+                            updateStudentsNeedingAttention();
+                            
+                            // Update charts
+                            if (gradeChart) {
+                                gradeChart.data.datasets[0].data = calculateGradeDistribution();
+                                gradeChart.update();
+                            }
+                        }
+                    }, (error) => {
+                        console.error('❌ Error in real-time student listener:', error);
+                    });
+                
+                // Store unsubscribe function for cleanup
+                window.unsubscribeStudents = unsubscribeStudents;
+                
+            } catch (error) {
+                console.error('❌ Error setting up real-time student updates:', error);
+            }
+        }
+        
+        // Cleanup function to unsubscribe from real-time listeners
+        function cleanupRealtimeListeners() {
+            if (window.unsubscribeStudents) {
+                console.log('🧹 Cleaning up student real-time listener');
+                window.unsubscribeStudents();
+                window.unsubscribeStudents = null;
+            }
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', cleanupRealtimeListeners);
         
         // Helper function to calculate grade from score
         function calculateGrade(score) {
