@@ -1456,11 +1456,7 @@
                 } catch (error) {
                     console.error('Error deleting student:', error);
                     hideLoading();
-                    if (typeof showError === 'function') {
                     showError('Error deleting student: ' + error.message);
-                    } else {
-                        console.error('Error deleting student: ' + error.message);
-                    }
                 }
             }
         }
