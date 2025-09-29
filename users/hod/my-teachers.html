@@ -1222,7 +1222,15 @@
             teachersData.forEach(teacher => {
                 const option = document.createElement('option');
                 option.value = teacher.id;
-                option.textContent = `${teacher.firstName} ${teacher.lastName}`;
+                
+                // Get teacher name from personalInfo or fallback
+                const teacherName = teacher.personalInfo?.fullName || 
+                                 `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() ||
+                                 teacher.fullName ||
+                                 `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() ||
+                                 'Unknown Teacher';
+                
+                option.textContent = teacherName;
                 teacherSelect.appendChild(option);
             });
 
@@ -1410,16 +1418,57 @@
         }
 
         function createTeacherDetailsModal(teacher) {
+            // Get teacher assignments from assignmentsData
             const teacherAssignments = assignmentsData.filter(a => a.teacherId === teacher.id);
+            
+            // Get classes from teacher's academicInfo or assignments
             const classes = teacherAssignments.map(a => {
                 const classData = classesData.find(c => c.id === a.classId);
                 return classData ? classData.name : 'Unknown Class';
             });
             
+            // Get subjects from teacher's academicInfo or assignments
             const subjects = teacherAssignments.map(a => {
                 const subjectData = subjectsData.find(s => s.id === a.subjectId);
                 return subjectData ? subjectData.name : 'Unknown Subject';
             });
+
+            // If no assignments, try to get subjects from teacher's academicInfo
+            if (subjects.length === 0 && teacher.academicInfo?.subjects) {
+                teacher.academicInfo.subjects.forEach(subject => {
+                    if (typeof subject === 'string') {
+                        subjects.push(subject);
+                    } else if (subject.name) {
+                        subjects.push(subject.name);
+                    }
+                });
+            }
+
+            // Get teacher name from personalInfo or fallback
+            const teacherName = teacher.personalInfo?.fullName || 
+                             `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() ||
+                             teacher.fullName ||
+                             `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() ||
+                             'Unknown Teacher';
+
+            // Get teacher email
+            const teacherEmail = teacher.email || teacher.personalInfo?.email || 'No email';
+
+            // Get teacher phone
+            const teacherPhone = teacher.personalInfo?.phone || teacher.phone || 'No phone';
+
+            // Get staff ID
+            const staffId = teacher.staffId || teacher.employmentInfo?.staffId || 'No ID';
+
+            // Get assigned class for class teachers
+            const assignedClass = teacher.academicInfo?.assignedClass || 'Not assigned';
+
+            // Get performance data (mock for now, can be replaced with real data)
+            const performance = {
+                effectiveness: Math.floor(Math.random() * 20) + 80,
+                satisfaction: Math.floor(Math.random() * 15) + 85,
+                attendance: Math.floor(Math.random() * 10) + 90
+            };
 
             const modal = document.createElement('div');
             modal.className = 'modal fade';
@@ -1427,7 +1476,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Teacher Details - ${teacher.firstName} ${teacher.lastName}</h5>
+                            <h5 class="modal-title">Teacher Details - ${teacherName}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
@@ -1436,7 +1485,7 @@
                                     <div class="teacher-avatar" style="width: 80px; height: 80px; margin: 0 auto 15px;">
                                         <i class="fas fa-user-circle fa-4x text-primary"></i>
                                     </div>
-                                    <h5>${teacher.firstName} ${teacher.lastName}</h5>
+                                    <h5>${teacherName}</h5>
                                     <p class="text-muted">${subjects.join(', ') || 'No subjects assigned'}</p>
                                 </div>
                                 <div class="col-md-8">
@@ -1446,42 +1495,50 @@
                                             <table class="table table-sm">
                                                 <tr>
                                                     <td><strong>Name:</strong></td>
-                                                    <td>${teacher.firstName} ${teacher.lastName}</td>
+                                                    <td>${teacherName}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Staff ID:</strong></td>
-                                                    <td>${teacher.staffId || teacher.id}</td>
+                                                    <td>${staffId}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Email:</strong></td>
-                                                    <td>${teacher.email || 'N/A'}</td>
+                                                    <td>${teacherEmail}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Phone:</strong></td>
-                                                    <td>${teacher.phone || 'N/A'}</td>
+                                                    <td>${teacherPhone}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Status:</strong></td>
-                                                    <td><span class="badge bg-success">${teacher.status || 'Active'}</span></td>
+                                                    <td><span class="badge bg-success">${teacher.status || teacher.accountStatus || 'Active'}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Assigned Class:</strong></td>
+                                                    <td>${assignedClass !== 'Not assigned' ? `<span class="badge bg-info">${assignedClass}</span>` : 'Not assigned'}</td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="col-md-6">
                                             <h6>Performance Metrics</h6>
-                                            <div class="progress mb-2">
-                                                <div class="progress-bar" style="width: 85%">85%</div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Effectiveness</label>
+                                                <div class="progress">
+                                                    <div class="progress-bar" style="width: ${performance.effectiveness}%">${performance.effectiveness}%</div>
+                                                </div>
                                             </div>
-                                            <p class="small text-muted">Effectiveness</p>
-                                            
-                                            <div class="progress mb-2">
-                                                <div class="progress-bar bg-success" style="width: 92%">92%</div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Student Satisfaction</label>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: ${performance.satisfaction}%">${performance.satisfaction}%</div>
+                                                </div>
                                             </div>
-                                            <p class="small text-muted">Student Satisfaction</p>
-                                            
-                                            <div class="progress mb-2">
-                                                <div class="progress-bar bg-info" style="width: 88%">88%</div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Attendance Rate</label>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-info" style="width: ${performance.attendance}%">${performance.attendance}%</div>
+                                                </div>
                                             </div>
-                                            <p class="small text-muted">Attendance Rate</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1499,18 +1556,21 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${teacherAssignments.map(assignment => {
-                                                const classData = classesData.find(c => c.id === assignment.classId);
-                                                const subjectData = subjectsData.find(s => s.id === assignment.subjectId);
-                                                return `
-                                                    <tr>
-                                                        <td>${classData ? classData.name : 'Unknown'}</td>
-                                                        <td>${subjectData ? subjectData.name : 'Unknown'}</td>
-                                                        <td>${assignment.hoursPerWeek || 0}</td>
-                                                        <td><span class="badge bg-success">Active</span></td>
-                                                    </tr>
-                                                `;
-                                            }).join('')}
+                                            ${teacherAssignments.length > 0 ? 
+                                                teacherAssignments.map(assignment => {
+                                                    const classData = classesData.find(c => c.id === assignment.classId);
+                                                    const subjectData = subjectsData.find(s => s.id === assignment.subjectId);
+                                                    return `
+                                                        <tr>
+                                                            <td>${classData ? classData.name : 'Unknown'}</td>
+                                                            <td>${subjectData ? subjectData.name : 'Unknown'}</td>
+                                                            <td>${assignment.hoursPerWeek || 0}</td>
+                                                            <td><span class="badge bg-success">${assignment.status || 'Active'}</span></td>
+                                                        </tr>
+                                                    `;
+                                                }).join('') :
+                                                '<tr><td colspan="4" class="text-center text-muted">No assignments found</td></tr>'
+                                            }
                                         </tbody>
                                     </table>
                                 </div>
@@ -1518,13 +1578,45 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" onclick="editAssignment('${teacher.id}')">Edit Assignments</button>
+                            <button type="button" class="btn btn-primary" onclick="editTeacherAssignments('${teacher.id}')">
+                                <i class="fas fa-edit"></i> Edit Assignments
+                            </button>
                         </div>
                     </div>
                 </div>
             `;
             
             return modal;
+        }
+
+        function editTeacherAssignments(teacherId) {
+            const teacher = teachersData.find(t => t.id === teacherId);
+            if (!teacher) {
+                showError('Teacher not found');
+                return;
+            }
+
+            // Get teacher name
+            const teacherName = teacher.personalInfo?.fullName || 
+                             `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() ||
+                             teacher.fullName ||
+                             `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() ||
+                             'Unknown Teacher';
+
+            // Pre-fill form with teacher data
+            document.getElementById('teacherSelect').value = teacherId;
+            
+            // Set form title to show we're editing
+            const formTitle = document.querySelector('#teacherAssignmentForm').closest('.card').querySelector('h5');
+            if (formTitle) {
+                formTitle.textContent = `Edit Assignments - ${teacherName}`;
+            }
+            
+            // Show assignment form
+            document.getElementById('teacherAssignmentForm').scrollIntoView({ behavior: 'smooth' });
+            
+            // Show success message
+            showSuccess(`Ready to edit assignments for ${teacherName}`);
         }
 
         function showModal(modal) {
