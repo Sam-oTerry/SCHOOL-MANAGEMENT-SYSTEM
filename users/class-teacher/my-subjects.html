@@ -694,19 +694,72 @@
             try {
                 console.log('🔄 Loading subjects for class teacher...');
                 
-                // Get subjects assigned to this class teacher
-                const subjectsSnapshot = await db.collection('subjects').get();
+                if (!currentUser) {
+                    console.error('❌ No current user found');
+                    showError('User not authenticated. Please refresh and try again.');
+                    return;
+                }
+                
+                // Get user data to find assigned subjects
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists) {
+                    console.error('❌ User document not found');
+                    showError('User data not found. Please contact administrator.');
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                console.log('👤 User data:', userData);
+                
+                // Get assigned subject IDs from user data
+                let assignedSubjectIds = [];
+                
+                // Check different possible locations for subject assignments
+                if (userData.academicInfo && userData.academicInfo.subjects) {
+                    assignedSubjectIds = userData.academicInfo.subjects;
+                } else if (userData.employmentInfo && userData.employmentInfo.subjects) {
+                    assignedSubjectIds = userData.employmentInfo.subjects;
+                } else if (userData.subjects) {
+                    assignedSubjectIds = userData.subjects;
+                } else if (userData.assignedSubjects) {
+                    assignedSubjectIds = userData.assignedSubjects;
+                }
+                
+                console.log('📚 Assigned subject IDs:', assignedSubjectIds);
+                
+                if (!Array.isArray(assignedSubjectIds) || assignedSubjectIds.length === 0) {
+                    console.log('⚠️ No subjects assigned to this teacher');
+                    updateSubjectCounts([]);
+                    renderSubjectsTable([]);
+                    return;
+                }
+                
+                // Get subjects by IDs (handle Firestore 'in' query limit of 10)
                 const subjects = [];
+                const batchSize = 10;
                 
-                subjectsSnapshot.forEach(doc => {
-                    const subjectData = doc.data();
-                    subjects.push({
-                        id: doc.id,
-                        ...subjectData
-                    });
-                });
+                for (let i = 0; i < assignedSubjectIds.length; i += batchSize) {
+                    const batch = assignedSubjectIds.slice(i, i + batchSize);
+                    console.log('🔄 Processing subject batch:', batch);
+                    
+                    try {
+                        const subjectsSnapshot = await db.collection('subjects')
+                            .where(firebase.firestore.FieldPath.documentId(), 'in', batch)
+                            .get();
+                        
+                        subjectsSnapshot.forEach(doc => {
+                            const subjectData = doc.data();
+                            subjects.push({
+                                id: doc.id,
+                                ...subjectData
+                            });
+                        });
+                    } catch (error) {
+                        console.error('❌ Error fetching subjects batch:', error);
+                    }
+                }
                 
-                console.log(`✅ Loaded ${subjects.length} subjects`);
+                console.log(`✅ Loaded ${subjects.length} assigned subjects`);
                 
                 // Update counts
                 updateSubjectCounts(subjects);
@@ -744,7 +797,7 @@
                         <td colspan="7" class="text-center text-muted py-4">
                             <i class="fas fa-book fa-2x mb-2"></i><br>
                             No subjects have been assigned to you yet.<br>
-                            Please contact your Head of Department.
+                            <small class="text-muted">Please contact your Head of Department or System Administrator to assign subjects.</small>
                         </td>
                     </tr>
                 `;
@@ -777,12 +830,25 @@
         
         // View subject details
         function viewSubject(subjectId) {
-            // Find the subject
+            // Find the subject in the current subjects array
             const subject = subjects.find(s => s.id === subjectId);
-            if (!subject) return;
+            if (!subject) {
+                console.error('❌ Subject not found:', subjectId);
+                showError('Subject not found. Please refresh the page.');
+                return;
+            }
             
             // Show subject details in a modal or alert
-            alert(`Subject: ${subject.name}\nCode: ${subject.code}\nLevel: ${subject.level}\nDepartment: ${subject.department}`);
+            const subjectInfo = `
+Subject: ${subject.name || subject.subjectName || 'Unknown'}
+Code: ${subject.code || '—'}
+Level: ${subject.level || '—'}
+Department: ${subject.department || '—'}
+Credits: ${subject.credits || '—'}
+Description: ${subject.description || 'No description available'}
+            `.trim();
+            
+            alert(subjectInfo);
         }
         
         // Show error message
