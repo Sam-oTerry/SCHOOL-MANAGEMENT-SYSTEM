@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management - System Administrator</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
@@ -272,12 +273,7 @@
                                     <label for="studentClass" class="form-label">Class</label>
                                     <select class="form-select" id="studentClass" required onchange="updateStreamOptions()">
                                         <option value="">Select Class</option>
-                                        <option value="S.1">Senior 1 (S.1)</option>
-                                        <option value="S.2">Senior 2 (S.2)</option>
-                                        <option value="S.3">Senior 3 (S.3)</option>
-                                        <option value="S.4">Senior 4 (S.4)</option>
-                                        <option value="S.5">Senior 5 (S.5)</option>
-                                        <option value="S.6">Senior 6 (S.6)</option>
+                                        <!-- Classes will be loaded dynamically -->
                                     </select>
                                 </div>
                             </div>
@@ -296,7 +292,10 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="studentYear" class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" id="studentYear" value="2024" required>
+                                    <select class="form-select" id="studentYear" required>
+                                        <option value="">Select Year</option>
+                                        <!-- Academic years will be loaded dynamically -->
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -472,12 +471,7 @@
                                     <label for="editStudentClass" class="form-label">Class</label>
                                     <select class="form-select" id="editStudentClass" required onchange="updateEditStreamOptions()">
                                         <option value="">Select Class</option>
-                                        <option value="S.1">Senior 1 (S.1)</option>
-                                        <option value="S.2">Senior 2 (S.2)</option>
-                                        <option value="S.3">Senior 3 (S.3)</option>
-                                        <option value="S.4">Senior 4 (S.4)</option>
-                                        <option value="S.5">Senior 5 (S.5)</option>
-                                        <option value="S.6">Senior 6 (S.6)</option>
+                                        <!-- Classes will be loaded dynamically -->
                                     </select>
                                 </div>
                             </div>
@@ -496,7 +490,10 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="editStudentYear" class="form-label">Academic Year</label>
-                                    <input type="text" class="form-control" id="editStudentYear" required>
+                                    <select class="form-select" id="editStudentYear" required>
+                                        <option value="">Select Year</option>
+                                        <!-- Academic years will be loaded dynamically -->
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -741,10 +738,14 @@
             }
         }
         
-        // Load classes
+        // Load classes dynamically from Firestore
         async function loadClasses() {
             try {
-                const classesSnapshot = await db.collection('classes').get();
+                const classesSnapshot = await db.collection('classes')
+                    .where('status', '==', 'active')
+                    .orderBy('name')
+                    .get();
+                
                 classes = [];
                 classesSnapshot.forEach(doc => {
                     const classData = doc.data();
@@ -754,27 +755,44 @@
                     });
                 });
                 
+                // If no classes found, use sample data
+                if (classes.length === 0) {
+                    console.log('No classes found in Firestore, using sample data');
+                    classes = [
+                        { id: 's1', name: 'S1', level: 'O Level', stream: null },
+                        { id: 's2', name: 'S2', level: 'O Level', stream: null },
+                        { id: 's3', name: 'S3', level: 'O Level', stream: null },
+                        { id: 's4', name: 'S4', level: 'O Level', stream: null },
+                        { id: 's5', name: 'S5', level: 'A Level', stream: null },
+                        { id: 's6', name: 'S6', level: 'A Level', stream: null }
+                    ];
+                }
+                
                 populateClassSelects();
+                console.log(`✅ Loaded ${classes.length} classes from Firestore`);
                 
             } catch (error) {
                 console.error('Error loading classes:', error);
-                // Set default classes if none exist
+                // Fallback to sample data
                 classes = [
-                    { id: '1', name: 'S.1', level: 'Senior 1' },
-                    { id: '2', name: 'S.2', level: 'Senior 2' },
-                    { id: '3', name: 'S.3', level: 'Senior 3' },
-                    { id: '4', name: 'S.4', level: 'Senior 4' },
-                    { id: '5', name: 'S.5', level: 'Senior 5' },
-                    { id: '6', name: 'S.6', level: 'Senior 6' }
+                    { id: 's1', name: 'S1', level: 'O Level', stream: null },
+                    { id: 's2', name: 'S2', level: 'O Level', stream: null },
+                    { id: 's3', name: 'S3', level: 'O Level', stream: null },
+                    { id: 's4', name: 'S4', level: 'O Level', stream: null },
+                    { id: 's5', name: 'S5', level: 'A Level', stream: null },
+                    { id: 's6', name: 'S6', level: 'A Level', stream: null }
                 ];
                 populateClassSelects();
             }
         }
         
-        // Load academic years
+        // Load academic years dynamically from Firestore
         async function loadAcademicYears() {
             try {
-                const yearsSnapshot = await db.collection('academic_years').get();
+                const yearsSnapshot = await db.collection('academic_years')
+                    .orderBy('year', 'desc')
+                    .get();
+                
                 academicYears = [];
                 yearsSnapshot.forEach(doc => {
                     const yearData = doc.data();
@@ -784,21 +802,32 @@
                     });
                 });
                 
+                // If no academic years found, create current year
+                if (academicYears.length === 0) {
+                    console.log('No academic years found in Firestore, creating current year');
+                    const currentYear = new Date().getFullYear();
+                    academicYears = [
+                        { id: 'current', year: currentYear.toString(), isActive: true },
+                        { id: 'previous', year: (currentYear - 1).toString(), isActive: false }
+                    ];
+                }
+                
                 populateYearSelects();
+                console.log(`✅ Loaded ${academicYears.length} academic years from Firestore`);
                 
             } catch (error) {
                 console.error('Error loading academic years:', error);
-                // Set default years
+                // Fallback to current year
+                const currentYear = new Date().getFullYear();
                 academicYears = [
-                    { id: '1', year: '2024' },
-                    { id: '2', year: '2023' },
-                    { id: '3', year: '2022' }
+                    { id: 'current', year: currentYear.toString(), isActive: true },
+                    { id: 'previous', year: (currentYear - 1).toString(), isActive: false }
                 ];
                 populateYearSelects();
             }
         }
         
-        // Populate class selects
+        // Populate class selects with dynamic data
         function populateClassSelects() {
             const classSelects = ['studentClass', 'editStudentClass', 'classFilter'];
             classSelects.forEach(selectId => {
@@ -808,7 +837,7 @@
                     classes.forEach(cls => {
                         const option = document.createElement('option');
                         option.value = cls.name;
-                        option.textContent = cls.name;
+                        option.textContent = `${cls.name} (${cls.level})`;
                         select.appendChild(option);
                     });
                 }
@@ -844,17 +873,24 @@
             }
         }
         
-        // Populate year selects
+        // Populate year selects with dynamic data
         function populateYearSelects() {
-            const yearSelects = ['yearFilter'];
+            const yearSelects = ['studentYear', 'editStudentYear', 'yearFilter'];
             yearSelects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                    select.innerHTML = '<option value="all">All Years</option>';
+                    if (selectId === 'yearFilter') {
+                        select.innerHTML = '<option value="all">All Years</option>';
+                    } else {
+                        select.innerHTML = '<option value="">Select Year</option>';
+                    }
                     academicYears.forEach(year => {
                         const option = document.createElement('option');
                         option.value = year.year;
                         option.textContent = year.year;
+                        if (year.isActive) {
+                            option.selected = true; // Select active year by default
+                        }
                         select.appendChild(option);
                     });
                 }
@@ -1077,6 +1113,8 @@
             }
             
             try {
+                showLoading('Adding student...');
+                
                 // Generate student ID with level and year prefix and sequential numbering
                 const studentId = await generateStudentId(studentClass);
                 const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
@@ -1115,6 +1153,7 @@
                 
                 await db.collection('students').add(studentData);
                 
+                hideLoading();
                 showSuccess(`Student added successfully! Student ID: ${studentId}`);
                 document.getElementById('addStudentForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
@@ -1122,6 +1161,7 @@
                 
             } catch (error) {
                 console.error('Error adding student:', error);
+                hideLoading();
                 showError('Error adding student: ' + error.message);
             }
         }
@@ -1227,6 +1267,8 @@
             }
             
             try {
+                showLoading('Updating student...');
+                
                 await db.collection('students').doc(studentId).update({
                     firstName: firstName,
                     lastName: lastName,
@@ -1258,12 +1300,14 @@
                     updatedBy: currentUser.uid
                 });
                 
+                hideLoading();
                 showSuccess('Student updated successfully!');
                 bootstrap.Modal.getInstance(document.getElementById('editStudentModal')).hide();
                 loadStudents();
                 
             } catch (error) {
                 console.error('Error updating student:', error);
+                hideLoading();
                 showError('Error updating student: ' + error.message);
             }
         }
@@ -1272,11 +1316,14 @@
         async function deleteStudent(studentId) {
             if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
                 try {
+                    showLoading('Deleting student...');
                     await db.collection('students').doc(studentId).delete();
+                    hideLoading();
                     showSuccess('Student deleted successfully!');
                     loadStudents();
                 } catch (error) {
                     console.error('Error deleting student:', error);
+                    hideLoading();
                     showError('Error deleting student: ' + error.message);
                 }
             }
@@ -1440,6 +1487,33 @@
             setTimeout(() => alertDiv.remove(), 5000);
         }
         
+        // Show loading message
+        function showLoading(message = 'Loading...') {
+            // Remove any existing loading messages
+            hideLoading();
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-message';
+            loadingDiv.className = 'alert alert-info alert-dismissible fade show';
+            loadingDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    ${message}
+                </div>
+            `;
+            document.body.insertBefore(loadingDiv, document.body.firstChild);
+        }
+        
+        // Hide loading message
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading-message');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+        
         // Setup real-time listeners for dynamic updates
         function setupRealTimeListeners() {
             // Listen for student changes
@@ -1456,54 +1530,10 @@
             });
             
             // Listen for academic year changes
-            db.collection('academicYears').onSnapshot((snapshot) => {
+            db.collection('academic_years').onSnapshot((snapshot) => {
                 console.log('📅 Academic years collection updated');
                 loadAcademicYears();
             });
-        }
-        
-        
-        // Enhanced class loading with real-time updates
-        async function loadClasses() {
-            try {
-                const classesSnapshot = await db.collection('classes').get();
-                classes = [];
-                classesSnapshot.forEach(doc => {
-                    const classData = doc.data();
-                    classes.push({
-                        id: doc.id,
-                        ...classData
-                    });
-                });
-                
-                updateClassSelector();
-                
-            } catch (error) {
-                console.error('Error loading classes:', error);
-            }
-        }
-        
-        // Enhanced academic year loading with real-time updates
-        async function loadAcademicYears() {
-            try {
-                const academicYearsSnapshot = await db.collection('academicYears')
-                    .orderBy('year', 'desc')
-                    .get();
-                
-                academicYears = [];
-                academicYearsSnapshot.forEach(doc => {
-                    const yearData = doc.data();
-                    academicYears.push({
-                        id: doc.id,
-                        ...yearData
-                    });
-                });
-                
-                updateAcademicYearSelector();
-                
-            } catch (error) {
-                console.error('Error loading academic years:', error);
-            }
         }
         
         // Update student statistics
