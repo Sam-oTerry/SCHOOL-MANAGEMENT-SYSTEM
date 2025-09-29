@@ -607,6 +607,7 @@
                 updateStatisticsCards();
                 updateClassTable();
                 updateRecentActivity();
+                updateClassPerformanceOverview();
                 
                 console.log('✅ Dashboard initialized successfully');
                 
@@ -1036,29 +1037,129 @@
             ];
         }
         
-        // Update statistics cards
+        // Update statistics cards with comprehensive Firebase data
         function updateStatisticsCards() {
             try {
                 const students = dashboardData.students;
                 const subjects = dashboardData.subjects;
                 const classes = dashboardData.classes;
+                const teachers = dashboardData.teachers;
                 
-                // Calculate class performance
-                const averageScore = students.length > 0 ? 
-                    students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
+                console.log('📊 Calculating statistics from Firebase data:', {
+                    students: students.length,
+                    subjects: subjects.length,
+                    classes: classes.length,
+                    teachers: teachers.length
+                });
+                
+                // Calculate comprehensive statistics
+                const stats = calculateComprehensiveStats(students, subjects, classes, teachers);
                 
                 // Update stat cards with null checks
                 const statCards = document.querySelectorAll('.stat-card .number');
                 if (statCards.length >= 4) {
-                    statCards[0].textContent = classes.length;
-                    statCards[1].textContent = students.length;
-                    statCards[2].textContent = subjects.length;
-                    statCards[3].textContent = `${averageScore.toFixed(0)}%`;
+                    statCards[0].textContent = stats.myClasses;
+                    statCards[1].textContent = stats.classStudents;
+                    statCards[2].textContent = stats.mySubjects;
+                    statCards[3].textContent = `${stats.classPerformance}%`;
+                    
+                    console.log('📊 Statistics updated:', stats);
                 } else {
                     console.warn('⚠️ Stat cards not found or insufficient elements');
                 }
+                
+                // Update stat card labels if needed
+                const statLabels = document.querySelectorAll('.stat-card .label');
+                if (statLabels.length >= 4) {
+                    statLabels[0].textContent = 'My Classes';
+                    statLabels[1].textContent = 'Class Students';
+                    statLabels[2].textContent = 'My Subjects';
+                    statLabels[3].textContent = 'Class Performance';
+                }
+                
             } catch (error) {
                 console.error('❌ Error updating statistics cards:', error);
+            }
+        }
+        
+        // Calculate comprehensive statistics from Firebase data
+        function calculateComprehensiveStats(students, subjects, classes, teachers) {
+            try {
+                // Get current user's assigned class
+                const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
+                                       classTeacherData?.assignedClass || 
+                                       's1'; // fallback
+                
+                console.log('👤 Current user assigned class:', currentUserClass);
+                
+                // Filter students for current user's class
+                const classStudents = students.filter(student => {
+                    const studentClass = student.class || 
+                                       student.academicInfo?.assignedClass || 
+                                       student.currentClass;
+                    return studentClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                });
+                
+                // Get current user's subjects
+                const mySubjects = classTeacherData?.academicInfo?.subjects || 
+                                 classTeacherData?.subjects || 
+                                 [];
+                
+                // Calculate class performance
+                let classPerformance = 0;
+                if (classStudents.length > 0) {
+                    const totalScore = classStudents.reduce((sum, student) => {
+                        const score = student.academicInfo?.averageScore || 
+                                    student.averageScore || 
+                                    student.overallAverage || 0;
+                        return sum + score;
+                    }, 0);
+                    classPerformance = Math.round(totalScore / classStudents.length);
+                }
+                
+                // Calculate additional metrics
+                const activeStudents = classStudents.filter(student => 
+                    (student.status || student.accountStatus) === 'active'
+                ).length;
+                
+                const averageAttendance = classStudents.length > 0 ? 
+                    Math.round(classStudents.reduce((sum, student) => {
+                        const attendance = student.academicInfo?.attendance || 
+                                        student.attendance || 
+                                        student.attendanceRate || 0;
+                        return sum + attendance;
+                    }, 0) / classStudents.length) : 0;
+                
+                const passRate = classStudents.length > 0 ? 
+                    Math.round((classStudents.filter(student => {
+                        const score = student.academicInfo?.averageScore || 
+                                    student.averageScore || 
+                                    student.overallAverage || 0;
+                        return score >= 50;
+                    }).length / classStudents.length) * 100) : 0;
+                
+                const stats = {
+                    myClasses: 1, // Class teachers typically manage one class
+                    classStudents: activeStudents,
+                    mySubjects: mySubjects.length,
+                    classPerformance: classPerformance,
+                    totalStudents: classStudents.length,
+                    averageAttendance: averageAttendance,
+                    passRate: passRate,
+                    assignedClass: currentUserClass
+                };
+                
+                console.log('📊 Comprehensive statistics calculated:', stats);
+                return stats;
+                
+            } catch (error) {
+                console.error('❌ Error calculating comprehensive stats:', error);
+                return {
+                    myClasses: 0,
+                    classStudents: 0,
+                    mySubjects: 0,
+                    classPerformance: 0
+                };
             }
         }
         
@@ -1134,49 +1235,157 @@
             });
         }
         
-        // Update class performance overview
+        // Update class performance overview with Firebase data
         function updateClassPerformanceOverview() {
-            const students = dashboardData.students;
-            const totalStudents = students.length;
-            const maleStudents = students.filter(s => s.personalInfo?.gender === 'Male').length;
-            const femaleStudents = students.filter(s => s.personalInfo?.gender === 'Female').length;
-            const averageScore = students.length > 0 ? 
-                students.reduce((sum, student) => sum + (student.academicInfo?.averageScore || 0), 0) / students.length : 0;
-            const averageAge = 17.2; // This would need to be calculated from birth dates
-            const passRate = students.length > 0 ? 
-                (students.filter(s => (s.academicInfo?.averageScore || 0) >= 50).length / students.length) * 100 : 0;
-            const topPerformer = students.length > 0 ? 
-                students.reduce((top, student) => 
-                    (student.academicInfo?.averageScore || 0) > (top.academicInfo?.averageScore || 0) ? student : top
-                ) : null;
-            const attendanceRate = students.length > 0 ? 
-                students.reduce((sum, student) => sum + (student.academicInfo?.attendance || 0), 0) / students.length : 0;
-            
-            // Update class statistics table
-            const statsTable = document.querySelector('.table-sm');
-            if (statsTable) {
-                const rows = statsTable.querySelectorAll('tr');
-                if (rows.length >= 5) {
-                    rows[0].cells[1].textContent = totalStudents;
-                    rows[1].cells[1].textContent = maleStudents;
-                    rows[2].cells[1].textContent = femaleStudents;
-                    rows[3].cells[1].textContent = `${averageAge} years`;
-                    rows[4].cells[1].textContent = `${averageScore.toFixed(1)}%`;
+            try {
+                const students = dashboardData.students;
+                const stats = calculateComprehensiveStats(students, dashboardData.subjects, dashboardData.classes, dashboardData.teachers);
+                
+                console.log('📊 Updating class performance overview with Firebase data:', stats);
+                
+                // Update class statistics table
+                const statsTable = document.querySelector('.table-sm');
+                if (statsTable) {
+                    const rows = statsTable.querySelectorAll('tr');
+                    if (rows.length >= 5) {
+                        rows[0].cells[1].textContent = stats.totalStudents;
+                        
+                        // Calculate male/female distribution
+                        const classStudents = students.filter(student => {
+                            const studentClass = student.class || 
+                                               student.academicInfo?.assignedClass || 
+                                               student.currentClass;
+                            const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
+                                                   classTeacherData?.assignedClass || 
+                                                   's1';
+                            return studentClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                        });
+                        
+                        const maleStudents = classStudents.filter(student => 
+                            (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'male'
+                        ).length;
+                        const femaleStudents = classStudents.filter(student => 
+                            (student.gender || student.personalInfo?.gender)?.toLowerCase() === 'female'
+                        ).length;
+                        
+                        rows[1].cells[1].textContent = maleStudents;
+                        rows[2].cells[1].textContent = femaleStudents;
+                        rows[3].cells[1].textContent = calculateAverageAge(classStudents);
+                        rows[4].cells[1].textContent = `${stats.classPerformance}%`;
+                    }
                 }
+                
+                // Update performance metrics table
+                const performanceTable = document.querySelector('.col-md-6:last-child .table-sm');
+                if (performanceTable) {
+                    const rows = performanceTable.querySelectorAll('tr');
+                    if (rows.length >= 5) {
+                        rows[0].cells[1].textContent = `${stats.passRate}%`;
+                        
+                        // Find top performer
+                        const classStudents = students.filter(student => {
+                            const studentClass = student.class || 
+                                               student.academicInfo?.assignedClass || 
+                                               student.currentClass;
+                            const currentUserClass = classTeacherData?.academicInfo?.assignedClass || 
+                                                   classTeacherData?.assignedClass || 
+                                                   's1';
+                            return studentClass && studentClass.toLowerCase() === currentUserClass.toLowerCase();
+                        });
+                        
+                        const topPerformer = classStudents.length > 0 ? 
+                            classStudents.reduce((top, student) => {
+                                const topScore = top.academicInfo?.averageScore || top.averageScore || top.overallAverage || 0;
+                                const studentScore = student.academicInfo?.averageScore || student.averageScore || student.overallAverage || 0;
+                                return studentScore > topScore ? student : top;
+                            }) : null;
+                        
+                        rows[1].cells[1].textContent = topPerformer ? 
+                            `${topPerformer.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || topPerformer.averageScore || topPerformer.overallAverage || 0).toFixed(1)}%)` : 'N/A';
+                        
+                        rows[2].cells[1].textContent = `${stats.averageAttendance}%`;
+                        rows[3].cells[1].textContent = calculateDisciplineScore(classStudents);
+                        rows[4].cells[1].textContent = calculateClassRank(stats.classPerformance);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error updating class performance overview:', error);
             }
-            
-            // Update performance metrics table
-            const performanceTable = document.querySelector('.col-md-6:last-child .table-sm');
-            if (performanceTable) {
-                const rows = performanceTable.querySelectorAll('tr');
-                if (rows.length >= 5) {
-                    rows[0].cells[1].textContent = `${passRate.toFixed(1)}%`;
-                    rows[1].cells[1].textContent = topPerformer ? 
-                        `${topPerformer.personalInfo?.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || 0).toFixed(1)}%)` : 'N/A';
-                    rows[2].cells[1].textContent = `${attendanceRate.toFixed(1)}%`;
-                    rows[3].cells[1].textContent = '8.7/10'; // This would need to be calculated
-                    rows[4].cells[1].textContent = '1st'; // This would need to be calculated
-                }
+        }
+        
+        // Calculate average age from Firebase data
+        function calculateAverageAge(students) {
+            try {
+                const studentsWithAge = students.filter(student => {
+                    const dob = student.dateOfBirth || student.personalInfo?.dateOfBirth;
+                    return dob;
+                });
+                
+                if (studentsWithAge.length === 0) return 'N/A';
+                
+                const totalAge = studentsWithAge.reduce((sum, student) => {
+                    const dob = student.dateOfBirth || student.personalInfo?.dateOfBirth;
+                    const birthDate = dob.toDate ? dob.toDate() : new Date(dob);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    return sum + age;
+                }, 0);
+                
+                const averageAge = (totalAge / studentsWithAge.length).toFixed(1);
+                return `${averageAge} years`;
+                
+            } catch (error) {
+                console.error('❌ Error calculating average age:', error);
+                return 'N/A';
+            }
+        }
+        
+        // Calculate discipline score (placeholder - would need actual discipline data)
+        function calculateDisciplineScore(students) {
+            try {
+                // This would typically come from discipline records in Firebase
+                // For now, return a calculated score based on attendance and performance
+                if (students.length === 0) return 'N/A';
+                
+                const avgAttendance = students.reduce((sum, student) => {
+                    const attendance = student.academicInfo?.attendance || 
+                                    student.attendance || 
+                                    student.attendanceRate || 0;
+                    return sum + attendance;
+                }, 0) / students.length;
+                
+                const avgPerformance = students.reduce((sum, student) => {
+                    const score = student.academicInfo?.averageScore || 
+                                student.averageScore || 
+                                student.overallAverage || 0;
+                    return sum + score;
+                }, 0) / students.length;
+                
+                // Calculate discipline score based on attendance and performance
+                const disciplineScore = Math.round((avgAttendance + avgPerformance) / 20); // Scale to 10
+                return `${Math.min(disciplineScore, 10)}/10`;
+                
+            } catch (error) {
+                console.error('❌ Error calculating discipline score:', error);
+                return 'N/A';
+            }
+        }
+        
+        // Calculate class rank (placeholder - would need comparison with other classes)
+        function calculateClassRank(classPerformance) {
+            try {
+                // This would typically compare with other classes in Firebase
+                // For now, return a rank based on performance ranges
+                if (classPerformance >= 90) return '1st';
+                if (classPerformance >= 80) return '2nd';
+                if (classPerformance >= 70) return '3rd';
+                if (classPerformance >= 60) return '4th';
+                return '5th+';
+                
+            } catch (error) {
+                console.error('❌ Error calculating class rank:', error);
+                return 'N/A';
             }
         }
         
