@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade Entry - Subject Teacher</title>
+    <title>Grade Entry - Class Teacher</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
-    <link href="../../assets/css/users/subject-teacher.css" rel="stylesheet">
+    <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
     <style>
         :root {
             --primary: #1a4f8b;
@@ -136,7 +138,7 @@
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
-                        <h6 class="text-muted">Subject Teacher</h6>
+                        <h6 class="text-muted">Class Teacher</h6>
                         <small class="text-muted">Staff ID: <span id="sidebar-staff-id">—</span></small>
                     </div>
                     
@@ -144,36 +146,6 @@
                         <li class="nav-item">
                             <a class="nav-link" href="dashboard.html">
                                 <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="announcements.html">
-                                <i class="fas fa-bullhorn"></i> Announcements
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="my-teachers.html">
-                                <i class="fas fa-users"></i> My Teachers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="teacher-assignment.html">
-                                <i class="fas fa-user-plus"></i> Teacher Assignment
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="results-approval.html">
-                                <i class="fas fa-check-circle"></i> Results Approval
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="department-performance.html">
-                                <i class="fas fa-chart-bar"></i> Department Performance
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="department-analytics.html">
-                                <i class="fas fa-chart-line"></i> Department Analytics
                             </a>
                         </li>
                         <li class="nav-item">
@@ -187,13 +159,28 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="student-lists.html">
-                                <i class="fas fa-user-graduate"></i> Student Lists
+                            <a class="nav-link" href="student-management.html">
+                                <i class="fas fa-user-graduate"></i> Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="class-performance.html">
+                                <i class="fas fa-chart-line"></i> Class Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="report-cards.html">
+                                <i class="fas fa-file-alt"></i> Report Cards
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="timetable.html">
-                                <i class="fas fa-calendar-alt"></i> Timetable
+                                <i class="fas fa-calendar"></i> Timetable
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
                             </a>
                         </li>
                     </ul>
@@ -211,10 +198,10 @@
                 <div class="header">
                     <div>
                         <h4>Grade Entry</h4>
-                        <span class="role-badge">Subject Teacher</span>
+                        <span class="role-badge">Class Teacher</span>
                     </div>
                     <div>
-                        <span id="current-user">John Doe</span>
+                        <span id="current-user">Loading...</span>
                         <i class="fas fa-user-circle ms-2 text-primary"></i>
                     </div>
                 </div>
@@ -229,18 +216,18 @@
                         <form id="grade-entry-form">
                             <div class="row mb-4">
                                 <div class="col-md-4">
-                                    <label class="form-label">Subject</label>
+                                <label class="form-label">Subject</label>
                                     <select class="form-select" id="subject-select" required>
-                                        <option value="">Select Subject</option>
+                                    <option value="">Select Subject</option>
                                         
-                                    </select>
-                                </div>
+                                </select>
+                            </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Class</label>
+                                <label class="form-label">Class</label>
                                     <select class="form-select" id="class-select" required>
-                                        <option value="">Select Class</option>
+                                    <option value="">Select Class</option>
                                         
-                                    </select>
+                                </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Term</label>
@@ -267,7 +254,7 @@
                                             <li><span class="badge bg-secondary">E</span> 50-59% (Pass)</li>
                                             <li><span class="badge bg-danger">F</span> 0-49% (Fail)</li>
                                         </ul>
-                                    </div>
+                                </div>
                                     <div class="col-md-6">
                                         <strong>Marking Weight:</strong>
                                         <ul class="list-unstyled mb-0">
@@ -275,7 +262,7 @@
                                             <li>End-term: 80%</li>
                                             <li><strong>Final Grade = (Mid-term × 0.2) + (End-term × 0.8)</strong></li>
                                         </ul>
-                                    </div>
+                            </div>
                                 </div>
                             </div>
                             
@@ -380,9 +367,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="../../assets/js/firebase-init-compat.js"></script>
-    <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/users/hod-utils.js"></script>
-    <script src="../../assets/js/users/subject-teacher.js"></script>
+    <script src="../../assets/js/database-service.js"></script>
     <script>
         // Grade Entry Functionality (Firebase)
         let currentStudents = [];
@@ -639,55 +624,261 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             initializeGradeEntry();
-            setupMobileSidebar(); // From hod-utils.js
+            setupMobileSidebar();
         });
 
         async function initializeGradeEntry() {
             try {
-                // Wait for authentication
-                await waitForAuth(); // From hod-utils.js
-                
-                // Load user data using utility function
-                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
-                if (!userResult.success) {
-                    showError(userResult.error); // From hod-utils.js
-                    return;
-                }
-                
-                // Update UI with user data
-                updateGradeEntryUserDisplay(userResult);
-                
-                // Load assigned subjects
-                const { subjects } = await ensureAssignedSubjects();
-                assignedSubjects = subjects;
-                if (subjects.length === 0) {
-                    const card = document.querySelector('.card');
-                    if (card) {
-                        card.insertAdjacentHTML('afterbegin', `<div class="alert alert-warning mb-3"><i class="fas fa-info-circle"></i> No subject has been assigned to you yet. Please contact your Head of Department.</div>`);
-                        card.querySelectorAll('select,button,input').forEach(el => { el.disabled = true; });
+                // Check authentication and role
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        db.collection('users').doc(user.uid).get().then((doc) => {
+                            if (doc.exists) {
+                                const userData = doc.data();
+                                const userRole = userData.role;
+                                
+                                if (userRole === 'class_teacher') {
+                                    console.log('✅ Class Teacher authenticated:', user.email);
+                                    currentUser = user;
+                                    
+                                    // Load staff ID
+                                    const staffId = userData.staffId || (userData.employmentInfo && userData.employmentInfo.staffId) || '—';
+                                    document.getElementById('sidebar-staff-id').textContent = staffId;
+                                    
+                                    // Update current user display
+                                    const userName = userData.personalInfo?.fullName || 
+                                                   `${userData.personalInfo?.firstName || ''} ${userData.personalInfo?.lastName || ''}`.trim() || 
+                                                   user.email;
+                                    document.getElementById('current-user').textContent = userName;
+                                    
+                                    // Load assigned subjects
+                                    loadAssignedSubjects();
+                                } else {
+                                    console.log('❌ Access denied. Required role: class_teacher');
+                                    alert('Access denied. You do not have Class Teacher privileges.');
+                                    auth.signOut().then(() => {
+                                        window.location.href = '../../index.html';
+                                    });
+                                }
+                            } else {
+                                console.log('❌ User document not found');
+                                auth.signOut().then(() => {
+                                    window.location.href = '../../index.html';
+                                });
+                            }
+                        });
+                    } else {
+                        console.log('❌ No authenticated user, redirecting to login');
+                        window.location.href = '../../index.html';
                     }
-                    return;
-                }
-                renderAssignedSubjectsSelect(subjects);
-                document.getElementById('subject-select').addEventListener('change', async () => await renderClassesForSubject(subjects));
+                });
                 
             } catch (error) {
                 console.error('Error initializing grade entry:', error);
-                showError('Failed to initialize grade entry. Please refresh and try again.'); // From hod-utils.js
+                showError('Failed to initialize grade entry. Please refresh and try again.');
             }
         }
-
-        function updateGradeEntryUserDisplay(userResult) {
-            // Use the standardized updateUserDisplay function from hod-utils.js
-            window.updateUserDisplay(userResult);
+        
+        // Load assigned subjects for Class Teacher
+        async function loadAssignedSubjects() {
+            try {
+                console.log('🔄 Loading assigned subjects for grade entry...');
                 
-                console.log('Grade Entry user loaded:', {
-                    name: userResult.userName,
-                    department: userResult.departmentId,
-                    departmentName: userResult.departmentName,
-                    staffId: userResult.staffId
+                if (!currentUser) {
+                    console.error('❌ No current user found');
+                    return;
+                }
+                
+                // Get user data to find assigned subjects
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists) {
+                    console.error('❌ User document not found');
+                    return;
+                }
+                
+                const userData = userDoc.data();
+                
+                // Get assigned subject IDs from user data
+                let assignedSubjectIds = [];
+                
+                // Check different possible locations for subject assignments
+                if (userData.academicInfo && userData.academicInfo.subjects) {
+                    assignedSubjectIds = userData.academicInfo.subjects;
+                } else if (userData.employmentInfo && userData.employmentInfo.subjects) {
+                    assignedSubjectIds = userData.employmentInfo.subjects;
+                } else if (userData.subjects) {
+                    assignedSubjectIds = userData.subjects;
+                } else if (userData.assignedSubjects) {
+                    assignedSubjectIds = userData.assignedSubjects;
+                }
+                
+                console.log('📚 Assigned subject IDs:', assignedSubjectIds);
+                
+                if (!Array.isArray(assignedSubjectIds) || assignedSubjectIds.length === 0) {
+                    console.log('⚠️ No subjects assigned to this teacher');
+                    showNoSubjectsMessage();
+                    return;
+                }
+                
+                // Convert subject IDs to strings (handle both string and object formats)
+                const subjectIdStrings = [];
+                if (Array.isArray(assignedSubjectIds)) {
+                    assignedSubjectIds.forEach(item => {
+                        if (typeof item === 'string') {
+                            subjectIdStrings.push(item);
+                        } else if (typeof item === 'object' && item !== null) {
+                            // Handle object format - try different possible ID fields
+                            if (item.id) {
+                                subjectIdStrings.push(item.id);
+                            } else if (item.subjectId) {
+                                subjectIdStrings.push(item.subjectId);
+                            } else if (item.docId) {
+                                subjectIdStrings.push(item.docId);
+                            } else {
+                                console.warn('⚠️ Unknown subject object format:', item);
+                            }
+                        }
+                    });
+                }
+                
+                console.log('📚 Converted subject ID strings:', subjectIdStrings);
+                
+                // Get subjects by IDs (handle Firestore 'in' query limit of 10)
+                const subjects = [];
+                const batchSize = 10;
+                
+                for (let i = 0; i < subjectIdStrings.length; i += batchSize) {
+                    const batch = subjectIdStrings.slice(i, i + batchSize);
+                    console.log('🔄 Processing subject batch:', batch);
+                    
+                    try {
+                        const subjectsSnapshot = await db.collection('subjects')
+                            .where(firebase.firestore.FieldPath.documentId(), 'in', batch)
+                            .get();
+                        
+                        subjectsSnapshot.forEach(doc => {
+                            const subjectData = doc.data();
+                            subjects.push({
+                                id: doc.id,
+                                name: subjectData.name || subjectData.subjectName || 'Unknown',
+                                code: subjectData.code || '',
+                                classes: subjectData.classes || []
+                            });
+                        });
+                    } catch (error) {
+                        console.error('❌ Error fetching subjects batch:', error);
+                    }
+                }
+                
+                console.log(`✅ Loaded ${subjects.length} assigned subjects`);
+                assignedSubjects = subjects;
+                
+                if (subjects.length === 0) {
+                    showNoSubjectsMessage();
+                    return;
+                }
+                
+                // Render subjects dropdown
+                renderAssignedSubjectsSelect(subjects);
+                
+                // Add event listener for subject selection
+                document.getElementById('subject-select').addEventListener('change', async () => {
+                    await renderClassesForSubject(subjects);
                 });
+                
+            } catch (error) {
+                console.error('❌ Error loading assigned subjects:', error);
+                showError('Failed to load assigned subjects. Please try again.');
+            }
         }
+        
+        // Show no subjects message
+        function showNoSubjectsMessage() {
+            const card = document.querySelector('.card');
+            if (card) {
+                card.insertAdjacentHTML('afterbegin', `
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-info-circle"></i> 
+                        No subjects have been assigned to you yet. Please contact your Head of Department or System Administrator.
+                    </div>
+                `);
+                card.querySelectorAll('select,button,input').forEach(el => { 
+                    el.disabled = true; 
+                });
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Mobile Sidebar Functionality
+        function setupMobileSidebar() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (mobileMenuToggle && sidebar && sidebarOverlay) {
+                // Toggle sidebar on mobile
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                });
+                
+                // Close sidebar when clicking overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+                
+                // Close sidebar when clicking on nav links (mobile)
+                const navLinks = document.querySelectorAll('.sidebar .nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('show');
+                            sidebarOverlay.classList.remove('show');
+                        }
+                    });
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                    }
+                });
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            auth.signOut().then(() => {
+                console.log('User signed out');
+                window.location.href = '../../index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                window.location.href = '../../index.html';
+            });
+        }
+        
+        // Make functions globally available
+        window.logout = logout;
+        window.loadStudents = loadStudents;
+        window.clearGrades = clearGrades;
+        window.viewGrades = viewGrades;
+        window.editGrades = editGrades;
+        window.calculateFinalGrade = calculateFinalGrade;
+        window.clearStudentGrade = clearStudentGrade;
 
         // Form submission
         document.getElementById('grade-entry-form').addEventListener('submit', async function(e) {
@@ -718,8 +909,8 @@
                         finalGrade: { percentage: parseFloat(g.finalScore.toFixed(1)), letterGrade: g.grade },
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
+            });
+        });
                 await batch.commit();
                 alert('Grades saved successfully.');
             } catch (err) {
