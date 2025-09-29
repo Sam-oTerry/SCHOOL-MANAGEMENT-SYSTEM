@@ -315,6 +315,19 @@
                                     </div>
                                 </div>
                         
+                        <!-- Class Assignment (for Class Teachers) -->
+                        <div class="row" id="classRow" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="assigned-class" class="form-label">Assigned Class</label>
+                                    <select class="form-select" id="assigned-class">
+                                        <option value="">Select Class</option>
+                                        <!-- Classes will be loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Subjects Selection -->
                         <div class="row" id="subjectsRow">
                             <div class="col-md-6">
@@ -1016,7 +1029,7 @@
         
         // Populate class dropdown
         function populateClassDropdown() {
-            const classSelect = document.getElementById('assignedClass');
+            const classSelect = document.getElementById('assigned-class');
             if (!classSelect) {
                 console.warn('Class dropdown element not found');
                 return;
@@ -1375,7 +1388,7 @@
             const departmentId = document.getElementById('department').value;
             const subject1Id = document.getElementById('subject1').value;
             const subject2Id = document.getElementById('subject2').value;
-            const assignedClassId = document.getElementById('assignedClass').value;
+            const assignedClassId = document.getElementById('assigned-class').value;
             const classStream = document.getElementById('classStream').value;
             
             if (!email || !password || !confirmPassword || !fullName || !role) {
