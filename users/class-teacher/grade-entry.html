@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade Entry - Class Teacher</title>
+    <title>Grade Entry - Subject Teacher</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
     <link href="../../assets/css/components/sidebar.css" rel="stylesheet">
-    <link href="../../assets/css/users/class-teacher.css" rel="stylesheet">
+    <link href="../../assets/css/users/subject-teacher.css" rel="stylesheet">
     <style>
         :root {
             --primary: #1a4f8b;
@@ -133,17 +133,47 @@
         <div class="row">
             <!-- Sidebar -->
             <nav class="sidebar" id="sidebar">
-                <div class="position-sticky pt-3 d-flex flex-column h-100">
+                <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <img src="../../assets/images/logo.png" alt="School Logo" class="img-fluid mb-2" style="max-height: 60px;">
-                        <h6 class="text-muted">Class Teacher</h6>
-                        <small class="text-muted">Staff ID: CT1234</small>
+                        <h6 class="text-muted">Subject Teacher</h6>
+                        <small class="text-muted">Staff ID: <span id="sidebar-staff-id">—</span></small>
                     </div>
                     
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="dashboard.html">
                                 <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="announcements.html">
+                                <i class="fas fa-bullhorn"></i> Announcements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="my-teachers.html">
+                                <i class="fas fa-users"></i> My Teachers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="teacher-assignment.html">
+                                <i class="fas fa-user-plus"></i> Teacher Assignment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="results-approval.html">
+                                <i class="fas fa-check-circle"></i> Results Approval
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-performance.html">
+                                <i class="fas fa-chart-bar"></i> Department Performance
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="department-analytics.html">
+                                <i class="fas fa-chart-line"></i> Department Analytics
                             </a>
                         </li>
                         <li class="nav-item">
@@ -157,28 +187,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="student-management.html">
-                                <i class="fas fa-user-graduate"></i> Student Management
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="class-performance.html">
-                                <i class="fas fa-chart-line"></i> Class Performance
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="report-cards.html">
-                                <i class="fas fa-file-alt"></i> Report Cards
+                            <a class="nav-link" href="student-lists.html">
+                                <i class="fas fa-user-graduate"></i> Student Lists
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="timetable.html">
-                                <i class="fas fa-calendar"></i> Timetable
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="announcements.html">
-                                <i class="fas fa-bullhorn"></i> Announcements
+                                <i class="fas fa-calendar-alt"></i> Timetable
                             </a>
                         </li>
                     </ul>
@@ -196,7 +211,7 @@
                 <div class="header">
                     <div>
                         <h4>Grade Entry</h4>
-                        <span class="role-badge">Class Teacher</span>
+                        <span class="role-badge">Subject Teacher</span>
                     </div>
                     <div>
                         <span id="current-user">John Doe</span>
@@ -204,133 +219,154 @@
                     </div>
                 </div>
                 
-                <!-- Grade Entry Controls -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Grade Entry Controls</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label class="form-label">Subject</label>
-                                <select class="form-select" id="subject-select" onchange="loadStudents()">
-                                    <option value="">Select Subject</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Class</label>
-                                <select class="form-select" id="class-select" onchange="loadStudents()">
-                                    <option value="">Select Class</option>
-                                    <option value="s4-science-a">S.4 Science A</option>
-                                    <option value="s4-science-b">S.4 Science B</option>
-                                    <option value="s3-science">S.3 Science</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Term</label>
-                                <select class="form-select" id="term-select" onchange="loadStudents()">
-                                    <option value="term1">Term 1</option>
-                                    <option value="term2">Term 2</option>
-                                    <option value="term3">Term 3</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Assessment Type</label>
-                                <select class="form-select" id="assessment-type" onchange="loadStudents()">
-                                    <option value="midterm">Mid-term (20%)</option>
-                                    <option value="endterm">End-term (80%)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Grading System Info -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Grading System</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-success fs-6">A</div>
-                                    <p class="mb-0 mt-1">80-100%</p>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-primary fs-6">B</div>
-                                    <p class="mb-0 mt-1">70-79%</p>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-info fs-6">C</div>
-                                    <p class="mb-0 mt-1">60-69%</p>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-warning fs-6">D</div>
-                                    <p class="mb-0 mt-1">50-59%</p>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-danger fs-6">E</div>
-                                    <p class="mb-0 mt-1">40-49%</p>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="text-center">
-                                    <div class="badge bg-dark fs-6">F</div>
-                                    <p class="mb-0 mt-1">0-39%</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Grade Entry Form -->
                 <div class="card">
                     <div class="card-header">
-                        <h5>Enter Grades</h5>
-                        <small class="text-muted">Mid-term: 20% | End-term: 80%</small>
+                        <h5>Enter Student Grades</h5>
+                        <small class="text-muted">New Curriculum A-F Grading System</small>
+                    </div>
+                    <div class="card-body">
+                        <form id="grade-entry-form">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Subject</label>
+                                    <select class="form-select" id="subject-select" required>
+                                        <option value="">Select Subject</option>
+                                        
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Class</label>
+                                    <select class="form-select" id="class-select" required>
+                                        <option value="">Select Class</option>
+                                        
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Term</label>
+                                    <select class="form-select" id="term-select" required>
+                                        <option value="">Select Term</option>
+                                        <option value="first-term">First Term</option>
+                                        <option value="second-term">Second Term</option>
+                                        <option value="third-term">Third Term</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Grading System Info -->
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Grading System</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Grade Scale:</strong>
+                                        <ul class="list-unstyled mb-0">
+                                            <li><span class="badge bg-success">A</span> 90-100% (Excellent)</li>
+                                            <li><span class="badge bg-primary">B</span> 80-89% (Very Good)</li>
+                                            <li><span class="badge bg-info">C</span> 70-79% (Good)</li>
+                                            <li><span class="badge bg-warning">D</span> 60-69% (Satisfactory)</li>
+                                            <li><span class="badge bg-secondary">E</span> 50-59% (Pass)</li>
+                                            <li><span class="badge bg-danger">F</span> 0-49% (Fail)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Marking Weight:</strong>
+                                        <ul class="list-unstyled mb-0">
+                                            <li>Mid-term: 20%</li>
+                                            <li>End-term: 80%</li>
+                                            <li><strong>Final Grade = (Mid-term × 0.2) + (End-term × 0.8)</strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Student Grades Table -->
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="grades-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Student ID</th>
+                                            <th>Student Name</th>
+                                            <th>Mid-term (20%)</th>
+                                            <th>End-term (80%)</th>
+                                            <th>Final Grade</th>
+                                            <th>Grade</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="grades-tbody">
+                                        <!-- Grades will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-primary" onclick="loadStudents()">
+                                    <i class="fas fa-sync"></i> Load Students
+                                </button>
+                                <div>
+                                    <button type="button" class="btn btn-outline-secondary me-2" onclick="clearGrades()">
+                                        <i class="fas fa-eraser"></i> Clear All
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Grades
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Recent Grade Entries -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>Recent Grade Entries</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Student ID</th>
-                                        <th>Student Name</th>
-                                        <th>Mid-term Score</th>
-                                        <th>End-term Score</th>
-                                        <th>Total Score</th>
-                                        <th>Grade</th>
+                                        <th>Date</th>
+                                        <th>Subject</th>
+                                        <th>Class</th>
+                                        <th>Students</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="grades-tbody">
-                                    <!-- Grades will be populated here -->
+                                <tbody>
+                                    <tr>
+                                        <td>2023-10-15</td>
+                                        <td>Mathematics</td>
+                                        <td>S.4 Science A</td>
+                                        <td>35 students</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewGrades('math-s4a-2023-10-15')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="editGrades('math-s4a-2023-10-15')">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2023-10-14</td>
+                                        <td>Physics</td>
+                                        <td>S.4 Science B</td>
+                                        <td>32 students</td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewGrades('physics-s4b-2023-10-14')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="editGrades('physics-s4b-2023-10-14')">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <button class="btn btn-primary" onclick="saveGrades()">
-                                <i class="fas fa-save"></i> Save All Grades
-                            </button>
-                            <button class="btn btn-success" onclick="submitGrades()">
-                                <i class="fas fa-check"></i> Submit for Approval
-                            </button>
-                            <button class="btn btn-info" onclick="exportGrades()">
-                                <i class="fas fa-download"></i> Export Grades
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -339,70 +375,194 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/users/class-teacher.js"></script>
+    <script src="../../assets/js/users/hod-utils.js"></script>
+    <script src="../../assets/js/users/subject-teacher.js"></script>
     <script>
-        // Grade Entry Functionality
-        let currentGrades = [];
-        let students = [];
+        // Grade Entry Functionality (Firebase)
+        let currentStudents = [];
+        let currentGrades = {};
+        let assignedSubjects = [];
         
-        // Sample students data
-        const sampleStudents = [
-            { id: 'ST001', name: 'John Doe', midterm: '', endterm: '', total: 0, grade: '' },
-            { id: 'ST002', name: 'Mary Smith', midterm: '', endterm: '', total: 0, grade: '' },
-            { id: 'ST003', name: 'Peter Johnson', midterm: '', endterm: '', total: 0, grade: '' },
-            { id: 'ST004', name: 'Sarah Wilson', midterm: '', endterm: '', total: 0, grade: '' },
-            { id: 'ST005', name: 'David Brown', midterm: '', endterm: '', total: 0, grade: '' }
-        ];
-        
-        function initializeGradeEntry() {
-            students = [...sampleStudents];
-            displayGrades();
-        }
-        
-        function loadStudents() {
-            const subject = document.getElementById('subject-select').value;
-            const classSelect = document.getElementById('class-select').value;
-            const term = document.getElementById('term-select').value;
-            const assessmentType = document.getElementById('assessment-type').value;
+        async function ensureAssignedSubjects() {
+            if (!window.auth || !window.db) return { assigned: [], subjects: [] };
+            const user = auth.currentUser;
+            if (!user) return { assigned: [], subjects: [] };
+            const doc = await db.collection('users').doc(user.uid).get();
             
-            if (!subject || !classSelect) {
-                alert('Please select both subject and class.');
+            if (!doc.exists) return { assigned: [], subjects: [] };
+            
+            const userData = doc.data();
+            const rawSubjects = (userData.academicInfo && Array.isArray(userData.academicInfo.subjects)) ? userData.academicInfo.subjects : [];
+            
+            // Extract IDs from subjects (handle both string IDs and object subjects)
+            const extractIds = (subjects) => {
+                return subjects.map(subject => {
+                    if (typeof subject === 'string') {
+                        return subject;
+                    } else if (typeof subject === 'object' && subject.id) {
+                        return subject.id;
+                    } else if (typeof subject === 'object' && subject.subjectId) {
+                        return subject.subjectId;
+                    }
+                    return null;
+                }).filter(Boolean);
+            };
+            
+            const ids = extractIds(rawSubjects);
+            console.log('Extracted subject IDs for grade entry:', ids);
+            
+            if (ids.length === 0) return { assigned: [], subjects: [] };
+            
+            const chunks = [];
+            for (let i = 0; i < ids.length; i += 10) chunks.push(ids.slice(i, i+10));
+            const snaps = await Promise.all(chunks.map(ch => db.collection('subjects').where(firebase.firestore.FieldPath.documentId(), 'in', ch).get()))
+            const subjects = [];
+            snaps.forEach(snap => snap.forEach(d => subjects.push({ id: d.id, name: d.data().subjectName || d.data().name || 'Subject', classes: Array.isArray(d.data().classes) ? d.data().classes : [] })));
+            return { assigned: ids, subjects };
+        }
+
+        function renderAssignedSubjectsSelect(subjects) {
+            const select = document.getElementById('subject-select');
+            select.innerHTML = '<option value="">Select Subject</option>' + subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        }
+
+        // Get teacher assignments for grade entry
+        async function getTeacherAssignmentsForGradeEntry(teacherId) {
+            try {
+                console.log('Getting teacher assignments for grade entry:', teacherId);
+                const assignmentsSnapshot = await db.collection('teacherAssignments')
+                    .where('teacherId', '==', teacherId)
+                    .get();
+                
+                const assignments = [];
+                assignmentsSnapshot.forEach(doc => {
+                    assignments.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('Found assignments for grade entry:', assignments);
+                return assignments;
+            } catch (error) {
+                console.error('Error getting teacher assignments for grade entry:', error);
+                return [];
+            }
+        }
+
+        async function renderClassesForSubject(subjects) {
+            const subjectId = document.getElementById('subject-select').value;
+            const clsSelect = document.getElementById('class-select');
+            
+            if (!subjectId) {
+                clsSelect.innerHTML = '<option value="">Select Class</option>';
                 return;
             }
             
-            // Load students for the selected subject and class
-            displayGrades();
+            try {
+                // Get teacher assignments for the current user and selected subject
+                const teacherAssignments = await getTeacherAssignmentsForGradeEntry(window.currentUser.uid);
+                console.log('Teacher assignments for grade entry:', teacherAssignments);
+                
+                // Filter assignments for the selected subject
+                const subjectAssignments = teacherAssignments.filter(assignment => 
+                    assignment.subjectId === subjectId || assignment.subject === subjects.find(s => s.id === subjectId)?.name
+                );
+                
+                console.log('Subject assignments:', subjectAssignments);
+                
+                // Extract unique classes from assignments
+                const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
+                const uniqueClasses = [...new Set(assignedClasses)];
+                
+                console.log('Assigned classes for subject:', uniqueClasses);
+                
+                // Populate class dropdown
+                if (uniqueClasses.length > 0) {
+                    clsSelect.innerHTML = '<option value="">Select Class</option>' + 
+                        uniqueClasses.map(c => `<option value="${c}">${c}</option>`).join('');
+                } else {
+                    clsSelect.innerHTML = '<option value="">No classes assigned for this subject</option>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading classes for subject:', error);
+                clsSelect.innerHTML = '<option value="">Error loading classes</option>';
+            }
+        }
+
+        async function loadStudents() {
+            const subject = document.getElementById('subject-select').value;
+            const classSelect = document.getElementById('class-select').value;
+            const term = document.getElementById('term-select').value;
+            
+            if (!subject || !classSelect || !term) {
+                alert('Please select subject, class, and term first');
+                return;
+            }
+            
+            // Fetch students in selected class
+            const snap = await db.collection('students')
+                .where('academicInfo.currentClass', '==', classSelect)
+                .get();
+            currentStudents = [];
+            snap.forEach(doc => {
+                const s = doc.data();
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
+                currentStudents.push({ id: doc.id, name });
+            });
+
+            // Optionally prefill existing grades for this subject/term
+            const gradeSnap = await db.collection('grades')
+                .where('subjectId', '==', subject)
+                .where('classId', '==', classSelect)
+                .where('term', '==', term)
+                .get();
+            const existing = {};
+            gradeSnap.forEach(d => { existing[d.data().studentId] = d.data(); });
+
+            displayStudents();
+            // Prefill inputs
+            currentStudents.forEach(st => {
+                const ex = existing[st.id];
+                if (ex) {
+                    const scores = ex.scores || {};
+                    const mid = typeof scores.midterm === 'number' ? scores.midterm : (typeof ex.midTerm === 'number' ? ex.midTerm : '');
+                    const end = typeof scores.endterm === 'number' ? scores.endterm : (typeof ex.endTerm === 'number' ? ex.endTerm : '');
+                    if (mid !== '') document.getElementById(`mid-${st.id}`).value = mid;
+                    if (end !== '') document.getElementById(`end-${st.id}`).value = end;
+                    calculateFinalGrade(st.id);
+                }
+            });
         }
         
-        function displayGrades() {
+        function displayStudents() {
             const tbody = document.getElementById('grades-tbody');
             tbody.innerHTML = '';
             
-            students.forEach(student => {
+            currentStudents.forEach(student => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${student.id}</td>
                     <td>${student.name}</td>
                     <td>
-                        <input type="number" class="form-control" id="midterm-${student.id}" 
-                               value="${student.midterm}" min="0" max="100" 
-                               onchange="calculateTotal('${student.id}')">
+                        <input type="number" class="form-control form-control-sm" 
+                               id="mid-${student.id}" min="0" max="100" 
+                               onchange="calculateFinalGrade('${student.id}')">
                     </td>
                     <td>
-                        <input type="number" class="form-control" id="endterm-${student.id}" 
-                               value="${student.endterm}" min="0" max="100" 
-                               onchange="calculateTotal('${student.id}')">
+                        <input type="number" class="form-control form-control-sm" 
+                               id="end-${student.id}" min="0" max="100" 
+                               onchange="calculateFinalGrade('${student.id}')">
                     </td>
+                    <td id="final-${student.id}">0</td>
+                    <td id="grade-${student.id}">-</td>
                     <td>
-                        <span id="total-${student.id}" class="fw-bold">${student.total}</span>
-                    </td>
-                    <td>
-                        <span id="grade-${student.id}" class="badge">${student.grade}</span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewStudentDetails('${student.id}')">
-                            <i class="fas fa-eye"></i>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearStudentGrade('${student.id}')">
+                            <i class="fas fa-times"></i>
                         </button>
                     </td>
                 `;
@@ -410,139 +570,168 @@
             });
         }
         
-        function calculateTotal(studentId) {
-            const midtermScore = parseFloat(document.getElementById(`midterm-${studentId}`).value) || 0;
-            const endtermScore = parseFloat(document.getElementById(`endterm-${studentId}`).value) || 0;
+        function calculateFinalGrade(studentId) {
+            const midTerm = parseFloat(document.getElementById(`mid-${studentId}`).value) || 0;
+            const endTerm = parseFloat(document.getElementById(`end-${studentId}`).value) || 0;
             
-            // Calculate weighted total: Mid-term 20% + End-term 80%
-            const total = (midtermScore * 0.2) + (endtermScore * 0.8);
+            const finalScore = (midTerm * 0.2) + (endTerm * 0.8);
+            const grade = getGrade(finalScore);
             
-            // Update total display
-            document.getElementById(`total-${studentId}`).textContent = total.toFixed(1);
+            document.getElementById(`final-${studentId}`).textContent = finalScore.toFixed(1);
+            document.getElementById(`grade-${studentId}`).textContent = grade;
+            document.getElementById(`grade-${studentId}`).className = `badge ${getGradeColor(grade)}`;
             
-            // Calculate and display grade
-            const grade = calculateGrade(total);
-            const gradeElement = document.getElementById(`grade-${studentId}`);
-            gradeElement.textContent = grade;
-            gradeElement.className = `badge ${getGradeColor(grade)}`;
-            
-            // Update student data
-            const student = students.find(s => s.id === studentId);
-            if (student) {
-                student.midterm = midtermScore;
-                student.endterm = endtermScore;
-                student.total = total;
-                student.grade = grade;
-            }
+            currentGrades[studentId] = {
+                midTerm: midTerm,
+                endTerm: endTerm,
+                finalScore: finalScore,
+                grade: grade
+            };
         }
         
-        function calculateGrade(total) {
-            if (total >= 80) return 'A';
-            if (total >= 70) return 'B';
-            if (total >= 60) return 'C';
-            if (total >= 50) return 'D';
-            if (total >= 40) return 'E';
+        function getGrade(score) {
+            if (score >= 90) return 'A';
+            if (score >= 80) return 'B';
+            if (score >= 70) return 'C';
+            if (score >= 60) return 'D';
+            if (score >= 50) return 'E';
             return 'F';
         }
         
         function getGradeColor(grade) {
-            switch(grade) {
-                case 'A': return 'bg-success';
-                case 'B': return 'bg-primary';
-                case 'C': return 'bg-info';
-                case 'D': return 'bg-warning';
-                case 'E': return 'bg-danger';
-                case 'F': return 'bg-dark';
-                default: return 'bg-secondary';
-            }
+            const colors = {
+                'A': 'bg-success',
+                'B': 'bg-primary',
+                'C': 'bg-info',
+                'D': 'bg-warning',
+                'E': 'bg-secondary',
+                'F': 'bg-danger'
+            };
+            return colors[grade] || 'bg-secondary';
         }
         
-        function saveGrades() {
-            // Validate all grades are entered
-            const incompleteGrades = students.filter(s => s.midterm === '' || s.endterm === '');
-            
-            if (incompleteGrades.length > 0) {
-                alert('Please enter all grades before saving.');
-                return;
-            }
-            
-            // Save grades (in real application, this would send to server)
-            showNotification('Grades saved successfully!', 'success');
+        function clearStudentGrade(studentId) {
+            document.getElementById(`mid-${studentId}`).value = '';
+            document.getElementById(`end-${studentId}`).value = '';
+            document.getElementById(`final-${studentId}`).textContent = '0';
+            document.getElementById(`grade-${studentId}`).textContent = '-';
+            document.getElementById(`grade-${studentId}`).className = 'badge bg-secondary';
+            delete currentGrades[studentId];
         }
         
-        function submitGrades() {
-            // Validate all grades are entered
-            const incompleteGrades = students.filter(s => s.midterm === '' || s.endterm === '');
-            
-            if (incompleteGrades.length > 0) {
-                alert('Please enter all grades before submitting.');
-                return;
-            }
-            
-            if (confirm('Are you sure you want to submit these grades for approval?')) {
-                // Submit grades for approval (in real application, this would send to server)
-                showNotification('Grades submitted for approval!', 'success');
-            }
-        }
-        
-        function exportGrades() {
-            alert('Export Grades feature:\n\nThis will download the grades as an Excel file for backup or external use.');
-        }
-        
-        function viewStudentDetails(studentId) {
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-            
-            alert(`Student Details:\n\nID: ${student.id}\nName: ${student.name}\nMid-term: ${student.midterm}%\nEnd-term: ${student.endterm}%\nTotal: ${student.total}%\nGrade: ${student.grade}`);
-        }
-        
-        // Mobile Sidebar Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            
-            // Toggle sidebar on mobile
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-                sidebarOverlay.classList.toggle('show');
-            });
-            
-            // Close sidebar when clicking overlay
-            sidebarOverlay.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            });
-            
-            // Close sidebar when clicking on nav links (mobile)
-            const navLinks = document.querySelectorAll('.sidebar .nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                    }
+        function clearGrades() {
+            if (confirm('Are you sure you want to clear all grades?')) {
+                currentStudents.forEach(student => {
+                    clearStudentGrade(student.id);
                 });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                }
-            });
-        });
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
             }
         }
         
-        // Initialize on page load
+        function viewGrades(entryId) {
+            alert(`Viewing grades for entry: ${entryId}`);
+        }
+        
+        function editGrades(entryId) {
+            alert(`Editing grades for entry: ${entryId}`);
+        }
+        
+        
+        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             initializeGradeEntry();
+            setupMobileSidebar(); // From hod-utils.js
+        });
+
+        async function initializeGradeEntry() {
+            try {
+                // Wait for authentication
+                await waitForAuth(); // From hod-utils.js
+                
+                // Load user data using utility function
+                const userResult = await loadHODUserData(db, currentUser); // From hod-utils.js
+                if (!userResult.success) {
+                    showError(userResult.error); // From hod-utils.js
+                    return;
+                }
+                
+                // Update UI with user data
+                updateGradeEntryUserDisplay(userResult);
+                
+                // Load assigned subjects
+                const { subjects } = await ensureAssignedSubjects();
+                assignedSubjects = subjects;
+                if (subjects.length === 0) {
+                    const card = document.querySelector('.card');
+                    if (card) {
+                        card.insertAdjacentHTML('afterbegin', `<div class="alert alert-warning mb-3"><i class="fas fa-info-circle"></i> No subject has been assigned to you yet. Please contact your Head of Department.</div>`);
+                        card.querySelectorAll('select,button,input').forEach(el => { el.disabled = true; });
+                    }
+                    return;
+                }
+                renderAssignedSubjectsSelect(subjects);
+                document.getElementById('subject-select').addEventListener('change', async () => await renderClassesForSubject(subjects));
+                
+            } catch (error) {
+                console.error('Error initializing grade entry:', error);
+                showError('Failed to initialize grade entry. Please refresh and try again.'); // From hod-utils.js
+            }
+        }
+
+        function updateGradeEntryUserDisplay(userResult) {
+            // Use the standardized updateUserDisplay function from hod-utils.js
+            window.updateUserDisplay(userResult);
+                
+                console.log('Grade Entry user loaded:', {
+                    name: userResult.userName,
+                    department: userResult.departmentId,
+                    departmentName: userResult.departmentName,
+                    staffId: userResult.staffId
+                });
+        }
+
+        // Form submission
+        document.getElementById('grade-entry-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const subject = document.getElementById('subject-select').value;
+            const classSelect = document.getElementById('class-select').value;
+            const term = document.getElementById('term-select').value;
+            
+            if (Object.keys(currentGrades).length === 0) {
+                alert('Please enter some grades before saving');
+                return;
+            }
+            
+            // Save grades to Firestore
+            try {
+                const batch = db.batch();
+                const teacherId = auth.currentUser.uid;
+                Object.entries(currentGrades).forEach(([studentId, g]) => {
+                    const ref = db.collection('grades').doc();
+                    batch.set(ref, {
+                        studentId,
+                        subjectId: subject,
+                        classId: classSelect,
+                        term,
+                        teacherId,
+                        scores: { midterm: g.midTerm, endterm: g.endTerm },
+                        finalGrade: { percentage: parseFloat(g.finalScore.toFixed(1)), letterGrade: g.grade },
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                await batch.commit();
+                alert('Grades saved successfully.');
+            } catch (err) {
+                console.error('Save grades error:', err);
+                alert('Failed to save grades.');
+                return;
+            }
+            
+            // Reset form
+            document.getElementById('grade-entry-form').reset();
+            document.getElementById('grades-tbody').innerHTML = '';
+            currentGrades = {};
         });
     </script>
 </body>
