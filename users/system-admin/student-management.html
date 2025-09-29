@@ -646,30 +646,51 @@
         // System Admin Student Management Functionality
         let students = [];
         let filteredStudents = [];
-        let currentUser = null;
         let classes = [];
         let academicYears = [];
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            initializeStudentManagement();
-            setupMobileSidebar(); // From system-admin-utils.js
+            setTimeout(() => {
+                try {
+                    if (typeof setupMobileSidebar === 'function') {
+                        setupMobileSidebar();
+                    } else {
+                        console.warn('setupMobileSidebar function not available');
+                    }
+                    initializeStudentManagement();
+                } catch (error) {
+                    console.error('Error initializing student management:', error);
+                }
+            }, 100);
         });
 
         async function initializeStudentManagement() {
             try {
                 // Wait for authentication and get the user
-                currentUser = await waitForAuth(); // From system-admin-utils.js
-                
-                // Load user data using utility function
-                const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
-                if (!userResult.success) {
-                    showError(userResult.error); // From system-admin-utils.js
-                    return;
+                if (typeof waitForAuth === 'function') {
+                    currentUser = await waitForAuth();
+                } else {
+                    throw new Error('waitForAuth function not available');
                 }
                 
-                // Update UI with user data
-                updateUserDisplay(userResult);
+                // Load user data using utility function
+                if (typeof loadSystemAdminUserData === 'function') {
+                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    if (!userResult.success) {
+                        if (typeof showError === 'function') {
+                            showError(userResult.error);
+                        } else {
+                            console.error('Error loading user data:', userResult.error);
+                        }
+                        return;
+                    }
+                    
+                    // Update UI with user data
+                    updateUserDisplay(userResult);
+                } else {
+                    throw new Error('loadSystemAdminUserData function not available');
+                }
                 
                 // Load student data
                 loadStudents();
@@ -679,7 +700,11 @@
                 
             } catch (error) {
                 console.error('Error initializing student management:', error);
-                showError('Failed to initialize student management. Please refresh and try again.'); // From system-admin-utils.js
+                if (typeof showError === 'function') {
+                    showError('Failed to initialize student management. Please refresh and try again.');
+                } else {
+                    console.error('Failed to initialize student management. Please refresh and try again.');
+                }
             }
         }
 
@@ -734,7 +759,11 @@
                 
             } catch (error) {
                 console.error('Error loading students:', error);
-                showError('Failed to load students. Please try again.');
+                if (typeof showError === 'function') {
+                    showError('Failed to load students. Please try again.');
+                } else {
+                    console.error('Failed to load students. Please try again.');
+                }
             }
         }
         
@@ -1108,7 +1137,11 @@
             const emergencyContactPhone = document.getElementById('emergencyContactPhone').value;
             
             if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
-                showError('Please fill in all required fields.');
+                if (typeof showError === 'function') {
+                    showError('Please fill in all required fields.');
+                } else {
+                    console.error('Please fill in all required fields.');
+                }
                 return;
             }
             
@@ -1162,7 +1195,11 @@
             } catch (error) {
                 console.error('Error adding student:', error);
                 hideLoading();
-                showError('Error adding student: ' + error.message);
+                if (typeof showError === 'function') {
+                    showError('Error adding student: ' + error.message);
+                } else {
+                    console.error('Error adding student: ' + error.message);
+                }
             }
         }
         
@@ -1262,7 +1299,11 @@
             const status = document.getElementById('editStudentStatus').value;
             
             if (!firstName || !lastName || !studentClass || !academicYear || !dateOfBirth || !gender || !paymentCode || !parentName || !parentRelationship || !parentPhone) {
-                showError('Please fill in all required fields.');
+                if (typeof showError === 'function') {
+                    showError('Please fill in all required fields.');
+                } else {
+                    console.error('Please fill in all required fields.');
+                }
                 return;
             }
             
@@ -1308,7 +1349,11 @@
             } catch (error) {
                 console.error('Error updating student:', error);
                 hideLoading();
-                showError('Error updating student: ' + error.message);
+                if (typeof showError === 'function') {
+                    showError('Error updating student: ' + error.message);
+                } else {
+                    console.error('Error updating student: ' + error.message);
+                }
             }
         }
         
@@ -1324,7 +1369,11 @@
                 } catch (error) {
                     console.error('Error deleting student:', error);
                     hideLoading();
-                    showError('Error deleting student: ' + error.message);
+                    if (typeof showError === 'function') {
+                        showError('Error deleting student: ' + error.message);
+                    } else {
+                        console.error('Error deleting student: ' + error.message);
+                    }
                 }
             }
         }
