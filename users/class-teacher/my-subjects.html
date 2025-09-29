@@ -830,12 +830,37 @@
             tbody.innerHTML = '';
             subjects.forEach(subject => {
                 const row = document.createElement('tr');
+                
+                // Calculate or get class information
+                const classes = subject.classes || subject.assignedClasses || '—';
+                const classDisplay = Array.isArray(classes) ? classes.join(', ') : classes;
+                
+                // Calculate or get student information
+                const students = subject.students || subject.studentCount || '—';
+                const studentDisplay = typeof students === 'number' ? students : students;
+                
+                // Calculate average score (placeholder for now)
+                const averageScore = calculateAverageScore(subject.id) || '—';
+                
+                // Calculate pass rate (placeholder for now)
+                const passRate = calculatePassRate(subject.id) || '—';
+                
                 row.innerHTML = `
-                    <td>${subject.name || subject.subjectName || 'Unknown'}</td>
-                    <td>${subject.code || '—'}</td>
-                    <td>${subject.level || '—'}</td>
-                    <td>${subject.department || '—'}</td>
-                    <td>${subject.credits || '—'}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-3">
+                                <i class="fas fa-book text-primary"></i>
+                            </div>
+                            <div>
+                                <strong>${subject.name || subject.subjectName || 'Unknown'}</strong>
+                                <br><small class="text-muted">${subject.code || ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${classDisplay}</td>
+                    <td>${studentDisplay}</td>
+                    <td>${averageScore}</td>
+                    <td>${passRate}</td>
                     <td>
                         <span class="badge bg-success">Active</span>
                     </td>
@@ -849,6 +874,20 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+        
+        // Calculate average score for a subject
+        function calculateAverageScore(subjectId) {
+            // For now, return a placeholder
+            // In a real implementation, this would query student results
+            return '—';
+        }
+        
+        // Calculate pass rate for a subject
+        function calculatePassRate(subjectId) {
+            // For now, return a placeholder
+            // In a real implementation, this would calculate from student results
+            return '—';
         }
         
         // View subject details
