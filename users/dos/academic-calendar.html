@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academic Calendar - Director of Studies</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
@@ -465,12 +466,10 @@
         // Academic Calendar Functionality
         let currentDate = new Date();
         let events = [];
-        let dbService = null;
         
         // Initialize Firebase and database service
         function initializeFirebase() {
             if (typeof firebase !== 'undefined' && firebase.firestore) {
-                dbService = new DatabaseService();
                 console.log('Firebase initialized successfully');
                 return true;
             } else {
@@ -599,6 +598,12 @@
         
         async function loadEventsFromFirestore() {
             try {
+                if (typeof dbService === 'undefined') {
+                    console.warn('Database service not available');
+                    events = [...sampleEvents];
+                    return;
+                }
+                
                 const result = await dbService.query('events', [
                     { type: 'orderBy', field: 'startDate', direction: 'asc' }
                 ]);
@@ -860,7 +865,7 @@
             
             // Get all events (from Firestore or sample data)
             let allEvents = [];
-            if (dbService) {
+            if (typeof dbService !== 'undefined' && dbService) {
                 // Use events loaded from Firestore
                 allEvents = [...events];
             } else {
@@ -942,7 +947,7 @@
             try {
                 if (editingId) {
                     // Update existing event in Firestore
-                    if (dbService) {
+                    if (typeof dbService !== 'undefined' && dbService) {
                         const result = await dbService.update('events', editingId, eventData);
                         if (result.success) {
                             // Update local events array
@@ -965,7 +970,7 @@
                     }
                 } else {
                     // Create new event in Firestore
-                    if (dbService) {
+                    if (typeof dbService !== 'undefined' && dbService) {
                         const result = await dbService.create('events', eventData);
                         if (result.success) {
                             // Add to local events array
@@ -973,7 +978,7 @@
                                 id: result.id,
                                 ...eventData
                             };
-            events.push(newEvent);
+                            events.push(newEvent);
                             showNotification('Event created successfully!', 'success');
                         } else {
                             showNotification('Failed to create event: ' + result.error, 'error');
@@ -1071,7 +1076,7 @@
             if (!confirm('Are you sure you want to delete this event?')) return;
             
             try {
-                if (dbService) {
+                if (typeof dbService !== 'undefined' && dbService) {
                     // Delete from Firestore
                     const result = await dbService.delete('events', eventId);
                     if (result.success) {
@@ -1230,7 +1235,7 @@
         }
         
         async function refreshCalendar() {
-            if (dbService) {
+            if (typeof dbService !== 'undefined' && dbService) {
                 await loadEventsFromFirestore();
             }
             // Repopulate academic year dropdown with new events
