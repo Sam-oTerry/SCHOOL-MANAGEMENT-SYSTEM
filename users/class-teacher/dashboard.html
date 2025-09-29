@@ -996,45 +996,77 @@
         
         // Load sample data as fallback
         function loadSampleDashboardData() {
-            console.log('📊 Loading sample dashboard data as fallback...');
+            console.log('📊 Loading sample dashboard data with relevant class teacher metrics...');
             
+            // Create sample students with varied performance and attendance for realistic statistics
             dashboardData.students = [
                 { 
                     id: '1', 
                     personalInfo: { fullName: 'Mukasa John', firstName: 'Mukasa', lastName: 'John', gender: 'Male' }, 
                     studentId: 'S00123', 
-                    academicInfo: { averageScore: 92.5, attendance: 98 } 
+                    class: 'S1',
+                    academicInfo: { averageScore: 92.5, attendance: 98 },
+                    status: 'active'
                 },
                 { 
                     id: '2', 
                     personalInfo: { fullName: 'Nakato Mary', firstName: 'Nakato', lastName: 'Mary', gender: 'Female' }, 
                     studentId: 'S00124', 
-                    academicInfo: { averageScore: 89.2, attendance: 95 } 
+                    class: 'S1',
+                    academicInfo: { averageScore: 89.2, attendance: 95 },
+                    status: 'active'
                 },
                 { 
                     id: '3', 
                     personalInfo: { fullName: 'Okot David', firstName: 'Okot', lastName: 'David', gender: 'Male' }, 
                     studentId: 'S00125', 
-                    academicInfo: { averageScore: 85.7, attendance: 92 } 
+                    class: 'S1',
+                    academicInfo: { averageScore: 45.7, attendance: 72 }, // Low performance, needs attention
+                    status: 'active'
+                },
+                { 
+                    id: '4', 
+                    personalInfo: { fullName: 'Atim Grace', firstName: 'Atim', lastName: 'Grace', gender: 'Female' }, 
+                    studentId: 'S00126', 
+                    class: 'S1',
+                    academicInfo: { averageScore: 55.8, attendance: 85 }, // Borderline performance
+                    status: 'active'
+                },
+                { 
+                    id: '5', 
+                    personalInfo: { fullName: 'Ssemakula Peter', firstName: 'Ssemakula', lastName: 'Peter', gender: 'Male' }, 
+                    studentId: 'S00127', 
+                    class: 'S1',
+                    academicInfo: { averageScore: 78.3, attendance: 88 }, // Good performance
+                    status: 'active'
                 }
             ];
             
             dashboardData.subjects = [
                 { id: '1', name: 'Mathematics' },
-                { id: '2', name: 'Physics' },
-                { id: '3', name: 'Chemistry' },
-                { id: '4', name: 'Biology' }
+                { id: '2', name: 'Physics' }
             ];
             
             dashboardData.classes = [
-                { id: '1', name: 'S.4 Science A', level: 'O Level' }
+                { id: '1', name: 'S1', level: 'O Level' }
+            ];
+            
+            dashboardData.teachers = [
+                { id: '1', personalInfo: { fullName: 'Teacher One' } }
             ];
             
             dashboardData.recentActivity = [
-                { type: 'student_added', message: 'New student: Mukasa John', time: '1 hour ago' },
-                { type: 'comment_added', message: 'Report card comment', time: '2 hours ago' },
-                { type: 'report_approved', message: 'S.4 Science A reports', time: '1 day ago' }
+                { type: 'student_added', message: 'New student: Atim Grace', time: '1 hour ago' },
+                { type: 'grade_updated', message: 'Updated Math grades for S1', time: '2 hours ago' },
+                { type: 'attendance_marked', message: 'Attendance marked for today', time: '3 hours ago' }
             ];
+            
+            console.log('📊 Sample data loaded with realistic class teacher metrics:', {
+                totalStudents: dashboardData.students.length,
+                studentsInS1: dashboardData.students.filter(s => s.class === 'S1').length,
+                averageAttendance: Math.round(dashboardData.students.reduce((sum, s) => sum + s.academicInfo.attendance, 0) / dashboardData.students.length),
+                studentsNeedingAttention: dashboardData.students.filter(s => s.academicInfo.averageScore < 60).length
+            });
         }
         
         // Update statistics cards with comprehensive Firebase data
@@ -1054,6 +1086,14 @@
                 
                 // Calculate comprehensive statistics
                 const stats = calculateComprehensiveStats(students, subjects, classes, teachers);
+                
+                console.log('🔍 Statistics returned from calculateComprehensiveStats:', stats);
+                console.log('🎯 Checking if new metrics are present:', {
+                    hasAttendanceRate: stats.hasOwnProperty('attendanceRate'),
+                    hasStudentsNeedingAttention: stats.hasOwnProperty('studentsNeedingAttention'),
+                    hasAssignmentsPending: stats.hasOwnProperty('assignmentsPending'),
+                    hasClassEngagement: stats.hasOwnProperty('classEngagement')
+                });
                 
                 // Update stat cards with color coding based on values
                 const statCards = document.querySelectorAll('.stat-card');
@@ -1183,7 +1223,7 @@
                     assignmentsPending: gradingMetrics.assignmentsPending,
                     classEngagement: engagementMetrics.engagementScore,
                     
-                    // Additional context metrics
+                    // Additional context metrics (for debugging/logging only)
                     totalStudents: classStudents.length,
                     activeStudents: classStudents.filter(student => 
                         (student.status || student.accountStatus) === 'active'
@@ -1195,6 +1235,12 @@
                 };
                 
                 console.log('📊 Comprehensive class teacher statistics calculated:', stats);
+                console.log('🎯 New relevant metrics:', {
+                    attendanceRate: stats.attendanceRate,
+                    studentsNeedingAttention: stats.studentsNeedingAttention,
+                    assignmentsPending: stats.assignmentsPending,
+                    classEngagement: stats.classEngagement
+                });
                 return stats;
                 
             } catch (error) {
@@ -1464,7 +1510,7 @@
                         rows[1].cells[1].textContent = maleStudents;
                         rows[2].cells[1].textContent = femaleStudents;
                         rows[3].cells[1].textContent = calculateAverageAge(classStudents);
-                        rows[4].cells[1].textContent = `${stats.classPerformance}%`;
+                        rows[4].cells[1].textContent = `${stats.averagePerformance}%`;
                     }
                 }
                 
@@ -1496,9 +1542,9 @@
                         rows[1].cells[1].textContent = topPerformer ? 
                             `${topPerformer.fullName || 'Unknown'} (${(topPerformer.academicInfo?.averageScore || topPerformer.averageScore || topPerformer.overallAverage || 0).toFixed(1)}%)` : 'N/A';
                         
-                        rows[2].cells[1].textContent = `${stats.averageAttendance}%`;
+                        rows[2].cells[1].textContent = `${stats.attendanceRate}%`;
                         rows[3].cells[1].textContent = calculateDisciplineScore(classStudents);
-                        rows[4].cells[1].textContent = calculateClassRank(stats.classPerformance);
+                        rows[4].cells[1].textContent = calculateClassRank(stats.averagePerformance);
                     }
                 }
                 
