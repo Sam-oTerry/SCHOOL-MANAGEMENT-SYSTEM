@@ -224,8 +224,17 @@
                                 </tbody>
                             </table>
                         </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="card-footer bg-light">
+                            <div id="pageInfoContainer" class="mb-3">
+                                <!-- Page info will be inserted here -->
+                            </div>
+                            <div id="paginationContainer">
+                                <!-- Pagination controls will be inserted here -->
+                            </div>
+                        </div>
                     </div>
-                </div>
             </main>
         </div>
     </div>
@@ -658,6 +667,12 @@
         let currentUser = null;
         let classTeacherData = null;
         let assignedClass = null;
+        
+        // Pagination variables
+        let currentPage = 1;
+        let studentsPerPage = 10;
+        let totalPages = 1;
+        let totalStudents = 0;
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1097,14 +1112,28 @@
             });
         }
         
-        // Display students in the table
+        // Display students in table with pagination
         function displayStudents() {
             const tbody = document.querySelector('#studentsTable tbody');
             if (!tbody) return;
             
+            // Update pagination variables
+            totalStudents = filteredStudents.length;
+            totalPages = Math.ceil(totalStudents / studentsPerPage);
+            
+            // Ensure current page is valid
+            if (currentPage > totalPages) {
+                currentPage = Math.max(1, totalPages);
+            }
+            
+            // Get students for current page
+            const startIndex = (currentPage - 1) * studentsPerPage;
+            const endIndex = startIndex + studentsPerPage;
+            const pageStudents = filteredStudents.slice(startIndex, endIndex);
+            
             tbody.innerHTML = '';
             
-            if (filteredStudents.length === 0) {
+            if (pageStudents.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">
@@ -1113,15 +1142,130 @@
                         </td>
                     </tr>
                 `;
+            } else {
+                pageStudents.forEach(student => {
+                    const row = createStudentRow(student);
+                    tbody.appendChild(row);
+                });
+            }
+            
+            // Update pagination controls
+            updatePaginationControls();
+            
+            console.log(`📊 Displayed ${pageStudents.length} students (Page ${currentPage} of ${totalPages})`);
+        }
+        
+        // Update pagination controls
+        function updatePaginationControls() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (!paginationContainer) return;
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
                 return;
             }
             
-            filteredStudents.forEach(student => {
-                const row = createStudentRow(student);
-                tbody.appendChild(row);
-            });
+            let paginationHTML = `
+                <nav aria-label="Students pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <button class="page-link" onclick="goToPage(1)" title="First Page">
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                        </li>
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <button class="page-link" onclick="goToPage(${currentPage - 1})" title="Previous Page">
+                                <i class="fas fa-angle-left"></i>
+                            </button>
+                        </li>
+            `;
             
-            console.log(`📊 Displayed ${filteredStudents.length} students`);
+            // Calculate page range to show
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // Add page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                    </li>
+                `;
+            }
+            
+            paginationHTML += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <button class="page-link" onclick="goToPage(${currentPage + 1})" title="Next Page">
+                                <i class="fas fa-angle-right"></i>
+                            </button>
+                        </li>
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <button class="page-link" onclick="goToPage(${totalPages})" title="Last Page">
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+            
+            // Update page info
+            updatePageInfo();
+        }
+        
+        // Update page information display
+        function updatePageInfo() {
+            const pageInfoContainer = document.getElementById('pageInfoContainer');
+            if (!pageInfoContainer) return;
+            
+            const startIndex = (currentPage - 1) * studentsPerPage + 1;
+            const endIndex = Math.min(currentPage * studentsPerPage, totalStudents);
+            
+            pageInfoContainer.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        Showing ${startIndex} to ${endIndex} of ${totalStudents} students
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label class="form-label me-2 mb-0">Students per page:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" onchange="changeStudentsPerPage(this.value)">
+                            <option value="5" ${studentsPerPage === 5 ? 'selected' : ''}>5</option>
+                            <option value="10" ${studentsPerPage === 10 ? 'selected' : ''}>10</option>
+                            <option value="25" ${studentsPerPage === 25 ? 'selected' : ''}>25</option>
+                            <option value="50" ${studentsPerPage === 50 ? 'selected' : ''}>50</option>
+                            <option value="100" ${studentsPerPage === 100 ? 'selected' : ''}>100</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Go to specific page
+        function goToPage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            
+            currentPage = page;
+            displayStudents();
+            
+            // Scroll to top of table
+            const tableContainer = document.getElementById('studentsTableContainer');
+            if (tableContainer) {
+                tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+        // Change students per page
+        function changeStudentsPerPage(newPerPage) {
+            studentsPerPage = parseInt(newPerPage);
+            currentPage = 1; // Reset to first page
+            displayStudents();
         }
         
         // Create student row
@@ -2200,11 +2344,13 @@
         
         // Update search function to use combined approach
         function searchStudents() {
+            currentPage = 1; // Reset to first page when searching
             applyFiltersAndSearch();
         }
         
         // Update filter function to use combined approach
         function filterStudents() {
+            currentPage = 1; // Reset to first page when filtering
             applyFiltersAndSearch();
         }
         
@@ -2258,6 +2404,8 @@
         window.showDuplicateError = showDuplicateError;
         window.viewExistingStudent = viewExistingStudent;
         window.forceAddStudent = forceAddStudent;
+        window.goToPage = goToPage;
+        window.changeStudentsPerPage = changeStudentsPerPage;
         window.logout = logout;
     </script>
 </body>
