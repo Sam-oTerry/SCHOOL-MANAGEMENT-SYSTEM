@@ -633,38 +633,51 @@
                 const teacherId = document.getElementById('teacher-filter').value;
                 timetableData = {};
                 
-                if (!teacherId) { 
+                // Load all timetable entries from Firestore
+                const timetablesSnapshot = await window.db.collection('timetables').get();
+                
+                if (timetablesSnapshot.empty) { 
                     displayTimetable(); 
                     return; 
                 }
                 
-                const snap = await window.db.collection('timetables')
-                    .where('teacherId', '==', teacherId)
-                    .limit(1)
-                    .get();
-                
-                if (snap.empty) { 
-                    displayTimetable(); 
-                    return; 
-                }
-                
-                const data = snap.docs[0].data();
-                const schedule = data.schedule || {};
-                const times = data.times || [
-                    '08:00-09:00', '09:00-10:00', '10:00-11:00', 
-                    '11:00-12:00', '12:00-13:00', '13:00-14:00'
-                ];
-                
-                times.forEach(t => {
-                    timetableData[t] = {
-                        monday: schedule.monday && schedule.monday[t] ? schedule.monday[t] : null,
-                        tuesday: schedule.tuesday && schedule.tuesday[t] ? schedule.tuesday[t] : null,
-                        wednesday: schedule.wednesday && schedule.wednesday[t] ? schedule.wednesday[t] : null,
-                        thursday: schedule.thursday && schedule.thursday[t] ? schedule.thursday[t] : null,
-                        friday: schedule.friday && schedule.friday[t] ? schedule.friday[t] : null
-                    };
+                // Process all timetable documents
+                timetablesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const schedule = data.schedule || {};
+                    const times = data.times || [];
+                    
+                    // If teacher filter is set, only show that teacher's timetable
+                    if (teacherId && data.teacherId !== teacherId) {
+                        return;
+                    }
+                    
+                    // Process each time slot
+                    times.forEach(timeSlot => {
+                        if (!timetableData[timeSlot]) {
+                            timetableData[timeSlot] = {
+                                monday: null,
+                                tuesday: null,
+                                wednesday: null,
+                                thursday: null,
+                                friday: null
+                            };
+                        }
+                        
+                        // Add entries for each day
+                        ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
+                            if (schedule[day] && schedule[day][timeSlot]) {
+                                const entry = schedule[day][timeSlot];
+                                // Add teacher information to the entry
+                                entry.teacherId = data.teacherId;
+                                entry.teacher = teachersIndex[data.teacherId] || 'Unknown Teacher';
+                                timetableData[timeSlot][day] = entry;
+                            }
+                        });
+                    });
                 });
                 
+                console.log('Loaded timetable data:', timetableData);
                 displayTimetable();
                 updateTimetableStats();
                 
@@ -713,12 +726,17 @@
         }
         
         function formatTimetableCell(cellData) {
-            if (!cellData || cellData.class === 'BREAK') {
+            if (!cellData) {
+                return '<div class="timetable-cell empty"><span class="text-muted">Free</span></div>';
+            }
+            
+            // Handle break periods
+            if (cellData.class === 'BREAK' || cellData.periodType === 'break') {
                 return '<div class="timetable-cell break"><i class="fas fa-coffee"></i><br><span class="text-muted">Break</span></div>';
             }
             
             const subjectName = subjectsIndex[cellData.subjectId] || cellData.subject || 'Subject';
-            const teacherName = teachersIndex[cellData.teacherId] || cellData.teacher || '';
+            const teacherName = cellData.teacher || teachersIndex[cellData.teacherId] || 'Unknown Teacher';
             
             return `
                 <div class="timetable-cell">
@@ -806,6 +824,7 @@
                     times
                 }, { merge: true });
                 
+                // Refresh timetable display
                 await loadDisplayFromFilters();
                 
                 // Close modal and reset form
