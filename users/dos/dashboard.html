@@ -448,113 +448,560 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos-utils.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
-        // DOS Dashboard Functionality
-        let isInitialized = false;
-        let isDataLoaded = false;
+        // DOS Dashboard Functionality - Dynamic Firestore Integration
         let dashboardData = {};
+        let students = [];
+        let classes = [];
+        let subjects = [];
+        let grades = [];
+        let announcements = [];
+        let events = [];
         
+        // Initialize DOS Dashboard
         async function initializeDOSDashboard() {
-            console.log('initializeDOSDashboard called');
             try {
-                // Wait for authentication
-                console.log('Waiting for auth...');
-                await waitForAuth();
-                console.log('Auth completed, currentUser:', window.currentUser);
+                showLoading('Initializing dashboard...');
                 
-                // Load user data
-                console.log('Loading user data...');
-                const userResult = await loadDOSUserData();
+                // Initialize DOS utilities
+                await DOSUtils.initializeDOSUtils();
+                
+                // Wait for authentication and get the user
+                currentUser = await DOSUtils.waitForAuth();
+                
+                // Load user data and check role
+                const userResult = await DOSUtils.loadDOSUserData(db, currentUser);
                 if (!userResult.success) {
                     showError(userResult.error);
                     return;
                 }
                 
                 // Update UI with user data
-                console.log('Updating user display...');
-                updateDOSUserDisplay(userResult);
+                DOSUtils.updateUserDisplay(userResult);
                 
-                // Load dynamic data
-                console.log('Loading dynamic data...');
-                await loadAcademicData();
-                await loadRecentActivity();
-                await loadAcademicCalendar();
+                // Load all data from Firestore
+                await loadAllDashboardData();
                 
-                isDataLoaded = true;
-                console.log('DOS dashboard initialization completed successfully');
+                // Setup real-time listeners
+                setupRealTimeListeners();
+                
+                // Initialize dashboard display
+                updateDashboardStatistics();
+                displayAcademicProgress();
+                displayRecentActivity();
+                displayUpcomingEvents();
+                
+                hideLoading();
+                console.log('✅ DOS dashboard initialized successfully');
                 
             } catch (error) {
                 console.error('Error initializing DOS dashboard:', error);
                 showError('Failed to initialize dashboard. Please refresh and try again.');
+                hideLoading();
+            }
+        }
+        
+        // Load all dashboard data from Firestore
+        async function loadAllDashboardData() {
+            try {
+                console.log('📊 Loading all dashboard data from Firestore...');
+                
+                // Load all data in parallel
+                const [studentsData, classesData, subjectsData, gradesData, announcementsData, eventsData] = await Promise.all([
+                    loadStudents(),
+                    DOSUtils.loadClasses(),
+                    DOSUtils.loadSubjects(),
+                    loadGrades(),
+                    loadAnnouncements(),
+                    DOSUtils.loadEvents()
+                ]);
+                
+                students = studentsData;
+                classes = classesData;
+                subjects = subjectsData;
+                grades = gradesData;
+                announcements = announcementsData;
+                events = eventsData;
+                
+                console.log('✅ All dashboard data loaded:', {
+                    students: students.length,
+                    classes: classes.length,
+                    subjects: subjects.length,
+                    grades: grades.length,
+                    announcements: announcements.length,
+                    events: events.length
+                });
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showError('Failed to load dashboard data. Please try again.');
+            }
+        }
+        
+        // Load students from Firestore
+        async function loadStudents() {
+            try {
+                const studentsSnapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
+                const studentsData = [];
+                
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    studentsData.push({
+                        id: doc.id,
+                        ...studentData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${studentsData.length} students from Firestore`);
+                return studentsData;
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                return [];
+            }
+        }
+        
+        // Load grades from Firestore
+        async function loadGrades() {
+            try {
+                const gradesSnapshot = await db.collection('grades').orderBy('createdAt', 'desc').get();
+                const gradesData = [];
+                
+                gradesSnapshot.forEach(doc => {
+                    const gradeData = doc.data();
+                    gradesData.push({
+                        id: doc.id,
+                        ...gradeData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${gradesData.length} grades from Firestore`);
+                return gradesData;
+                
+            } catch (error) {
+                console.error('Error loading grades:', error);
+                return [];
+            }
+        }
+        
+        // Load announcements from Firestore
+        async function loadAnnouncements() {
+            try {
+                const announcementsSnapshot = await db.collection('announcements').orderBy('createdAt', 'desc').limit(5).get();
+                const announcementsData = [];
+                
+                announcementsSnapshot.forEach(doc => {
+                    const announcementData = doc.data();
+                    announcementsData.push({
+                        id: doc.id,
+                        ...announcementData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${announcementsData.length} announcements from Firestore`);
+                return announcementsData;
+                
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                return [];
+            }
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            try {
+                // Listen for students changes
+                db.collection('students').onSnapshot((snapshot) => {
+                    console.log('👥 Students collection updated');
+                    loadAllDashboardData().then(() => {
+                        updateDashboardStatistics();
+                        displayAcademicProgress();
+                    });
+                });
+                
+                // Listen for grades changes
+                db.collection('grades').onSnapshot((snapshot) => {
+                    console.log('📊 Grades collection updated');
+                    loadAllDashboardData().then(() => {
+                        updateDashboardStatistics();
+                        displayAcademicProgress();
+                    });
+                });
+                
+                // Listen for announcements changes
+                db.collection('announcements').onSnapshot((snapshot) => {
+                    console.log('📢 Announcements collection updated');
+                    loadAllDashboardData().then(() => {
+                        displayRecentActivity();
+                    });
+                });
+                
+                // Listen for events changes
+                db.collection('events').onSnapshot((snapshot) => {
+                    console.log('📅 Events collection updated');
+                    loadAllDashboardData().then(() => {
+                        displayUpcomingEvents();
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
             }
         }
 
-        function waitForAuth() {
-            return new Promise((resolve, reject) => {
-                const unsubscribe = window.auth.onAuthStateChanged((user) => {
-                    unsubscribe();
-                    window.currentUser = user;
-                    if (user) {
-                        resolve();
-                    } else {
-                        reject(new Error('User not authenticated'));
+        // Update dashboard statistics with dynamic data
+        function updateDashboardStatistics() {
+            try {
+                // Calculate statistics
+                const totalStudents = students.length;
+                const totalClasses = classes.length;
+                
+                // Calculate average performance and pass rate from grades
+                let totalScore = 0;
+                let totalGrades = 0;
+                let passingGrades = 0;
+                
+                grades.forEach(grade => {
+                    if (grade.score && !isNaN(grade.score)) {
+                        totalScore += parseFloat(grade.score);
+                        totalGrades++;
+                        
+                        // Consider 50% as passing grade
+                        if (parseFloat(grade.score) >= 50) {
+                            passingGrades++;
+                        }
                     }
                 });
+                
+                const avgPerformance = totalGrades > 0 ? (totalScore / totalGrades).toFixed(1) : 0;
+                const passRate = totalGrades > 0 ? ((passingGrades / totalGrades) * 100).toFixed(1) : 0;
+                
+                // Update statistics display
+                const statTotalStudents = document.getElementById('statTotalStudents');
+                const statTotalClasses = document.getElementById('statTotalClasses');
+                const statAvgPerformance = document.getElementById('statAvgPerformance');
+                const statPassRate = document.getElementById('statPassRate');
+                
+                if (statTotalStudents) statTotalStudents.textContent = totalStudents;
+                if (statTotalClasses) statTotalClasses.textContent = totalClasses;
+                if (statAvgPerformance) statAvgPerformance.textContent = `${avgPerformance}%`;
+                if (statPassRate) statPassRate.textContent = `${passRate}%`;
+                
+                console.log('📊 Dashboard statistics updated:', {
+                    totalStudents,
+                    totalClasses,
+                    avgPerformance,
+                    passRate
+                });
+                
+            } catch (error) {
+                console.error('Error updating dashboard statistics:', error);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to load
+            setTimeout(() => {
+                initializeDOSDashboard();
+            }, 1000);
+        });
+        
+        // Display academic progress with dynamic data
+        function displayAcademicProgress() {
+            const tbody = document.getElementById('academicProgressTbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (classes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i><br>
+                            No classes found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            classes.forEach(cls => {
+                // Get students for this class
+                const classStudents = students.filter(student => 
+                    student.academicInfo?.classId === cls.id || 
+                    student.academicInfo?.className === cls.name
+                );
+                
+                // Get grades for this class
+                const classGrades = grades.filter(grade => 
+                    classStudents.some(student => student.id === grade.studentId)
+                );
+                
+                // Calculate statistics for this class
+                let classTotalScore = 0;
+                let classTotalGrades = 0;
+                let classPassingGrades = 0;
+                
+                classGrades.forEach(grade => {
+                    if (grade.score && !isNaN(grade.score)) {
+                        classTotalScore += parseFloat(grade.score);
+                        classTotalGrades++;
+                        
+                        if (parseFloat(grade.score) >= 50) {
+                            classPassingGrades++;
+                        }
+                    }
+                });
+                
+                const avgScore = classTotalGrades > 0 ? (classTotalScore / classTotalGrades).toFixed(1) : 0;
+                const passRate = classTotalGrades > 0 ? ((classPassingGrades / classTotalGrades) * 100).toFixed(1) : 0;
+                
+                // Find top performer
+                const topPerformer = classStudents.length > 0 ? 
+                    classStudents[0].personalInfo?.fullName || 
+                    `${classStudents[0].personalInfo?.firstName || ''} ${classStudents[0].personalInfo?.lastName || ''}`.trim() || 
+                    'Unknown' : 'N/A';
+                
+                const status = parseFloat(passRate) >= 70 ? 'Good' : parseFloat(passRate) >= 50 ? 'Average' : 'Needs Attention';
+                const statusColor = parseFloat(passRate) >= 70 ? 'success' : parseFloat(passRate) >= 50 ? 'warning' : 'danger';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${cls.name}</strong></td>
+                    <td><span class="badge bg-primary">${classStudents.length}</span></td>
+                    <td><span class="badge bg-info">${avgScore}%</span></td>
+                    <td><span class="badge bg-secondary">${passRate}%</span></td>
+                    <td><small>${topPerformer}</small></td>
+                    <td><span class="badge bg-${statusColor}">${status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewClassDetails('${cls.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
         }
-
-        async function loadDOSUserData() {
-            try {
-                if (!window.currentUser) {
-                    return { success: false, error: 'User not authenticated' };
-                }
-
-                const userDoc = await window.db.collection('users')
-                    .doc(window.currentUser.uid)
-                    .get();
-
-                if (!userDoc.exists) {
-                    return { success: false, error: 'User profile not found' };
-                }
-
-                const userData = userDoc.data();
-                return {
-                    success: true,
-                    userData: userData,
-                    userName: userData.personalInfo?.fullName || userData.displayName || 'Director of Studies',
-                    staffId: userData.staffId || 'N/A',
-                    role: userData.role || 'dos'
-                };
-            } catch (error) {
-                console.error('Error loading DOS user data:', error);
-                return { success: false, error: 'Failed to load user data' };
+        
+        // Display recent activity with dynamic data
+        function displayRecentActivity() {
+            const container = document.getElementById('recentActivityContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (announcements.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-bullhorn fa-2x mb-2"></i><br>
+                        No recent announcements
+                    </div>
+                `;
+                return;
             }
+            
+            announcements.forEach(announcement => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                const createdAt = announcement.createdAt ? 
+                    new Date(announcement.createdAt.seconds * 1000).toLocaleDateString() : 
+                    'Unknown';
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${announcement.title || 'Announcement'}</div>
+                        <div class="activity-description">${announcement.content || 'No content'}</div>
+                        <div class="activity-time">${createdAt}</div>
+                    </div>
+                `;
+                container.appendChild(activityItem);
+            });
         }
-
-        function updateDOSUserDisplay(userResult) {
-            try {
-                // Update current user display
-                const currentUserEl = document.getElementById('current-user');
-                if (currentUserEl) {
-                    currentUserEl.textContent = userResult.userName;
-                }
-
-                // Update sidebar staff ID
-                const staffIdEl = document.getElementById('sidebar-staff-id');
-                if (staffIdEl) {
-                    staffIdEl.textContent = `Staff ID: ${userResult.staffId}`;
-                }
-
-                console.log('DOS user loaded:', {
-                    name: userResult.userName,
-                    staffId: userResult.staffId,
-                    role: userResult.role
-                });
-            } catch (error) {
-                console.error('Error updating user display:', error);
+        
+        // Display upcoming events with dynamic data
+        function displayUpcomingEvents() {
+            const container = document.getElementById('upcomingEventsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Get upcoming events (next 7 days)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            
+            const upcomingEvents = events.filter(event => {
+                if (!event.startDate) return false;
+                const eventDate = new Date(event.startDate + 'T00:00:00');
+                return eventDate >= today && eventDate <= nextWeek;
+            }).sort((a, b) => new Date(a.startDate + 'T00:00:00') - new Date(b.startDate + 'T00:00:00'));
+            
+            if (upcomingEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
+                        No upcoming events
+                    </div>
+                `;
+                return;
             }
+            
+            upcomingEvents.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'event-item';
+                
+                const eventDate = DOSUtils.formatDate(event.startDate);
+                
+                eventItem.innerHTML = `
+                    <div class="event-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="event-content">
+                        <div class="event-title">${event.title || 'Event'}</div>
+                        <div class="event-description">${event.description || 'No description'}</div>
+                        <div class="event-time">${eventDate}</div>
+                    </div>
+                `;
+                container.appendChild(eventItem);
+            });
         }
+        
+        // View class details
+        function viewClassDetails(classId) {
+            const cls = classes.find(c => c.id === classId);
+            if (!cls) return;
+            
+            const classStudents = students.filter(student => 
+                student.academicInfo?.classId === classId || 
+                student.academicInfo?.className === cls.name
+            );
+            
+            const details = `
+                <div style="text-align: left; max-width: 500px;">
+                    <h4>Class Details - ${cls.name}</h4>
+                    <hr>
+                    
+                    <h5>Class Information</h5>
+                    <strong>Class Name:</strong> ${cls.name}<br>
+                    <strong>Level:</strong> ${cls.level || 'Not specified'}<br>
+                    <strong>Stream:</strong> ${cls.stream || 'Not specified'}<br>
+                    <strong>Total Students:</strong> ${classStudents.length}<br><br>
+                    
+                    <h5>Academic Performance</h5>
+                    <strong>Average Score:</strong> ${calculateClassAverage(classId)}%<br>
+                    <strong>Pass Rate:</strong> ${calculateClassPassRate(classId)}%<br>
+                    <strong>Total Grades:</strong> ${grades.filter(g => classStudents.some(s => s.id === g.studentId)).length}<br><br>
+                    
+                    <h5>Student List</h5>
+                    ${classStudents.length > 0 ? 
+                        classStudents.map(student => 
+                            `• ${student.personalInfo?.fullName || 
+                              `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim() || 
+                              'Unknown Student'}`
+                        ).join('<br>') : 
+                        'No students assigned to this class'
+                    }
+                </div>
+            `;
+            
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'classDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Class Details - ${cls.name}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // Calculate class average
+        function calculateClassAverage(classId) {
+            const cls = classes.find(c => c.id === classId);
+            if (!cls) return 0;
+            
+            const classStudents = students.filter(student => 
+                student.academicInfo?.classId === classId || 
+                student.academicInfo?.className === cls.name
+            );
+            
+            const classGrades = grades.filter(grade => 
+                classStudents.some(student => student.id === grade.studentId)
+            );
+            
+            let totalScore = 0;
+            let totalGrades = 0;
+            
+            classGrades.forEach(grade => {
+                if (grade.score && !isNaN(grade.score)) {
+                    totalScore += parseFloat(grade.score);
+                    totalGrades++;
+                }
+            });
+            
+            return totalGrades > 0 ? (totalScore / totalGrades).toFixed(1) : 0;
+        }
+        
+        // Calculate class pass rate
+        function calculateClassPassRate(classId) {
+            const cls = classes.find(c => c.id === classId);
+            if (!cls) return 0;
+            
+            const classStudents = students.filter(student => 
+                student.academicInfo?.classId === classId || 
+                student.academicInfo?.className === cls.name
+            );
+            
+            const classGrades = grades.filter(grade => 
+                classStudents.some(student => student.id === grade.studentId)
+            );
+            
+            let passingGrades = 0;
+            let totalGrades = 0;
+            
+            classGrades.forEach(grade => {
+                if (grade.score && !isNaN(grade.score)) {
+                    totalGrades++;
+                    if (parseFloat(grade.score) >= 50) {
+                        passingGrades++;
+                    }
+                }
+            });
+            
+            return totalGrades > 0 ? ((passingGrades / totalGrades) * 100).toFixed(1) : 0;
+        }
+        
+        // Make functions globally available
+        window.initializeDOSDashboard = initializeDOSDashboard;
+        window.viewClassDetails = viewClassDetails;
+        window.logout = DOSUtils.logout;
 
         async function loadAcademicData() {
             console.log('Loading academic data...');

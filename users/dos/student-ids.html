@@ -459,13 +459,14 @@
     </div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="../../assets/js/firebase-init-compat.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos-utils.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
         // Student ID Management Functionality
@@ -541,12 +542,220 @@
             }
         ];
         
-        function initializeStudentIDs() {
-            studentIDs = [...sampleStudentIDs];
-            displayStudentIDs();
+        // DOS Student IDs - Dynamic Firestore Integration
+        let students = [];
+        let classes = [];
+        let studentIDs = [];
+        
+        // Initialize Student IDs page
+        async function initializeStudentIDs() {
+            try {
+                showLoading('Loading student IDs...');
+                
+                // Initialize DOS utilities
+                await DOSUtils.initializeDOSUtils();
+                
+                // Wait for authentication and get the user
+                currentUser = await DOSUtils.waitForAuth();
+                
+                // Load user data and check role
+                const userResult = await DOSUtils.loadDOSUserData(db, currentUser);
+                if (!userResult.success) {
+                    showError(userResult.error);
+                    return;
+                }
+                
+                // Update UI with user data
+                DOSUtils.updateUserDisplay(userResult);
+                
+                // Load student IDs data from Firestore
+                await loadStudentIDsData();
+                
+                // Setup real-time listeners
+                setupRealTimeListeners();
+                
+                // Initialize page display
+                displayStudentIDs();
+                updateStudentIDsStatistics();
+                
+                hideLoading();
+                console.log('✅ Student IDs page initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing student IDs page:', error);
+                showError('Failed to initialize student IDs page. Please refresh and try again.');
+                hideLoading();
+            }
         }
         
-        function displayStudentIDs() {
+        // Load student IDs data from Firestore
+        async function loadStudentIDsData() {
+            try {
+                console.log('🆔 Loading student IDs data from Firestore...');
+                
+                // Load all data in parallel
+                const [studentsData, classesData] = await Promise.all([
+                    loadStudents(),
+                    DOSUtils.loadClasses()
+                ]);
+                
+                students = studentsData;
+                classes = classesData;
+                
+                // Process student IDs data
+                processStudentIDsData();
+                
+                console.log('✅ Student IDs data loaded:', {
+                    students: students.length,
+                    classes: classes.length,
+                    studentIDs: studentIDs.length
+                });
+                
+            } catch (error) {
+                console.error('Error loading student IDs data:', error);
+                showError('Failed to load student IDs data. Please try again.');
+            }
+        }
+        
+        // Load students from Firestore
+        async function loadStudents() {
+            try {
+                const studentsSnapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
+                const studentsData = [];
+                
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    studentsData.push({
+                        id: doc.id,
+                        ...studentData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${studentsData.length} students from Firestore`);
+                return studentsData;
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                return [];
+            }
+        }
+        
+        // Process student IDs data
+        function processStudentIDsData() {
+            studentIDs = [];
+            
+            students.forEach(student => {
+                // Get student's class
+                const studentClass = classes.find(cls => 
+                    cls.id === student.academicInfo?.classId || 
+                    cls.name === student.academicInfo?.className
+                );
+                
+                if (!studentClass) return;
+                
+                // Generate student ID
+                const studentId = student.studentId || student.id || 'ST' + student.id.substring(0, 6).toUpperCase();
+                
+                // Calculate issue and expiry dates
+                const issueDate = student.academicInfo?.enrollmentDate || student.createdAt || new Date().toISOString();
+                const expiryDate = calculateExpiryDate(issueDate);
+                
+                // Determine status
+                const status = isStudentIDActive(expiryDate) ? 'Active' : 'Expired';
+                
+                studentIDs.push({
+                    id: studentId,
+                    studentName: student.personalInfo?.fullName || 
+                               `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim() || 
+                               'Unknown Student',
+                    class: studentClass.name,
+                    issueDate: issueDate,
+                    expiryDate: expiryDate,
+                    status: status,
+                    dateOfBirth: student.personalInfo?.dateOfBirth || 'N/A',
+                    phone: student.contactInfo?.phone || 'N/A',
+                    parentName: student.parentInfo?.fullName || 'N/A',
+                    parentPhone: student.parentInfo?.phone || 'N/A',
+                    address: student.contactInfo?.address || 'N/A',
+                    studentId: student.id,
+                    classId: studentClass.id
+                });
+            });
+            
+            console.log('🆔 Student IDs data processed:', studentIDs.length, 'IDs');
+        }
+        
+        // Calculate expiry date (1 year from issue date)
+        function calculateExpiryDate(issueDate) {
+            const issue = new Date(issueDate);
+            const expiry = new Date(issue);
+            expiry.setFullYear(expiry.getFullYear() + 1);
+            return expiry.toISOString();
+        }
+        
+        // Check if student ID is active
+        function isStudentIDActive(expiryDate) {
+            const now = new Date();
+            const expiry = new Date(expiryDate);
+            return now < expiry;
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            try {
+                // Listen for students changes
+                db.collection('students').onSnapshot((snapshot) => {
+                    console.log('👥 Students collection updated');
+                    loadStudentIDsData().then(() => {
+                        displayStudentIDs();
+                        updateStudentIDsStatistics();
+                    });
+                });
+                
+                // Listen for classes changes
+                db.collection('classes').onSnapshot((snapshot) => {
+                    console.log('🏫 Classes collection updated');
+                    loadStudentIDsData().then(() => {
+                        displayStudentIDs();
+                        updateStudentIDsStatistics();
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
+        }
+        
+        // Update student IDs statistics
+        function updateStudentIDsStatistics() {
+            try {
+                const totalStudents = students.length;
+                const totalClasses = classes.length;
+                const activeIDs = studentIDs.filter(id => id.status === 'Active').length;
+                const expiredIDs = studentIDs.filter(id => id.status === 'Expired').length;
+                
+                // Update statistics display
+                const statTotalStudents = document.getElementById('stat-total-students');
+                const statTotalClasses = document.getElementById('stat-total-classes');
+                const statActiveIDs = document.getElementById('stat-active-ids');
+                const statExpiredIDs = document.getElementById('stat-expired-ids');
+                
+                if (statTotalStudents) statTotalStudents.textContent = totalStudents;
+                if (statTotalClasses) statTotalClasses.textContent = totalClasses;
+                if (statActiveIDs) statActiveIDs.textContent = activeIDs;
+                if (statExpiredIDs) statExpiredIDs.textContent = expiredIDs;
+                
+                console.log('📊 Student IDs statistics updated:', {
+                    totalStudents,
+                    totalClasses,
+                    activeIDs,
+                    expiredIDs
+                });
+                
+            } catch (error) {
+                console.error('Error updating student IDs statistics:', error);
+            }
+        }
             const tbody = document.getElementById('student-ids-tbody');
             tbody.innerHTML = '';
             
@@ -805,8 +1014,18 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            initializeStudentIDs();
+            // Wait for Firebase to load
+            setTimeout(() => {
+                initializeStudentIDs();
+            }, 1000);
         });
+        
+        // Make functions globally available
+        window.initializeStudentIDs = initializeStudentIDs;
+        window.viewStudentID = viewStudentID;
+        window.printStudentID = printStudentID;
+        window.renewStudentID = renewStudentID;
+        window.logout = DOSUtils.logout;
     </script>
     
     <style>

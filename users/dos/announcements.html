@@ -429,55 +429,58 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos-utils.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
-        // Announcements Functionality (Firebase)
+        // DOS Announcements - Dynamic Firestore Integration
         let announcements = [];
         let filteredAnnouncements = [];
-        let currentUser = null;
         
-        // Check authentication and role
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection('users').doc(user.uid).get().then((doc) => {
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        const userRole = userData.role;
-                        
-                        if (userRole === 'dos') {
-                            console.log('✅ Director of Studies authenticated:', user.email);
-                            currentUser = user;
-                            
-                            // Load staff ID
-                            const staffId = userData.staffId || (userData.employmentInfo && userData.employmentInfo.staffId) || '—';
-                            document.getElementById('sidebar-staff-id').textContent = staffId;
-                            
-                            loadAnnouncements();
-                            setupRealTimeListeners();
-                        } else {
-                            console.log('❌ Access denied. Required role: dos');
-                            alert('Access denied. You do not have Director of Studies privileges.');
-                            auth.signOut().then(() => {
-                                window.location.href = '../../index.html';
-                            });
-                        }
-                    } else {
-                        console.log('❌ User document not found');
-                        auth.signOut().then(() => {
-                            window.location.href = '../../index.html';
-                        });
-                    }
-                });
-            } else {
-                console.log('❌ No authenticated user, redirecting to login');
-                window.location.href = '../../index.html';
+        // Initialize Announcements page
+        async function initializeAnnouncements() {
+            try {
+                showLoading('Loading announcements...');
+                
+                // Initialize DOS utilities
+                await DOSUtils.initializeDOSUtils();
+                
+                // Wait for authentication and get the user
+                currentUser = await DOSUtils.waitForAuth();
+                
+                // Load user data and check role
+                const userResult = await DOSUtils.loadDOSUserData(db, currentUser);
+                if (!userResult.success) {
+                    showError(userResult.error);
+                    return;
+                }
+                
+                // Update UI with user data
+                DOSUtils.updateUserDisplay(userResult);
+                
+                // Load announcements from Firestore
+                await loadAnnouncements();
+                
+                // Setup real-time listeners
+                setupRealTimeListeners();
+                
+                // Initialize page display
+                displayAnnouncements();
+                updateAnnouncementsStatistics();
+                
+                hideLoading();
+                console.log('✅ Announcements page initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing announcements page:', error);
+                showError('Failed to initialize announcements page. Please refresh and try again.');
+                hideLoading();
             }
-        });
+        }
         
         // Load announcements from Firebase
         async function loadAnnouncements() {
@@ -998,8 +1001,43 @@
         }
         
         // Mobile Sidebar Functionality
+        // Update announcements statistics
+        function updateAnnouncementsStatistics() {
+            try {
+                const totalAnnouncements = announcements.length;
+                const activeAnnouncements = announcements.filter(a => a.status === 'active').length;
+                const draftAnnouncements = announcements.filter(a => a.status === 'draft').length;
+                const urgentAnnouncements = announcements.filter(a => a.priority === 'urgent').length;
+                
+                // Update statistics display
+                const statTotalAnnouncements = document.getElementById('stat-total-announcements');
+                const statActiveAnnouncements = document.getElementById('stat-active-announcements');
+                const statDraftAnnouncements = document.getElementById('stat-draft-announcements');
+                const statUrgentAnnouncements = document.getElementById('stat-urgent-announcements');
+                
+                if (statTotalAnnouncements) statTotalAnnouncements.textContent = totalAnnouncements;
+                if (statActiveAnnouncements) statActiveAnnouncements.textContent = activeAnnouncements;
+                if (statDraftAnnouncements) statDraftAnnouncements.textContent = draftAnnouncements;
+                if (statUrgentAnnouncements) statUrgentAnnouncements.textContent = urgentAnnouncements;
+                
+                console.log('📊 Announcements statistics updated:', {
+                    totalAnnouncements,
+                    activeAnnouncements,
+                    draftAnnouncements,
+                    urgentAnnouncements
+                });
+                
+            } catch (error) {
+                console.error('Error updating announcements statistics:', error);
+            }
+        }
+        
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            // Wait for Firebase to load
+            setTimeout(() => {
+                initializeAnnouncements();
+            }, 1000);
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             

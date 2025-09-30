@@ -459,95 +459,379 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos-utils.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
-        // Report Cards Functionality
+        // DOS Report Cards - Dynamic Firestore Integration
+        let students = [];
+        let classes = [];
+        let subjects = [];
+        let grades = [];
+        let terms = [];
         let reportCards = [];
         
-        // Sample report cards data
-        const sampleReportCards = [
-            {
-                studentId: 'ST001',
-                studentName: 'John Doe',
-                class: 'S.4 Science A',
-                term: 'Term 1',
-                averageGrade: 'A',
-                position: '5th',
-                status: 'Generated'
-            },
-            {
-                studentId: 'ST002',
-                studentName: 'Mary Smith',
-                class: 'S.4 Science A',
-                term: 'Term 1',
-                averageGrade: 'B',
-                position: '8th',
-                status: 'Printed'
-            },
-            {
-                studentId: 'ST003',
-                studentName: 'Peter Johnson',
-                class: 'S.4 Science B',
-                term: 'Term 1',
-                averageGrade: 'A',
-                position: '3rd',
-                status: 'Distributed'
-            },
-            {
-                studentId: 'ST004',
-                studentName: 'Sarah Wilson',
-                class: 'S.3 Science',
-                term: 'Term 1',
-                averageGrade: 'C',
-                position: '12th',
-                status: 'Generated'
-            },
-            {
-                studentId: 'ST005',
-                studentName: 'David Brown',
-                class: 'S.2 Science',
-                term: 'Term 1',
-                averageGrade: 'B',
-                position: '7th',
-                status: 'Pending'
+        // Initialize Report Cards page
+        async function initializeReportCards() {
+            try {
+                showLoading('Loading report cards...');
+                
+                // Initialize DOS utilities
+                await DOSUtils.initializeDOSUtils();
+                
+                // Wait for authentication and get the user
+                currentUser = await DOSUtils.waitForAuth();
+                
+                // Load user data and check role
+                const userResult = await DOSUtils.loadDOSUserData(db, currentUser);
+                if (!userResult.success) {
+                    showError(userResult.error);
+                    return;
+                }
+                
+                // Update UI with user data
+                DOSUtils.updateUserDisplay(userResult);
+                
+                // Load all data from Firestore
+                await loadAllReportCardsData();
+                
+                // Setup real-time listeners
+                setupRealTimeListeners();
+                
+                // Initialize page display
+                displayReportCards();
+                updateReportCardsStatistics();
+                
+                hideLoading();
+                console.log('✅ Report cards page initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing report cards page:', error);
+                showError('Failed to initialize report cards page. Please refresh and try again.');
+                hideLoading();
             }
-        ];
-        
-        function initializeReportCards() {
-            reportCards = [...sampleReportCards];
-            displayReportCards();
         }
         
-        function displayReportCards() {
-            const tbody = document.getElementById('report-cards-tbody');
-            tbody.innerHTML = '';
+        // Load all report cards data from Firestore
+        async function loadAllReportCardsData() {
+            try {
+                console.log('📋 Loading all report cards data from Firestore...');
+                
+                // Load all data in parallel
+                const [studentsData, classesData, subjectsData, gradesData, termsData] = await Promise.all([
+                    loadStudents(),
+                    DOSUtils.loadClasses(),
+                    DOSUtils.loadSubjects(),
+                    loadGrades(),
+                    loadTerms()
+                ]);
+                
+                students = studentsData;
+                classes = classesData;
+                subjects = subjectsData;
+                grades = gradesData;
+                terms = termsData;
+                
+                // Process report cards data
+                processReportCardsData();
+                
+                console.log('✅ All report cards data loaded:', {
+                    students: students.length,
+                    classes: classes.length,
+                    subjects: subjects.length,
+                    grades: grades.length,
+                    terms: terms.length,
+                    reportCards: reportCards.length
+                });
+                
+            } catch (error) {
+                console.error('Error loading report cards data:', error);
+                showError('Failed to load report cards data. Please try again.');
+            }
+        }
+        
+        // Load students from Firestore
+        async function loadStudents() {
+            try {
+                const studentsSnapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
+                const studentsData = [];
+                
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    studentsData.push({
+                        id: doc.id,
+                        ...studentData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${studentsData.length} students from Firestore`);
+                return studentsData;
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                return [];
+            }
+        }
+        
+        // Load grades from Firestore
+        async function loadGrades() {
+            try {
+                const gradesSnapshot = await db.collection('grades').orderBy('createdAt', 'desc').get();
+                const gradesData = [];
+                
+                gradesSnapshot.forEach(doc => {
+                    const gradeData = doc.data();
+                    gradesData.push({
+                        id: doc.id,
+                        ...gradeData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${gradesData.length} grades from Firestore`);
+                return gradesData;
+                
+            } catch (error) {
+                console.error('Error loading grades:', error);
+                return [];
+            }
+        }
+        
+        // Load terms from Firestore
+        async function loadTerms() {
+            try {
+                const termsSnapshot = await db.collection('terms').orderBy('createdAt', 'desc').get();
+                const termsData = [];
+                
+                termsSnapshot.forEach(doc => {
+                    const termData = doc.data();
+                    termsData.push({
+                        id: doc.id,
+                        ...termData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${termsData.length} terms from Firestore`);
+                return termsData;
+                
+            } catch (error) {
+                console.error('Error loading terms:', error);
+                return [];
+            }
+        }
+        
+        // Process report cards data
+        function processReportCardsData() {
+            reportCards = [];
             
-            reportCards.forEach(card => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${card.studentId}</td>
-                    <td>${card.studentName}</td>
-                    <td>${card.class}</td>
-                    <td>${card.term}</td>
-                    <td><span class="badge ${getGradeColor(card.averageGrade)}">${card.averageGrade}</span></td>
-                    <td>${card.position}</td>
-                    <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
-                            <i class="fas fa-print"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="distributeReportCard('${card.studentId}')">
-                            <i class="fas fa-share"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+            students.forEach(student => {
+                // Get student's class
+                const studentClass = classes.find(cls => 
+                    cls.id === student.academicInfo?.classId || 
+                    cls.name === student.academicInfo?.className
+                );
+                
+                if (!studentClass) return;
+                
+                // Get student's grades
+                const studentGrades = grades.filter(grade => grade.studentId === student.id);
+                
+                if (studentGrades.length === 0) return;
+                
+                // Group grades by term
+                const termGroups = {};
+                studentGrades.forEach(grade => {
+                    const termId = grade.termId || 'current';
+                    if (!termGroups[termId]) {
+                        termGroups[termId] = [];
+                    }
+                    termGroups[termId].push(grade);
+                });
+                
+                // Process each term
+                Object.keys(termGroups).forEach(termId => {
+                    const termGrades = termGroups[termId];
+                    const term = terms.find(t => t.id === termId) || { name: 'Current Term', id: termId };
+                    
+                    // Calculate average grade
+                    let totalScore = 0;
+                    let validGrades = 0;
+                    
+                    termGrades.forEach(grade => {
+                        if (grade.score && !isNaN(grade.score)) {
+                            totalScore += parseFloat(grade.score);
+                            validGrades++;
+                        }
+                    });
+                    
+                    if (validGrades === 0) return;
+                    
+                    const averageScore = totalScore / validGrades;
+                    const averageGrade = calculateGrade(averageScore);
+                    
+                    // Calculate position (simplified - would need more complex logic in real implementation)
+                    const position = calculatePosition(student.id, studentClass.id, termId);
+                    
+                    // Determine status
+                    const status = validGrades >= 5 ? 'Generated' : 'Pending';
+                    
+                    reportCards.push({
+                        studentId: student.id,
+                        studentName: student.personalInfo?.fullName || 
+                                   `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim() || 
+                                   'Unknown Student',
+                        class: studentClass.name,
+                        term: term.name,
+                        averageGrade: averageGrade,
+                        averageScore: averageScore.toFixed(1),
+                        position: position,
+                        status: status,
+                        totalSubjects: validGrades,
+                        termId: termId,
+                        classId: studentClass.id
+                    });
+                });
             });
+            
+            console.log('📋 Report cards data processed:', reportCards.length, 'cards');
         }
+        
+        // Calculate grade from score
+        function calculateGrade(score) {
+            if (score >= 80) return 'A';
+            if (score >= 65) return 'B';
+            if (score >= 50) return 'C';
+            if (score >= 40) return 'D';
+            return 'E';
+        }
+        
+        // Calculate position (simplified implementation)
+        function calculatePosition(studentId, classId, termId) {
+            // Get all students in the same class
+            const classStudents = students.filter(student => 
+                student.academicInfo?.classId === classId || 
+                student.academicInfo?.className === classes.find(c => c.id === classId)?.name
+            );
+            
+            // Calculate average scores for all students in this term
+            const studentAverages = classStudents.map(student => {
+                const studentGrades = grades.filter(grade => 
+                    grade.studentId === student.id && 
+                    (grade.termId === termId || (!grade.termId && termId === 'current'))
+                );
+                
+                if (studentGrades.length === 0) return { studentId: student.id, average: 0 };
+                
+                let totalScore = 0;
+                let validGrades = 0;
+                
+                studentGrades.forEach(grade => {
+                    if (grade.score && !isNaN(grade.score)) {
+                        totalScore += parseFloat(grade.score);
+                        validGrades++;
+                    }
+                });
+                
+                return {
+                    studentId: student.id,
+                    average: validGrades > 0 ? totalScore / validGrades : 0
+                };
+            });
+            
+            // Sort by average score
+            studentAverages.sort((a, b) => b.average - a.average);
+            
+            // Find position
+            const position = studentAverages.findIndex(s => s.studentId === studentId) + 1;
+            
+            return `${position}${getOrdinalSuffix(position)}`;
+        }
+        
+        // Get ordinal suffix
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j === 1 && k !== 11) return 'st';
+            if (j === 2 && k !== 12) return 'nd';
+            if (j === 3 && k !== 13) return 'rd';
+            return 'th';
+        }
+        
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            try {
+                // Listen for students changes
+                db.collection('students').onSnapshot((snapshot) => {
+                    console.log('👥 Students collection updated');
+                    loadAllReportCardsData().then(() => {
+                        displayReportCards();
+                        updateReportCardsStatistics();
+                    });
+                });
+                
+                // Listen for grades changes
+                db.collection('grades').onSnapshot((snapshot) => {
+                    console.log('📊 Grades collection updated');
+                    loadAllReportCardsData().then(() => {
+                        displayReportCards();
+                        updateReportCardsStatistics();
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
+        }
+        
+        // Update report cards statistics
+        function updateReportCardsStatistics() {
+            try {
+                const totalStudents = students.length;
+                const totalClasses = classes.length;
+                const generatedCards = reportCards.filter(card => card.status === 'Generated').length;
+                const pendingCards = reportCards.filter(card => card.status === 'Pending').length;
+                
+                // Update statistics display
+                const statTotalStudents = document.getElementById('stat-total-students');
+                const statTotalClasses = document.getElementById('stat-total-classes');
+                const statGeneratedCards = document.getElementById('stat-generated-cards');
+                const statPendingCards = document.getElementById('stat-pending-cards');
+                
+                if (statTotalStudents) statTotalStudents.textContent = totalStudents;
+                if (statTotalClasses) statTotalClasses.textContent = totalClasses;
+                if (statGeneratedCards) statGeneratedCards.textContent = generatedCards;
+                if (statPendingCards) statPendingCards.textContent = pendingCards;
+                
+                console.log('📊 Report cards statistics updated:', {
+                    totalStudents,
+                    totalClasses,
+                    generatedCards,
+                    pendingCards
+                });
+                
+            } catch (error) {
+                console.error('Error updating report cards statistics:', error);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to load
+            setTimeout(() => {
+                initializeReportCards();
+            }, 1000);
+        });
+        
+        // Make functions globally available
+        window.initializeReportCards = initializeReportCards;
+        window.viewReportCard = viewReportCard;
+        window.printReportCard = printReportCard;
+        window.distributeReportCard = distributeReportCard;
+        window.logout = DOSUtils.logout;
         
         function getGradeColor(grade) {
             switch(grade) {

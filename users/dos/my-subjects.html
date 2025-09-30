@@ -450,63 +450,385 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-init-compat.js"></script>
     <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/users/dos-utils.js"></script>
     <script src="../../assets/js/users/dos.js"></script>
     <script>
-        // DOS specific functionality
-        function viewSubject(subjectId) {
-            console.log('Viewing subject:', subjectId);
-            // Implement subject viewing logic
-        }
-
-        function editSubject(subjectId) {
-            console.log('Editing subject:', subjectId);
-            // Implement subject editing logic
-        }
-
-        // Mobile Sidebar Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            
-            // Toggle sidebar on mobile
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-                sidebarOverlay.classList.toggle('show');
-            });
-            
-            // Close sidebar when clicking overlay
-            sidebarOverlay.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-            });
-            
-            // Close sidebar when clicking on nav links (mobile)
-            const navLinks = document.querySelectorAll('.sidebar .nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                    }
-                });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
+        // DOS My Subjects - Dynamic Firestore Integration
+        let subjects = [];
+        let departments = [];
+        let teachers = [];
+        let classes = [];
+        
+        // Initialize My Subjects page
+        async function initializeMySubjects() {
+            try {
+                showLoading('Loading subjects...');
+                
+                // Initialize DOS utilities
+                await DOSUtils.initializeDOSUtils();
+                
+                // Wait for authentication and get the user
+                currentUser = await DOSUtils.waitForAuth();
+                
+                // Load user data and check role
+                const userResult = await DOSUtils.loadDOSUserData(db, currentUser);
+                if (!userResult.success) {
+                    showError(userResult.error);
+                    return;
                 }
-            });
-        });
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '../../index.html';
+                
+                // Update UI with user data
+                DOSUtils.updateUserDisplay(userResult);
+                
+                // Load all data from Firestore
+                await loadAllSubjectsData();
+                
+                // Setup real-time listeners
+                setupRealTimeListeners();
+                
+                // Initialize page display
+                displaySubjects();
+                updateSubjectStatistics();
+                
+                hideLoading();
+                console.log('✅ My subjects page initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing my subjects page:', error);
+                showError('Failed to initialize subjects page. Please refresh and try again.');
+                hideLoading();
             }
         }
-    </script>
+
+        // Load all subjects data from Firestore
+        async function loadAllSubjectsData() {
+            try {
+                console.log('📚 Loading all subjects data from Firestore...');
+                
+                // Load all data in parallel
+                const [subjectsData, departmentsData, teachersData, classesData] = await Promise.all([
+                    DOSUtils.loadSubjects(),
+                    DOSUtils.loadDepartments(),
+                    loadTeachers(),
+                    DOSUtils.loadClasses()
+                ]);
+                
+                subjects = subjectsData;
+                departments = departmentsData;
+                teachers = teachersData;
+                classes = classesData;
+                
+                console.log('✅ All subjects data loaded:', {
+                    subjects: subjects.length,
+                    departments: departments.length,
+                    teachers: teachers.length,
+                    classes: classes.length
+                });
+                
+            } catch (error) {
+                console.error('Error loading subjects data:', error);
+                showError('Failed to load subjects data. Please try again.');
+            }
+        }
+        
+        // Load teachers from Firestore
+        async function loadTeachers() {
+            try {
+                const teachersSnapshot = await db.collection('users')
+                    .where('role', 'in', ['subject_teacher', 'class_teacher', 'hod'])
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                const teachersData = [];
+                teachersSnapshot.forEach(doc => {
+                    const teacherData = doc.data();
+                    teachersData.push({
+                        id: doc.id,
+                        ...teacherData
+                    });
+                });
+                
+                console.log(`✅ Loaded ${teachersData.length} teachers from Firestore`);
+                return teachersData;
+                
+            } catch (error) {
+                console.error('Error loading teachers:', error);
+                return [];
+            }
+        }
+
+        // Setup real-time listeners for dynamic updates
+        function setupRealTimeListeners() {
+            try {
+                // Listen for subjects changes
+                db.collection('subjects').onSnapshot((snapshot) => {
+                    console.log('📚 Subjects collection updated');
+                    loadAllSubjectsData().then(() => {
+                        displaySubjects();
+                        updateSubjectStatistics();
+                    });
+                });
+                
+                // Listen for teachers changes
+                db.collection('users').onSnapshot((snapshot) => {
+                    console.log('👨‍🏫 Teachers collection updated');
+                    loadAllSubjectsData().then(() => {
+                        displaySubjects();
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
+        }
+        
+        // Display subjects with dynamic data
+        function displaySubjects() {
+            const tbody = document.getElementById('subjects-tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (subjects.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-book fa-2x mb-2"></i><br>
+                            No subjects found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            subjects.forEach(subject => {
+                // Get department name
+                const department = departments.find(d => d.id === subject.departmentId);
+                const departmentName = department ? department.name : 'Not assigned';
+                
+                // Get teachers for this subject
+                const subjectTeachers = teachers.filter(teacher => 
+                    teacher.academicInfo?.subjects?.some(s => s.id === subject.id)
+                );
+                
+                // Get classes studying this subject
+                const subjectClasses = classes.filter(cls => 
+                    cls.subjects?.includes(subject.id)
+                );
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-2">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <strong>${subject.name}</strong><br>
+                                <small class="text-muted">${subject.code || 'No code'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">${departmentName}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${subjectTeachers.length}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success">${subjectClasses.length}</span>
+                    </td>
+                    <td>
+                        <span class="badge ${subject.status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                            ${subject.status || 'active'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="viewSubject('${subject.id}')" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="editSubject('${subject.id}')" title="Edit Subject">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-info" onclick="viewSubjectTeachers('${subject.id}')" title="View Teachers">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update subject statistics
+        function updateSubjectStatistics() {
+            try {
+                const totalSubjects = subjects.length;
+                const activeSubjects = subjects.filter(s => s.status === 'active').length;
+                const totalTeachers = teachers.length;
+                const totalDepartments = departments.length;
+                
+                // Update statistics display
+                const statTotalSubjects = document.getElementById('stat-total-subjects');
+                const statActiveSubjects = document.getElementById('stat-active-subjects');
+                const statTotalTeachers = document.getElementById('stat-total-teachers');
+                const statTotalDepartments = document.getElementById('stat-total-departments');
+                
+                if (statTotalSubjects) statTotalSubjects.textContent = totalSubjects;
+                if (statActiveSubjects) statActiveSubjects.textContent = activeSubjects;
+                if (statTotalTeachers) statTotalTeachers.textContent = totalTeachers;
+                if (statTotalDepartments) statTotalDepartments.textContent = totalDepartments;
+                
+                console.log('📊 Subject statistics updated:', {
+                    totalSubjects,
+                    activeSubjects,
+                    totalTeachers,
+                    totalDepartments
+                });
+                
+            } catch (error) {
+                console.error('Error updating subject statistics:', error);
+            }
+        }
+        
+        // View subject details
+        function viewSubject(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            // Get department name
+            const department = departments.find(d => d.id === subject.departmentId);
+            const departmentName = department ? department.name : 'Not assigned';
+            
+            // Get teachers for this subject
+            const subjectTeachers = teachers.filter(teacher => 
+                teacher.academicInfo?.subjects?.some(s => s.id === subjectId)
+            );
+            
+            // Get classes studying this subject
+            const subjectClasses = classes.filter(cls => 
+                cls.subjects?.includes(subjectId)
+            );
+            
+            const details = `
+                <div style="text-align: left; max-width: 600px;">
+                    <h4>Subject Details - ${subject.name}</h4>
+                    <hr>
+                    
+                    <h5>Basic Information</h5>
+                    <strong>Subject Name:</strong> ${subject.name}<br>
+                    <strong>Subject Code:</strong> ${subject.code || 'Not specified'}<br>
+                    <strong>Department:</strong> ${departmentName}<br>
+                    <strong>Status:</strong> ${subject.status || 'active'}<br>
+                    <strong>Description:</strong> ${subject.description || 'No description'}<br><br>
+                    
+                    <h5>Academic Information</h5>
+                    <strong>Level:</strong> ${subject.level || 'Not specified'}<br>
+                    <strong>Credits:</strong> ${subject.credits || 'Not specified'}<br>
+                    <strong>Prerequisites:</strong> ${subject.prerequisites || 'None'}<br><br>
+                    
+                    <h5>Teaching Information</h5>
+                    <strong>Assigned Teachers:</strong> ${subjectTeachers.length}<br>
+                    <strong>Classes Studying:</strong> ${subjectClasses.length}<br><br>
+                    
+                    <h5>Teacher List</h5>
+                    ${subjectTeachers.length > 0 ? 
+                        subjectTeachers.map(teacher => 
+                            `• ${teacher.personalInfo?.fullName || 
+                              `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() || 
+                              'Unknown Teacher'}`
+                        ).join('<br>') : 
+                        'No teachers assigned'
+                    }
+                </div>
+            `;
+            
+            // Create a modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'subjectDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Subject Details - ${subject.name}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="editSubject('${subjectId}')">
+                                <i class="fas fa-edit"></i> Edit Subject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // Edit subject
+        function editSubject(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            // For now, show an alert. In a real implementation, this would open an edit modal
+            alert(`Edit Subject: ${subject.name}\n\nThis feature would open an edit form for the subject.`);
+        }
+        
+        // View subject teachers
+        function viewSubjectTeachers(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            const subjectTeachers = teachers.filter(teacher => 
+                teacher.academicInfo?.subjects?.some(s => s.id === subjectId)
+            );
+            
+            if (subjectTeachers.length === 0) {
+                alert(`No teachers assigned to ${subject.name}`);
+                return;
+            }
+            
+            const teacherList = subjectTeachers.map(teacher => 
+                `• ${teacher.personalInfo?.fullName || 
+                  `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() || 
+                  'Unknown Teacher'}`
+            ).join('\n');
+            
+            alert(`Teachers assigned to ${subject.name}:\n\n${teacherList}`);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to load
+            setTimeout(() => {
+                initializeMySubjects();
+            }, 1000);
+        });
+        
+        // Make functions globally available
+        window.initializeMySubjects = initializeMySubjects;
+        window.viewSubject = viewSubject;
+        window.editSubject = editSubject;
+        window.viewSubjectTeachers = viewSubjectTeachers;
+        window.logout = DOSUtils.logout;
 </body>
 </html>
