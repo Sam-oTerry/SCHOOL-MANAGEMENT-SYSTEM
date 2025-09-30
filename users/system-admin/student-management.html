@@ -120,6 +120,9 @@
                             <button type="button" class="btn btn-sm btn-outline-warning" onclick="fixMalformedStudentIds()" title="Fix malformed student IDs">
                                 <i class="fas fa-wrench"></i> Fix IDs
                             </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="cleanupDuplicateStudents()" title="Remove duplicate students from database">
+                                <i class="fas fa-trash-alt"></i> Clean Duplicates
+                            </button>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                             <i class="fas fa-plus"></i> Add Student
@@ -723,6 +726,34 @@
         // Button state management to prevent rapid clicking
         let isAddingStudent = false;
         
+        // Helper function to create unique key for student deduplication
+        function createStudentUniqueKey(studentData) {
+            // Create a unique key based on multiple identifiers
+            // Priority order: studentId > admissionNumber > paymentCode > name+dob
+            if (studentData.studentId) {
+                return `id_${studentData.studentId}`;
+            }
+            
+            if (studentData.admissionNumber) {
+                return `adm_${studentData.admissionNumber}`;
+            }
+            
+            if (studentData.paymentCode) {
+                return `pay_${studentData.paymentCode}`;
+            }
+            
+            // Fallback to name + date of birth
+            const firstName = (studentData.firstName || '').toLowerCase().trim();
+            const lastName = (studentData.lastName || '').toLowerCase().trim();
+            const dob = studentData.dateOfBirth ? 
+                (studentData.dateOfBirth.toDate ? 
+                    studentData.dateOfBirth.toDate().toISOString().split('T')[0] : 
+                    new Date(studentData.dateOfBirth.seconds * 1000).toISOString().split('T')[0]
+                ) : '';
+            
+            return `name_${firstName}_${lastName}_${dob}`;
+        }
+        
         // Helper functions for button state management
         function setAddStudentButtonState(isProcessing) {
             const addButton = document.getElementById('addStudentBtn');
@@ -881,15 +912,39 @@
                 console.log('📊 Students snapshot received:', studentsSnapshot.size, 'documents');
                 
                 students = [];
+                const seenStudents = new Set(); // Track unique students
+                let duplicateCount = 0;
+                
                 studentsSnapshot.forEach(doc => {
                     const studentData = doc.data();
-                    students.push({
+                    const studentRecord = {
                         id: doc.id,
                         ...studentData
-                    });
+                    };
+                    
+                    // Create a unique identifier for deduplication
+                    const uniqueKey = createStudentUniqueKey(studentData);
+                    
+                    if (seenStudents.has(uniqueKey)) {
+                        console.log('⚠️ Duplicate student detected:', {
+                            name: `${studentData.firstName} ${studentData.lastName}`,
+                            studentId: studentData.studentId,
+                            admissionNumber: studentData.admissionNumber,
+                            paymentCode: studentData.paymentCode,
+                            documentId: doc.id
+                        });
+                        duplicateCount++;
+                        return; // Skip this duplicate
+                    }
+                    
+                    seenStudents.add(uniqueKey);
+                    students.push(studentRecord);
                 });
                 
-                console.log('✅ Processed', students.length, 'students');
+                console.log('✅ Processed', students.length, 'unique students');
+                if (duplicateCount > 0) {
+                    console.log(`⚠️ Skipped ${duplicateCount} duplicate student records`);
+                }
                 
                 filteredStudents = [...students];
                 displayStudents();
@@ -1161,6 +1216,30 @@
             // Ensure current page is valid
             if (currentPage > totalPages) {
                 currentPage = Math.max(1, totalPages);
+            }
+            
+            // Additional deduplication check for display (safety measure)
+            const uniquePageStudents = [];
+            const seenInPage = new Set();
+            
+            filteredStudents.forEach(student => {
+                const uniqueKey = createStudentUniqueKey(student);
+                if (!seenInPage.has(uniqueKey)) {
+                    seenInPage.add(uniqueKey);
+                    uniquePageStudents.push(student);
+                }
+            });
+            
+            // Update filteredStudents with deduplicated data
+            if (uniquePageStudents.length !== filteredStudents.length) {
+                console.log(`🔧 Display deduplication: Removed ${filteredStudents.length - uniquePageStudents.length} duplicates`);
+                filteredStudents = uniquePageStudents;
+                // Recalculate pagination
+                totalStudents = filteredStudents.length;
+                totalPages = Math.ceil(totalStudents / studentsPerPage);
+                if (currentPage > totalPages) {
+                    currentPage = Math.max(1, totalPages);
+                }
             }
             
             // Get students for current page
@@ -2597,6 +2676,67 @@
             return activeFilters;
         }
 
+        // Optional: Clean up duplicate students from database
+        async function cleanupDuplicateStudents() {
+            try {
+                console.log('🧹 Starting duplicate student cleanup...');
+                showLoading('Cleaning up duplicate students...');
+                
+                const studentsSnapshot = await db.collection('students').get();
+                const seenStudents = new Map(); // Use Map to store first occurrence
+                const duplicatesToDelete = [];
+                
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    const uniqueKey = createStudentUniqueKey(studentData);
+                    
+                    if (seenStudents.has(uniqueKey)) {
+                        // This is a duplicate
+                        const originalDoc = seenStudents.get(uniqueKey);
+                        console.log('🗑️ Marking duplicate for deletion:', {
+                            duplicate: `${studentData.firstName} ${studentData.lastName}`,
+                            duplicateId: doc.id,
+                            originalId: originalDoc.id,
+                            uniqueKey: uniqueKey
+                        });
+                        duplicatesToDelete.push(doc.ref);
+                    } else {
+                        // First occurrence, keep it
+                        seenStudents.set(uniqueKey, { id: doc.id, data: studentData });
+                    }
+                });
+                
+                if (duplicatesToDelete.length > 0) {
+                    console.log(`🗑️ Deleting ${duplicatesToDelete.length} duplicate student records...`);
+                    
+                    // Delete duplicates in batches
+                    const batchSize = 500;
+                    for (let i = 0; i < duplicatesToDelete.length; i += batchSize) {
+                        const batch = db.batch();
+                        const batchDeletes = duplicatesToDelete.slice(i, i + batchSize);
+                        
+                        batchDeletes.forEach(docRef => {
+                            batch.delete(docRef);
+                        });
+                        
+                        await batch.commit();
+                        console.log(`✅ Deleted batch ${Math.floor(i / batchSize) + 1}`);
+                    }
+                    
+                    showSuccess(`Cleaned up ${duplicatesToDelete.length} duplicate student records!`);
+                    loadStudents(); // Reload to show updated list
+                } else {
+                    showSuccess('No duplicate students found in the database!');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cleaning up duplicates:', error);
+                showError('Failed to clean up duplicate students: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+        
         // Make functions globally available
         window.addStudent = addStudent;
         window.editStudent = editStudent;
@@ -2618,6 +2758,7 @@
         window.forceAddStudent = forceAddStudent;
         window.goToPage = goToPage;
         window.changeStudentsPerPage = changeStudentsPerPage;
+        window.cleanupDuplicateStudents = cleanupDuplicateStudents;
         window.logout = logout;
     </script>
 </body>
