@@ -685,45 +685,6 @@
             });
         }
         
-        // Load system admin user data
-        async function loadSystemAdminUserData(db, currentUser) {
-            try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (!userDoc.exists) {
-                    return {
-                        success: false,
-                        error: 'User document not found. Please contact administrator.'
-                    };
-                }
-                
-                const userData = userDoc.data();
-                
-                // Check if user has system admin role
-                if (userData.role !== 'system_admin') {
-                    return {
-                        success: false,
-                        error: 'Access denied. System administrator privileges required.'
-                    };
-                }
-                
-                return {
-                    success: true,
-                    userName: userData.firstName + ' ' + userData.lastName,
-                    staffId: userData.staffId || 'N/A',
-                    departmentId: userData.departmentId || 'system',
-                    departmentName: userData.departmentName || 'System Administration',
-                    userData: userData
-                };
-                
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                return {
-                    success: false,
-                    error: 'Failed to load user data: ' + error.message
-                };
-            }
-        }
-        
         // Load departments from Firebase
         async function loadDepartments() {
             try {

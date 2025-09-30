@@ -888,31 +888,6 @@
             });
         }
 
-        // Load system admin user data
-        async function loadSystemAdminUserData(db, currentUser) {
-            try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (!userDoc.exists) {
-                    return { success: false, error: 'User profile not found. Please contact administrator.' };
-                }
-                const userData = userDoc.data();
-
-                if (userData.role !== 'system_admin') {
-                    return { success: false, error: 'Access denied. This page is only for System Administrator users.' };
-                }
-
-                return {
-                    success: true,
-                    userData,
-                    userName: getUserName(userData),
-                    staffId: getUserStaffId(userData)
-                };
-            } catch (error) {
-                console.error('Error in loadSystemAdminUserData:', error);
-                return { success: false, error: 'Failed to load user data. Please refresh and try again.' };
-            }
-        }
-
         // Utility function to get user name
         function getUserName(userData) {
             if (!userData) return 'Unknown User';
