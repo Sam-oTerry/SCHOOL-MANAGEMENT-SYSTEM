@@ -697,42 +697,36 @@
         }
         
         function loadFallbackData() {
-            // Fallback data when Firebase is unavailable
+            // Minimal fallback data when Firebase is unavailable
+            console.warn('Using fallback data - Firebase connection failed');
+            
             departments = [
-                { id: 'math', name: 'Mathematics', code: 'MATH' },
-                { id: 'science', name: 'Science', code: 'SCI' },
-                { id: 'english', name: 'English', code: 'ENG' }
+                { id: 'default', name: 'Default Department', code: 'DEF' }
             ];
             
             subjects = [
-                { id: 'math', name: 'Mathematics', department: 'math' },
-                { id: 'physics', name: 'Physics', department: 'science' },
-                { id: 'chemistry', name: 'Chemistry', department: 'science' },
-                { id: 'biology', name: 'Biology', department: 'science' }
+                { id: 'default', name: 'Default Subject', department: 'default' }
             ];
             
             classes = [
-                { id: 's4a', name: 'S.4 Science A', level: 'S4' },
-                { id: 's4b', name: 'S.4 Science B', level: 'S4' },
-                { id: 's3', name: 'S.3 Science', level: 'S3' }
+                { id: 'default', name: 'Default Class', level: 'Default' }
             ];
             
             teachers = [
-                { id: 't001', name: 'John Smith', subject: 'Mathematics', department: 'math' },
-                { id: 't002', name: 'Mary Johnson', subject: 'Physics', department: 'science' },
-                { id: 't003', name: 'Peter Brown', subject: 'Chemistry', department: 'science' },
-                { id: 't004', name: 'Sarah Wilson', subject: 'Biology', department: 'science' }
+                { id: 'default', name: 'Default Teacher', department: 'default' }
             ];
             
             terms = [
-                { id: 'term1', name: 'Term 1', year: '2024', active: true },
-                { id: 'term2', name: 'Term 2', year: '2024', active: false },
-                { id: 'term3', name: 'Term 3', year: '2024', active: false }
+                { id: 'default', name: 'Default Term', year: '2024', active: true }
             ];
             
-            currentDepartment = 'Mathematics';
+            assignments = [];
+            
+            currentDepartment = 'default';
             populateDropdowns();
             updateUIWithDynamicData();
+            
+            console.log('Fallback data loaded - limited functionality available');
         }
         
         function updateUIWithDynamicData() {
@@ -932,47 +926,25 @@
             
             select.innerHTML = '<option value="">Select Class</option>';
             
-            // Generate S1-S6 classes with optional streams
-            const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-            const streams = ['A', 'B', 'C', 'D']; // Optional streams
-            
-            // Clear and repopulate classes array with dynamically generated classes
-            classes = [];
-            
-            classLevels.forEach(level => {
-                // Add main class option (without stream)
-                const mainOption = document.createElement('option');
-                mainOption.value = level.toLowerCase();
-                mainOption.textContent = level;
-                select.appendChild(mainOption);
-                
-                // Add to classes array
-                classes.push({
-                    id: level.toLowerCase(),
-                    name: level,
-                    level: level,
-                    stream: null
+            // Use classes loaded from Firestore instead of hardcoded generation
+            if (classes && classes.length > 0) {
+                classes.forEach(classItem => {
+                    const option = document.createElement('option');
+                    option.value = classItem.id;
+                    option.textContent = classItem.name || classItem.className || classItem.id;
+                    select.appendChild(option);
                 });
                 
-                // Add stream options for each level
-                streams.forEach(stream => {
-                    const streamOption = document.createElement('option');
-                    streamOption.value = `${level.toLowerCase()}_${stream.toLowerCase()}`;
-                    streamOption.textContent = `${level} ${stream}`;
-                    select.appendChild(streamOption);
-                    
-                    // Add to classes array
-                    classes.push({
-                        id: `${level.toLowerCase()}_${stream.toLowerCase()}`,
-                        name: `${level} ${stream}`,
-                        level: level,
-                        stream: stream
-                    });
-                });
-            });
-            
-            console.log(`Populated class dropdown with S1-S6 classes and streams`);
-            console.log(`Classes array updated with ${classes.length} classes:`, classes);
+                console.log(`Populated class dropdown with ${classes.length} classes from Firestore`);
+            } else {
+                console.warn('No classes loaded from Firestore, dropdown will be empty');
+                // Add a placeholder option
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No classes available';
+                option.disabled = true;
+                select.appendChild(option);
+            }
         }
         
         function populateTeacherDropdown(selectId) {
@@ -1236,7 +1208,7 @@
                     currentUser = user;
                     console.log('User authenticated:', user.email);
                     await loadDynamicData();
-                    // Don't call initializeTeacherAssignment here to avoid loop
+                    await initializeTeacherAssignment();
                 } else {
                     console.log('User not authenticated, redirecting to login');
                     window.location.href = '../../index.html';
@@ -1366,7 +1338,7 @@
                     teacherData.academicInfo.assignedClasses.push({
                         class: assignedClass.toUpperCase(),
                         subject: subject,
-                        assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        assignedAt: new Date().toISOString(),
                         assignedBy: currentUser.uid
                     });
                     
@@ -2178,6 +2150,32 @@
         window.updateAssignment = updateAssignment;
         window.exportAssignments = exportAssignments;
         window.viewAssignment = viewAssignment;
+        
+        // Refresh all dropdowns function
+        function refreshAllDropdowns() {
+            console.log('Refreshing all dropdowns...');
+            // Reset data loaded flag to force reload
+            isDataLoaded = false;
+            // Reload dynamic data
+            loadDynamicData().then(() => {
+                console.log('✅ All dropdowns refreshed successfully');
+                // Show success message
+                if (typeof showNotification === 'function') {
+                    showNotification('Dropdowns refreshed successfully', 'success');
+                } else {
+                    alert('Dropdowns refreshed successfully');
+                }
+            }).catch(error => {
+                console.error('Error refreshing dropdowns:', error);
+                if (typeof showNotification === 'function') {
+                    showNotification('Error refreshing dropdowns', 'error');
+                } else {
+                    alert('Error refreshing dropdowns');
+                }
+            });
+        }
+        
+        window.refreshAllDropdowns = refreshAllDropdowns;
     </script>
 </body>
 </html>
