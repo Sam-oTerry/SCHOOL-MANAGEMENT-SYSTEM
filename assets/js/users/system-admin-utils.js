@@ -86,7 +86,10 @@ async function loadSystemAdminUserData(db, currentUser) {
         const userData = userDoc.data();
 
         if (userData.role !== 'system_admin') {
-            return { success: false, error: 'Access denied. This page is only for System Administrator users.' };
+            // Redirect unauthorized users to login page
+            console.log('Access denied: User role is', userData.role, 'but system_admin required');
+            window.location.href = '../../index.html';
+            return { success: false, error: 'Access denied. Redirecting to login page...' };
         }
 
         const departmentId = getUserDepartment(userData);

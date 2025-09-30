@@ -178,7 +178,10 @@ async function loadHODUserData(db, currentUser) {
             
             // Check if user has HOD role
             if (!isHODUser(userData)) {
-                throw new Error('Access denied. This page is only for Head of Department users.');
+                // Redirect unauthorized users to login page
+                console.log('Access denied: User role is', userData.role, 'but hod required');
+                window.location.href = '../../index.html';
+                return { success: false, error: 'Access denied. Redirecting to login page...' };
             }
             
             // Get department from user data using utility function
@@ -192,7 +195,7 @@ async function loadHODUserData(db, currentUser) {
             window.currentUserData = userData;
             
             if (!departmentId) {
-                throw new Error('No department assigned. Please contact administrator to assign you to a department.');
+                return { success: false, error: 'No department assigned. Please contact administrator to assign you to a department.' };
             }
             
             // Get department name from Firestore
@@ -218,7 +221,7 @@ async function loadHODUserData(db, currentUser) {
                 staffId: getUserStaffId(userData)
             };
         } else {
-            throw new Error('User profile not found. Please contact administrator.');
+            return { success: false, error: 'User profile not found. Please contact administrator.' };
         }
     } catch (error) {
         console.error('Error loading user data:', error);
