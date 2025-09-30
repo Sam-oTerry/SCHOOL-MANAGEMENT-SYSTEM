@@ -441,7 +441,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="testButtonClick()">Create Entry</button>
+                    <button type="button" class="btn btn-primary" onclick="createTimetableEntry()">Create Entry</button>
                 </div>
             </div>
         </div>
@@ -901,10 +901,11 @@
                     // Get teacher initials
                     const getTeacherInitials = (name) => {
                         if (!name || name === 'Unknown Teacher') return 'UT';
-                        return name.split(' ')
-                            .map(word => word.charAt(0).toUpperCase())
-                            .join('')
-                            .substring(0, 3);
+                        const words = name.trim().split(' ').filter(word => word.length > 0);
+                        if (words.length === 0) return 'UT';
+                        if (words.length === 1) return words[0].charAt(0).toUpperCase();
+                        // Take first letter of first name and first letter of last name
+                        return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
                     };
                     
                     const teacherInitials = getTeacherInitials(teacherName);
@@ -1012,12 +1013,6 @@
             loadDisplayFromFilters(); 
         }
         
-        // Test function to verify button click works
-        function testButtonClick() {
-            alert('Test button works!');
-            console.log('Test button clicked');
-        }
-        
         // Check for scheduling conflicts
         async function checkSchedulingConflicts(className, teacherId, day, timeSlot) {
             try {
@@ -1068,7 +1063,6 @@
         }
         
         async function createTimetableEntry() {
-            alert('Create button clicked!'); // Temporary debug
             try {
                 console.log('🚀 Create timetable entry clicked');
                 
