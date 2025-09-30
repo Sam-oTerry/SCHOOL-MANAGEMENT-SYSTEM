@@ -573,33 +573,70 @@
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            initializeSubjectManagement();
-            setupMobileSidebar(); // From system-admin-utils.js
+            // Add a small delay to ensure Firebase is fully loaded
+            setTimeout(() => {
+                initializeSubjectManagement();
+                setupMobileSidebar(); // From system-admin-utils.js
+            }, 100);
         });
 
         async function initializeSubjectManagement() {
+            console.log('🚀 Starting subject management initialization...');
             try {
-                // Wait for authentication and get the user
-                currentUser = await waitForAuth(); // From system-admin-utils.js
+                // Check Firebase availability
+                console.log('🔍 Checking Firebase availability...');
+                console.log('Firebase auth available:', typeof window.auth !== 'undefined');
+                console.log('Firebase db available:', typeof window.db !== 'undefined');
                 
-                // Load user data using utility function
-                const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
-                if (!userResult.success) {
-                    showError(userResult.error); // From system-admin-utils.js
+                if (typeof window.auth === 'undefined' || typeof window.db === 'undefined') {
+                    console.error('❌ Firebase not initialized');
+                    showError('Firebase not initialized. Please refresh the page.');
                     return;
                 }
                 
-                // Update UI with user data
-                updateUserDisplay(userResult);
+                // Wait for authentication and get the user
+                console.log('🔐 Waiting for authentication...');
+                if (typeof waitForAuth === 'function') {
+                    currentUser = await waitForAuth();
+                    console.log('✅ Authentication successful:', currentUser?.uid);
+                } else {
+                    console.error('❌ waitForAuth function not available');
+                    throw new Error('waitForAuth function not available');
+                }
+                
+                // Load user data using utility function
+                console.log('👤 Loading user data...');
+                if (typeof loadSystemAdminUserData === 'function') {
+                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    if (!userResult.success) {
+                        showError(userResult.error);
+                        return;
+                    }
+                    
+                    // Update UI with user data
+                    updateUserDisplay(userResult);
+                } else {
+                    console.warn('⚠️ loadSystemAdminUserData function not available, using fallback');
+                    // Fallback user display
+                    updateUserDisplay({
+                        userName: currentUser.displayName || currentUser.email,
+                        staffId: 'SYS1234',
+                        departmentId: 'system',
+                        departmentName: 'System Administration'
+                    });
+                }
                 
                 // Initialize subjects and departments
+                console.log('📚 Loading departments and subjects...');
                 await loadDepartments();
                 initializeSubjects();
                 setupRealTimeListeners();
                 
+                console.log('✅ Subject management initialized successfully');
+                
             } catch (error) {
-                console.error('Error initializing subject management:', error);
-                showError('Failed to initialize subject management. Please refresh and try again.'); // From system-admin-utils.js
+                console.error('❌ Error initializing subject management:', error);
+                showError('Failed to initialize subject management. Please refresh and try again.');
             }
         }
 
@@ -625,6 +662,65 @@
                 });
             } catch (error) {
                 console.error('Error updating user display:', error);
+            }
+        }
+        
+        // Wait for authentication
+        function waitForAuth() {
+            return new Promise((resolve, reject) => {
+                if (!window.auth) {
+                    reject(new Error('Firebase Auth not initialized.'));
+                    return;
+                }
+                const unsubscribe = window.auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    if (user) {
+                        window.currentUser = user; // Set global currentUser
+                        resolve(user);
+                    } else {
+                        window.location.href = '../../index.html'; // Redirect to login if not authenticated
+                        reject(new Error('User not authenticated'));
+                    }
+                });
+            });
+        }
+        
+        // Load system admin user data
+        async function loadSystemAdminUserData(db, currentUser) {
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists) {
+                    return {
+                        success: false,
+                        error: 'User document not found. Please contact administrator.'
+                    };
+                }
+                
+                const userData = userDoc.data();
+                
+                // Check if user has system admin role
+                if (userData.role !== 'system_admin') {
+                    return {
+                        success: false,
+                        error: 'Access denied. System administrator privileges required.'
+                    };
+                }
+                
+                return {
+                    success: true,
+                    userName: userData.firstName + ' ' + userData.lastName,
+                    staffId: userData.staffId || 'N/A',
+                    departmentId: userData.departmentId || 'system',
+                    departmentName: userData.departmentName || 'System Administration',
+                    userData: userData
+                };
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                return {
+                    success: false,
+                    error: 'Failed to load user data: ' + error.message
+                };
             }
         }
         
@@ -1210,6 +1306,24 @@
             });
         }
         
+        // Setup mobile sidebar (fallback if not available from utils)
+        function setupMobileSidebar() {
+            if (typeof window.setupMobileSidebar === 'function') {
+                window.setupMobileSidebar();
+            } else {
+                console.log('Mobile sidebar setup not available from utils, using fallback');
+                // Basic mobile sidebar functionality
+                const sidebarToggle = document.querySelector('.sidebar-toggle');
+                const sidebar = document.querySelector('.sidebar');
+                
+                if (sidebarToggle && sidebar) {
+                    sidebarToggle.addEventListener('click', () => {
+                        sidebar.classList.toggle('show');
+                    });
+                }
+            }
+        }
+        
         // Make functions globally available
         window.addSubject = addSubject;
         window.editSubject = editSubject;
@@ -1222,6 +1336,9 @@
         window.printSubjects = printSubjects;
         window.logout = logout;
         window.handleDepartmentChange = handleDepartmentChange;
+        window.waitForAuth = waitForAuth;
+        window.loadSystemAdminUserData = loadSystemAdminUserData;
+        window.setupMobileSidebar = setupMobileSidebar;
     </script>
 </body>
 </html>
