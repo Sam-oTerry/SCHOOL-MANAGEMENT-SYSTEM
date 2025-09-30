@@ -422,34 +422,17 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
-                                    <label class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" id="start-time" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">End Time</label>
-                                    <input type="time" class="form-control" id="end-time" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Room</label>
-                                    <input type="text" class="form-control" id="room" placeholder="e.g., Room 101">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Period Type</label>
-                                    <select class="form-select" id="period-type">
-                                        <option value="regular">Regular</option>
-                                        <option value="double">Double Period</option>
-                                        <option value="practical">Practical</option>
-                                        <option value="revision">Revision</option>
+                                    <label class="form-label">Period</label>
+                                    <select class="form-select" id="timetable-period" required>
+                                        <option value="">Select Period</option>
+                                        <option value="07:20-08:40">Period 1 (7:20 AM - 8:40 AM)</option>
+                                        <option value="08:40-10:00">Period 2 (8:40 AM - 10:00 AM)</option>
+                                        <option value="10:30-11:50">Period 3 (10:30 AM - 11:50 AM)</option>
+                                        <option value="11:50-13:10">Period 4 (11:50 AM - 1:10 PM)</option>
+                                        <option value="14:10-15:30">Period 5 (2:10 PM - 3:30 PM)</option>
+                                        <option value="15:30-16:50">Period 6 (3:30 PM - 4:50 PM)</option>
                                     </select>
                                 </div>
                             </div>
@@ -514,16 +497,10 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label class="form-label">Time Slot</label>
                                     <input type="text" class="form-control" id="edit-time-slot" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Room</label>
-                                    <input type="text" class="form-control" id="edit-room" placeholder="Enter room number">
                                 </div>
                             </div>
                         </div>
@@ -912,16 +889,12 @@
             
             return `
                 <div class="timetable-cell ${classColor} editable-cell" 
-                     onclick="editTimetableEntry('${cellData.class}', '${cellData.subjectId}', '${cellData.teacherId}', '${timeSlot}', '${day}', '${cellData.room || ''}')"
+                     onclick="editTimetableEntry('${cellData.class}', '${cellData.subjectId}', '${cellData.teacherId}', '${timeSlot}', '${day}', '')"
                      title="Click to edit this timetable entry - ${subjectName} with ${teacherName}">
                     <div class="class-header fw-bold mb-2">${cellData.class}</div>
                     <div class="subject-info mb-2">
                         <div class="subject-name fw-semibold">${subjectName}</div>
                         <div class="teacher-name text-muted small">${teacherName}</div>
-                    </div>
-                    <div class="room-info">
-                        <i class="fas fa-door-open me-1"></i>
-                        <span class="room-text">${cellData.room || 'TBD'}</span>
                     </div>
                     <div class="edit-hint">
                         <i class="fas fa-edit"></i>
@@ -992,24 +965,74 @@
             loadDisplayFromFilters(); 
         }
         
+        // Check for scheduling conflicts
+        async function checkSchedulingConflicts(className, teacherId, day, timeSlot) {
+            try {
+                console.log('Checking for scheduling conflicts:', { className, teacherId, day, timeSlot });
+                
+                // Check if teacher is already scheduled for this time slot
+                const teacherRef = window.db.collection('timetables').doc(teacherId);
+                const teacherSnap = await teacherRef.get();
+                
+                if (teacherSnap.exists) {
+                    const teacherSchedule = teacherSnap.data().schedule || {};
+                    if (teacherSchedule[day] && teacherSchedule[day][timeSlot]) {
+                        return {
+                            success: false,
+                            message: `Teacher is already scheduled for ${day} at ${timeSlot}. Please choose a different time slot or teacher.`
+                        };
+                    }
+                }
+                
+                // Check if class is already scheduled for this time slot
+                const timetablesSnapshot = await window.db.collection('timetables').get();
+                
+                for (const doc of timetablesSnapshot.docs) {
+                    const data = doc.data();
+                    const schedule = data.schedule || {};
+                    
+                    if (schedule[day] && schedule[day][timeSlot]) {
+                        const entry = schedule[day][timeSlot];
+                        if (entry.class === className) {
+                            const teacherName = teachersIndex[data.teacherId] || 'Unknown Teacher';
+                            const subjectName = subjectsIndex[entry.subjectId] || 'Unknown Subject';
+                            return {
+                                success: false,
+                                message: `Class ${className} is already scheduled for ${day} at ${timeSlot} with ${teacherName} (${subjectName}). Please choose a different time slot or class.`
+                            };
+                        }
+                    }
+                }
+                
+                return { success: true };
+            } catch (error) {
+                console.error('Error checking scheduling conflicts:', error);
+                return {
+                    success: false,
+                    message: 'Error checking for scheduling conflicts. Please try again.'
+                };
+            }
+        }
+        
         async function createTimetableEntry() {
             try {
                 const className = document.getElementById('timetable-class').value;
                 const subjectId = document.getElementById('timetable-subject').value;
                 const teacherId = document.getElementById('timetable-teacher').value;
                 const day = document.getElementById('timetable-day').value;
-                const startTime = document.getElementById('start-time').value;
-                const endTime = document.getElementById('end-time').value;
-                const room = document.getElementById('room').value;
-                const periodType = document.getElementById('period-type').value;
+                const timeSlot = document.getElementById('timetable-period').value;
                 
-                if (!className || !subjectId || !teacherId || !day || !startTime || !endTime) {
+                if (!className || !subjectId || !teacherId || !day || !timeSlot) {
                     showError('Please fill in all required fields.');
                     return;
                 }
                 
-                // Create time slot key
-                const timeSlot = `${startTime}-${endTime}`;
+                // Check for scheduling conflicts
+                const conflictCheck = await checkSchedulingConflicts(className, teacherId, day, timeSlot);
+                if (!conflictCheck.success) {
+                    showError(conflictCheck.message);
+                    return;
+                }
                 
                 // Persist entry under teacher's timetable document
                 const ref = window.db.collection('timetables').doc(teacherId);
@@ -1019,9 +1042,7 @@
                 if (!schedule[day]) schedule[day] = {};
                 schedule[day][timeSlot] = {
                     class: className,
-                    subjectId: subjectId,
-                    room: room || 'TBD',
-                    periodType: periodType
+                    subjectId: subjectId
                 };
                 
                 const times = snap.exists ? (snap.data().times || []) : [];
@@ -1518,9 +1539,9 @@
         }
         
         // Edit timetable entry function
-        async function editTimetableEntry(className, subjectId, teacherId, timeSlot, day, room) {
+        async function editTimetableEntry(className, subjectId, teacherId, timeSlot, day) {
             try {
-                console.log('Editing timetable entry:', { className, subjectId, teacherId, timeSlot, day, room });
+                console.log('Editing timetable entry:', { className, subjectId, teacherId, timeSlot, day });
                 
                 // Get subject and teacher names
                 const subjectName = subjectsIndex[subjectId] || 'Unknown Subject';
@@ -1532,7 +1553,6 @@
                 document.getElementById('edit-teacher').value = teacherId;
                 document.getElementById('edit-day').value = day;
                 document.getElementById('edit-time-slot').value = timeSlot;
-                document.getElementById('edit-room').value = room;
                 
                 // Store original data for reference
                 window.editingEntry = {
@@ -1562,7 +1582,6 @@
                 const teacherId = document.getElementById('edit-teacher').value;
                 const day = document.getElementById('edit-day').value;
                 const timeSlot = document.getElementById('edit-time-slot').value;
-                const room = document.getElementById('edit-room').value;
                 
                 if (!className || !subjectId || !teacherId || !day || !timeSlot) {
                     showError('Please fill in all required fields.');
@@ -1612,9 +1631,7 @@
                 if (!newSchedule[day]) newSchedule[day] = {};
                 newSchedule[day][timeSlot] = {
                     class: className,
-                    subjectId: subjectId,
-                    room: room || 'TBD',
-                    periodType: 'class'
+                    subjectId: subjectId
                 };
                 
                 const times = newSnap.exists ? (newSnap.data().times || []) : [];
