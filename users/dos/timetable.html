@@ -561,6 +561,35 @@
         let subjects = [];
         let classes = [];
         
+        // Initialize proper school timetable structure
+        function initializeSchoolSchedule() {
+            return {
+                // Morning Period 1: 7:20-8:40 (80 minutes)
+                '07:20-08:40': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                
+                // Morning Period 2: 8:40-10:00 (80 minutes)
+                '08:40-10:00': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                
+                // Breakfast Break: 10:00-10:30 (30 minutes)
+                '10:00-10:30': { monday: 'BREAK', tuesday: 'BREAK', wednesday: 'BREAK', thursday: 'BREAK', friday: 'BREAK' },
+                
+                // Morning Period 3: 10:30-11:50 (80 minutes)
+                '10:30-11:50': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                
+                // Morning Period 4: 11:50-13:10 (80 minutes)
+                '11:50-13:10': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                
+                // Lunch Break: 13:10-14:10 (1 hour)
+                '13:10-14:10': { monday: 'LUNCH', tuesday: 'LUNCH', wednesday: 'LUNCH', thursday: 'LUNCH', friday: 'LUNCH' },
+                
+                // Afternoon Period 5: 14:10-15:30 (80 minutes)
+                '14:10-15:30': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                
+                // Afternoon Period 6: 15:30-16:50 (80 minutes)
+                '15:30-16:50': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null }
+            };
+        }
+        
         // Initialize Timetable page
         async function initializeTimetable() {
             try {
@@ -748,7 +777,9 @@
         async function loadDisplayFromFilters() {
             try {
                 const teacherId = document.getElementById('teacher-filter').value;
-                timetableData = {};
+                
+                // Initialize with proper school schedule structure
+                timetableData = initializeSchoolSchedule();
                 
                 // Load all timetable entries from Firestore
                 const timetablesSnapshot = await window.db.collection('timetables').get();
@@ -853,8 +884,18 @@
             }
             
             // Handle break periods
-            if (cellData.class === 'BREAK' || cellData.periodType === 'break') {
-                return '<div class="timetable-cell break"><i class="fas fa-coffee"></i><br><span class="text-muted">Break</span></div>';
+            if (cellData === 'BREAK' || cellData === 'LUNCH' || cellData.class === 'BREAK' || cellData.class === 'LUNCH' || cellData.periodType === 'break' || cellData.periodType === 'lunch') {
+                const isLunch = cellData === 'LUNCH' || cellData.class === 'LUNCH' || cellData.periodType === 'lunch';
+                const icon = isLunch ? 'fas fa-utensils' : 'fas fa-coffee';
+                const text = isLunch ? 'Lunch' : 'Break';
+                const className = isLunch ? 'lunch-period' : 'break-period';
+                
+                return `
+                    <div class="timetable-cell ${className}">
+                        <i class="${icon} text-warning"></i>
+                        <div class="break-text">${text}</div>
+                    </div>
+                `;
             }
             
             const subjectName = subjectsIndex[cellData.subjectId] || cellData.subject || 'Subject';
@@ -1682,6 +1723,32 @@
         
         .timetable-cell.break:hover {
             background-color: #ffeaa7;
+        }
+        
+        .break-period {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 4px solid #ffc107;
+            text-align: center;
+            font-weight: 500;
+            color: #856404;
+        }
+        
+        .lunch-period {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-left: 4px solid #dc3545;
+            text-align: center;
+            font-weight: 500;
+            color: #721c24;
+        }
+        
+        .break-period i, .lunch-period i {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .break-text {
+            font-size: 0.8rem;
+            font-weight: 600;
         }
         
         .table th {
