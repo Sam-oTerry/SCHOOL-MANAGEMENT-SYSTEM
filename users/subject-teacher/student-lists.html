@@ -375,9 +375,8 @@
             if (letter === 'A') return 'excellent';
             if (letter === 'B') return 'very-good';
             if (letter === 'C') return 'good';
-            if (letter === 'D') return 'satisfactory';
-            if (letter === 'E') return 'pass';
-            if (letter === 'F') return 'fail';
+            if (letter === 'D') return 'fair';
+            if (letter === 'E') return 'poor';
             return '';
         }
         
@@ -451,8 +450,7 @@
                 'B': 'bg-primary',
                 'C': 'bg-info',
                 'D': 'bg-warning',
-                'E': 'bg-secondary',
-                'F': 'bg-danger'
+                'E': 'bg-danger'
             };
             return colors[grade] || 'bg-secondary';
         }

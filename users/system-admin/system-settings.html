@@ -309,7 +309,7 @@
                                         <div class="mb-3">
                                             <label class="form-label">Grading System</label>
                                             <select class="form-select" id="grading-system">
-                                                <option value="A-F" selected>A-F (New Curriculum)</option>
+                                                <option value="A-E" selected>A-E (UCE Standard)</option>
                                                 <option value="1-9">1-9 (Old System)</option>
                                                 <option value="percentage">Percentage</option>
                                             </select>
@@ -799,7 +799,7 @@
                     const data = academicDoc.data();
                     document.getElementById('academic-year').value = data.academicYear || '';
                     document.getElementById('number-of-terms').value = data.numberOfTerms || '3';
-                    document.getElementById('grading-system').value = data.gradingSystem || 'A-F';
+                    document.getElementById('grading-system').value = data.gradingSystem || 'A-E';
                     document.getElementById('pass-mark').value = data.passMark || 50;
                     document.getElementById('midterm-weight').value = data.midtermWeight || 20;
                     document.getElementById('endterm-weight').value = data.endtermWeight || 80;
@@ -945,7 +945,7 @@
                         academic: {
                             academicYear: new Date().getFullYear().toString(),
                             numberOfTerms: '3',
-                            gradingSystem: 'A-F',
+                            gradingSystem: 'A-E',
                             passMark: 50,
                             midtermWeight: 20,
                             endtermWeight: 80

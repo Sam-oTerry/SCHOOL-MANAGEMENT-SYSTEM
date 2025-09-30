@@ -793,39 +793,36 @@
             
             // Grade Distribution Chart
             const gradeCtx = document.getElementById('gradeDistributionChart').getContext('2d');
-            const gradeDistribution = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            const gradeDistribution = { A: 0, B: 0, C: 0, D: 0, E: 0 };
             
             const validGrades = grades.filter(g => g.finalGrade && typeof g.finalGrade === 'number');
             validGrades.forEach(grade => {
                 const score = grade.finalGrade;
-                if (score >= 90) gradeDistribution.A++;
-                else if (score >= 80) gradeDistribution.B++;
-                else if (score >= 70) gradeDistribution.C++;
-                else if (score >= 60) gradeDistribution.D++;
-                else if (score >= 50) gradeDistribution.E++;
-                else gradeDistribution.F++;
+                if (score >= 80) gradeDistribution.A++;
+                else if (score >= 65) gradeDistribution.B++;
+                else if (score >= 50) gradeDistribution.C++;
+                else if (score >= 40) gradeDistribution.D++;
+                else gradeDistribution.E++;
             });
             
             new Chart(gradeCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['A', 'B', 'C', 'D', 'E', 'F'],
+                    labels: ['A', 'B', 'C', 'D', 'E'],
                     datasets: [{
                         data: [
                             gradeDistribution.A,
                             gradeDistribution.B,
                             gradeDistribution.C,
                             gradeDistribution.D,
-                            gradeDistribution.E,
-                            gradeDistribution.F
+                            gradeDistribution.E
                         ],
                         backgroundColor: [
                             '#28a745',
                             '#007bff',
                             '#17a2b8',
                             '#ffc107',
-                            '#dc3545',
-                            '#343a40'
+                            '#dc3545'
                         ]
                     }]
                 },

@@ -35,12 +35,11 @@ The Subject Teacher interface is automatically loaded when a user with the Subje
 ## Grading System
 
 The system uses the new curriculum grading system:
-- **A**: 90-100% (Excellent)
-- **B**: 80-89% (Very Good)
-- **C**: 70-79% (Good)
-- **D**: 60-69% (Satisfactory)
-- **E**: 50-59% (Pass)
-- **F**: 0-49% (Fail)
+- **A**: 80–100% (Excellent)
+- **B**: 65–79% (Very Good)
+- **C**: 50–64% (Good)
+- **D**: 40–49% (Fair)
+- **E**: Below 40% (Poor)
 
 Marks are weighted as:
 - Mid-term: 20%

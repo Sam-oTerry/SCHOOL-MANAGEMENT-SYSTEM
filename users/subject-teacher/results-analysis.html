@@ -294,28 +294,24 @@
                             <div class="col-md-4">
                                 <div class="grade-stats">
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>A (90-100%)</span>
+                                        <span>A (80–100%)</span>
                                         <span class="badge bg-success" id="grade-a-count">0</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>B (80-89%)</span>
+                                        <span>B (65–79%)</span>
                                         <span class="badge bg-primary" id="grade-b-count">0</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>C (70-79%)</span>
+                                        <span>C (50–64%)</span>
                                         <span class="badge bg-info" id="grade-c-count">0</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>D (60-69%)</span>
+                                        <span>D (40–49%)</span>
                                         <span class="badge bg-warning" id="grade-d-count">0</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>E (50-59%)</span>
-                                        <span class="badge bg-secondary" id="grade-e-count">0</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>F (0-49%)</span>
-                                        <span class="badge bg-danger" id="grade-f-count">0</span>
+                                        <span>E (Below 40%)</span>
+                                        <span class="badge bg-danger" id="grade-e-count">0</span>
                                     </div>
                                 </div>
                             </div>
@@ -644,7 +640,7 @@
             return colors[performance] || 'bg-secondary';
         }
         function getGradeColor(grade) {
-            const colors = { 'A': 'bg-success','B': 'bg-primary','C': 'bg-info','D': 'bg-warning','E': 'bg-secondary','F': 'bg-danger' };
+            const colors = { 'A': 'bg-success','B': 'bg-primary','C': 'bg-info','D': 'bg-warning','E': 'bg-danger' };
             return colors[grade] || 'bg-secondary';
         }
         function viewStudentAnalysis(studentId) { alert(`Viewing detailed analysis for student: ${studentId}`); }

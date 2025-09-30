@@ -470,32 +470,16 @@ class SubjectTeacherManager {
     }
     
     setupGradingSystem() {
-        // New curriculum grading system (A-F)
-        this.gradingScale = {
-            'A': { min: 90, max: 100, description: 'Excellent' },
-            'B': { min: 80, max: 89, description: 'Very Good' },
-            'C': { min: 70, max: 79, description: 'Good' },
-            'D': { min: 60, max: 69, description: 'Satisfactory' },
-            'E': { min: 50, max: 59, description: 'Pass' },
-            'F': { min: 0, max: 49, description: 'Fail' }
-        };
+        // Use centralized grading system
+        this.gradingScale = window.GradingSystem.gradingScale;
     }
     
     calculateGrade(score) {
-        for (const [grade, range] of Object.entries(this.gradingScale)) {
-            if (score >= range.min && score <= range.max) {
-                return { grade, description: range.description };
-            }
-        }
-        return { grade: 'F', description: 'Fail' };
+        return window.GradingSystem.calculateGrade(score);
     }
     
     calculateFinalGrade(midTerm, endTerm) {
-        // Mid term 20%, End term 80%
-        const midTermWeighted = midTerm * 0.2;
-        const endTermWeighted = endTerm * 0.8;
-        const finalScore = Math.round(midTermWeighted + endTermWeighted);
-        return this.calculateGrade(finalScore);
+        return window.GradingSystem.calculateFinalGrade(midTerm, endTerm);
     }
     
     setupGradeEntryActions() {
