@@ -1022,23 +1022,10 @@
                     return;
                 }
                 
-                // Clear existing options (except first option)
-                classSelect.innerHTML = '<option value="">Select Class</option>';
+                // Clear existing options
+                classSelect.innerHTML = '<option value="">Select Subject First</option>';
                 subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                 teacherSelect.innerHTML = '<option value="">Select Subject First</option>';
-                
-                // Populate classes
-                if (classes && classes.length > 0) {
-                    classes.forEach(classItem => {
-                        const option = document.createElement('option');
-                        option.value = classItem.id || classItem.name;
-                        option.textContent = classItem.name || classItem.className;
-                        classSelect.appendChild(option);
-                    });
-                    console.log(`✅ Populated ${classes.length} classes in modal`);
-                } else {
-                    console.log('⚠️ No classes available for modal');
-                }
                 
                 // Populate subjects
                 if (subjects && subjects.length > 0) {
@@ -1053,7 +1040,7 @@
                     console.log('⚠️ No subjects available for modal');
                 }
                 
-                // Setup subject change listener to filter teachers
+                // Setup subject change listener to populate classes and teachers
                 setupSubjectChangeListener();
                 
             } catch (error) {
@@ -1108,39 +1095,107 @@
                 
                 console.log(`🔄 Filtering teachers for subject: ${selectedSubjectId}`);
                 
-                // Load teachers assigned to this subject
-                const teachersSnapshot = await db.collection('users')
-                    .where('role', 'in', ['subject_teacher', 'class_teacher'])
+                // Get the subject name for comparison
+                const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
+                const subjectName = selectedSubject ? selectedSubject.name : '';
+                
+                console.log('Looking for teachers assigned to subject:', subjectName);
+                
+                // First, try to get teachers from teacherAssignments collection
+                const assignmentsSnapshot = await db.collection('teacherAssignments')
+                    .where('subject', '==', subjectName)
                     .get();
                 
-                const subjectTeachers = [];
+                const assignedTeacherIds = new Set();
                 
-                teachersSnapshot.forEach(doc => {
-                    const teacher = doc.data();
-                    
-                    // Check if teacher is assigned to this subject
-                    const assignedSubjects = teacher.assignedSubjects || [];
-                    const isAssignedToSubject = assignedSubjects.some(assignment => 
-                        assignment.subjectId === selectedSubjectId || 
-                        assignment.subject === selectedSubjectId
-                    );
-                    
-                    if (isAssignedToSubject) {
-                        subjectTeachers.push({
-                            id: doc.id,
-                            ...teacher
-                        });
+                assignmentsSnapshot.forEach(doc => {
+                    const assignment = doc.data();
+                    if (assignment.teacherId) {
+                        assignedTeacherIds.add(assignment.teacherId);
                     }
                 });
+                
+                console.log(`Found ${assignedTeacherIds.size} unique teachers assigned to subject: ${subjectName}`);
+                
+                const subjectTeachers = [];
+                const assignedClasses = new Set();
+                
+                if (assignedTeacherIds.size > 0) {
+                    // Get teacher details from users collection
+                    const teacherPromises = Array.from(assignedTeacherIds).map(async (teacherId) => {
+                        try {
+                            const teacherDoc = await db.collection('users').doc(teacherId).get();
+                            if (teacherDoc.exists) {
+                                const teacherData = teacherDoc.data();
+                                return {
+                                    id: teacherId,
+                                    name: teacherData.personalInfo?.fullName || teacherData.displayName || teacherData.email,
+                                    staffId: teacherData.staffId || teacherData.academicInfo?.staffId || 'N/A'
+                                };
+                            }
+                            return null;
+                        } catch (error) {
+                            console.error(`Error fetching teacher ${teacherId}:`, error);
+                            return null;
+                        }
+                    });
+                    
+                    const teachers = (await Promise.all(teacherPromises)).filter(teacher => teacher !== null);
+                    subjectTeachers.push(...teachers);
+                    
+                    // Extract assigned classes from assignments
+                    assignmentsSnapshot.forEach(doc => {
+                        const assignment = doc.data();
+                        if (assignment.class) {
+                            assignedClasses.add(assignment.class);
+                        }
+                    });
+                    
+                    console.log(`✅ Found ${teachers.length} teachers via teacherAssignments collection`);
+                    console.log(`✅ Found ${assignedClasses.size} assigned classes:`, Array.from(assignedClasses));
+                } else {
+                    // Fallback: Check academicInfo.assignedClasses in user documents
+                    console.log('No assignments found in teacherAssignments, checking user documents...');
+                    
+                    const teachersSnapshot = await db.collection('users')
+                        .where('role', 'in', ['subject_teacher', 'class_teacher'])
+                        .get();
+                    
+                    teachersSnapshot.forEach(doc => {
+                        const teacherData = doc.data();
+                        const assignedClassesData = teacherData.academicInfo?.assignedClasses || [];
+                        
+                        // Check if teacher is assigned to this subject
+                        const isAssignedToSubject = assignedClassesData.some(assignment => 
+                            assignment.subject === subjectName
+                        );
+                        
+                        if (isAssignedToSubject) {
+                            subjectTeachers.push({
+                                id: doc.id,
+                                name: teacherData.personalInfo?.fullName || teacherData.displayName || teacherData.email,
+                                staffId: teacherData.staffId || teacherData.academicInfo?.staffId || 'N/A'
+                            });
+                            
+                            // Add assigned classes
+                            assignedClassesData.forEach(assignment => {
+                                if (assignment.subject === subjectName && assignment.class) {
+                                    assignedClasses.add(assignment.class);
+                                }
+                            });
+                        }
+                    });
+                    
+                    console.log(`✅ Found ${subjectTeachers.length} teachers via user documents`);
+                    console.log(`✅ Found ${assignedClasses.size} assigned classes:`, Array.from(assignedClasses));
+                }
                 
                 // Populate teacher dropdown with filtered teachers
                 if (subjectTeachers.length > 0) {
                     subjectTeachers.forEach(teacher => {
                         const option = document.createElement('option');
                         option.value = teacher.id;
-                        option.textContent = teacher.personalInfo?.fullName || 
-                                          `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() || 
-                                          teacher.email || 'Unknown Teacher';
+                        option.textContent = `${teacher.name} (${teacher.staffId})`;
                         teacherSelect.appendChild(option);
                     });
                     console.log(`✅ Populated ${subjectTeachers.length} teachers for selected subject`);
@@ -1151,6 +1206,29 @@
                     option.disabled = true;
                     teacherSelect.appendChild(option);
                     console.log('⚠️ No teachers assigned to selected subject');
+                }
+                
+                // Populate class dropdown with assigned classes
+                const classSelect = document.getElementById('timetable-class');
+                if (classSelect) {
+                    classSelect.innerHTML = '<option value="">Select Class</option>';
+                    
+                    if (assignedClasses.size > 0) {
+                        Array.from(assignedClasses).forEach(className => {
+                            const option = document.createElement('option');
+                            option.value = className;
+                            option.textContent = className;
+                            classSelect.appendChild(option);
+                        });
+                        console.log(`✅ Populated ${assignedClasses.size} classes for selected subject`);
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'No classes assigned for this subject';
+                        option.disabled = true;
+                        classSelect.appendChild(option);
+                        console.log('⚠️ No classes assigned for selected subject');
+                    }
                 }
                 
             } catch (error) {
