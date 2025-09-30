@@ -495,7 +495,7 @@
                                 s.academicInfo?.currentClass || 
                                 s.academicInfo?.assignedClass || 
                                 '—';
-                const classSlug = className.toLowerCase().replace(/\s+/g, '-');
+                const classSlug = className.toUpperCase().replace(/\s+/g, '-');
                 studentsMap[doc.id] = { id: doc.id, name, className, classSlug };
             });
             
@@ -560,7 +560,7 @@
             // Classes
             const classes = new Set();
             filteredStudents.forEach(s => { if (s.className) classes.add(s.className); });
-            classSel.innerHTML = '<option value="">All Classes</option>' + Array.from(classes).map(c => `<option value="${c.toLowerCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
+            classSel.innerHTML = '<option value="">All Classes</option>' + Array.from(classes).map(c => `<option value="${c.toUpperCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
         }
         
         // Initialize page

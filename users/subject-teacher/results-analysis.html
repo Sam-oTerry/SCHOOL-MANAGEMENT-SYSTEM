@@ -493,7 +493,7 @@
             subjSel.innerHTML = '<option value="">All Subjects</option>' + Object.values(subjectsIndex).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             // Classes
             const classes = Array.from(new Set(analysisData.map(d => d.class).filter(Boolean)));
-            classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c.toLowerCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
+            classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c.toUpperCase().replace(/\s+/g,'-')}">${c}</option>`).join('');
         }
         
         function updateAnalysis() {
@@ -508,7 +508,7 @@
                 filteredData = filteredData.filter(d => d.subjectId === subject);
             }
             if (classSelect) {
-                filteredData = filteredData.filter(d => d.class && d.class.toLowerCase().replace(/\s+/g,'-') === classSelect);
+                filteredData = filteredData.filter(d => d.class && d.class.toUpperCase().replace(/\s+/g,'-') === classSelect);
             }
             if (term) {
                 filteredData = filteredData.filter(d => (d.term || '').toLowerCase().replace(/\s+/g,'-') === term);

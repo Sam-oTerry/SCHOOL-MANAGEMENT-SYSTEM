@@ -592,7 +592,7 @@
                 const s = doc.data();
                 const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
                 const className = (s.academicInfo && s.academicInfo.currentClass) || s.class || '—';
-                const classSlug = className.toLowerCase().replace(/\s+/g, '-');
+                const classSlug = className.toUpperCase().replace(/\s+/g, '-');
                 studentsMap[doc.id] = { id: doc.id, name, className, classSlug };
             });
             

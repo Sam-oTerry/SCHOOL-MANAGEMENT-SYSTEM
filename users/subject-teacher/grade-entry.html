@@ -413,7 +413,7 @@
             
             // Fetch students in selected class
             const snap = await db.collection('students')
-                .where('academicInfo.currentClass', '==', classSelect)
+                .where('academicInfo.currentClass', '==', classSelect.toUpperCase())
                 .get();
             currentStudents = [];
             snap.forEach(doc => {
@@ -425,7 +425,7 @@
             // Optionally prefill existing grades for this subject/term
             const gradeSnap = await db.collection('grades')
                 .where('subjectId', '==', subject)
-                .where('classId', '==', classSelect)
+                .where('classId', '==', classSelect.toUpperCase())
                 .where('term', '==', term)
                 .get();
             const existing = {};

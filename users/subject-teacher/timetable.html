@@ -464,7 +464,7 @@
             try {
                 const classNames = Array.from(classesSet).slice(0, 10); // limit to avoid massive queries
                 if (classNames.length > 0) {
-                    const snaps = await Promise.all(classNames.map(cn => db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
+                    const snaps = await Promise.all(classNames.map(cn => db.collection('students').where('academicInfo.currentClass', '==', cn.toUpperCase()).get()));
                     snaps.forEach(snap => { students += snap.size; });
                 }
             } catch (e) {}

@@ -503,9 +503,9 @@
             // Try multiple possible field structures for class
             let snap;
             try {
-                // First try the direct 'class' field (most common)
+                // First try the direct 'class' field (most common) - normalize to uppercase
                 snap = await db.collection('students')
-                    .where('class', '==', classSelect)
+                    .where('class', '==', classSelect.toUpperCase())
                     .get();
                 
                 console.log(`✅ Found ${snap.size} students using 'class' field`);
@@ -514,7 +514,7 @@
                 if (snap.empty) {
                     console.log('🔄 No students found with "class" field, trying "academicInfo.currentClass"...');
                     snap = await db.collection('students')
-                        .where('academicInfo.currentClass', '==', classSelect)
+                        .where('academicInfo.currentClass', '==', classSelect.toUpperCase())
                         .get();
                     console.log(`✅ Found ${snap.size} students using 'academicInfo.currentClass' field`);
                 }
@@ -531,7 +531,7 @@
                                            data.academicInfo?.currentClass ||
                                            data.academicInfo?.assignedClass;
                         
-                        if (studentClass && studentClass.toLowerCase() === classSelect.toLowerCase()) {
+                        if (studentClass && studentClass.toUpperCase() === classSelect.toUpperCase()) {
                             filteredDocs.push(doc);
                         }
                     });
@@ -767,9 +767,9 @@
                 const userData = userDoc.data();
                 
                 // Extract assigned class for this class teacher
-                assignedClass = userData.employmentInfo?.assignedClass || 
+                assignedClass = (userData.employmentInfo?.assignedClass || 
                               userData.academicInfo?.assignedClass ||
-                              userData.assignedClass;
+                              userData.assignedClass)?.toUpperCase();
                 
                 console.log('🎯 Class Teacher assigned class:', assignedClass);
                 
@@ -981,7 +981,7 @@
                                        data.academicInfo?.currentClass ||
                                        data.academicInfo?.assignedClass;
                     
-                    if (studentClass && studentClass.toLowerCase() === assignedClass.toLowerCase()) {
+                    if (studentClass && studentClass.toUpperCase() === assignedClass.toUpperCase()) {
                         manualCount++;
                         console.log(`  - Found student: ${data.firstName || data.personalInfo?.firstName} ${data.lastName || data.personalInfo?.lastName} (Class: ${studentClass})`);
                     }

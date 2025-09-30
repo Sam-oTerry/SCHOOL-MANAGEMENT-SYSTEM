@@ -1260,7 +1260,7 @@
                 if (subject.classes) {
                     subject.classes.forEach(className => {
                         students.forEach(student => {
-                            if (student.class === className) {
+                            if (student.class.toUpperCase() === className.toUpperCase()) {
                                 teacherStudentIds.add(student.id);
                             }
                         });

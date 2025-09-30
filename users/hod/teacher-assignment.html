@@ -1359,12 +1359,12 @@
                 
                 // Check if class is already assigned
                 const existingClass = teacherData.academicInfo.assignedClasses.find(cls => 
-                    cls.class === assignedClass && cls.subject === subject
+                    cls.class === assignedClass.toUpperCase() && cls.subject === subject
                 );
                 
                 if (!existingClass) {
                     teacherData.academicInfo.assignedClasses.push({
-                        class: assignedClass,
+                        class: assignedClass.toUpperCase(),
                         subject: subject,
                         assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
                         assignedBy: currentUser.uid
@@ -1374,7 +1374,7 @@
                     
                     // If this is a class teacher role, also set the primary assigned class
                     if (teacherData.role === 'class_teacher' && !teacherData.academicInfo.assignedClass) {
-                        updateData.academicInfo.assignedClass = assignedClass;
+                        updateData.academicInfo.assignedClass = assignedClass.toUpperCase();
                     }
                     
                     // Update the document
@@ -1468,12 +1468,12 @@
                 if (teacherData.academicInfo && teacherData.academicInfo.assignedClasses) {
                     // Remove the specific class assignment
                     teacherData.academicInfo.assignedClasses = teacherData.academicInfo.assignedClasses.filter(cls => 
-                        !(cls.class === assignedClass && cls.subject === subject)
+                        !(cls.class === assignedClass.toUpperCase() && cls.subject === subject)
                     );
                     
                     // If this was the primary assigned class for a class teacher, clear it
                     if (teacherData.role === 'class_teacher' && 
-                        teacherData.academicInfo.assignedClass === assignedClass) {
+                        teacherData.academicInfo.assignedClass === assignedClass.toUpperCase()) {
                         teacherData.academicInfo.assignedClass = null;
                     }
                     

@@ -955,22 +955,22 @@
         }
         
         // Populate class selects with dynamic data
-        // Populate class dropdowns with loaded classes (consistent with user-management.html)
-        function populateClassDropdowns() {
-            const classSelects = ['studentClass', 'editStudentClass', 'classFilter'];
-            classSelects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    select.innerHTML = selectId === 'classFilter' ? '<option value="all">All Classes</option>' : '<option value="">Select Class</option>';
-                    classes.forEach(cls => {
-                        const option = document.createElement('option');
-                        option.value = cls.name;
-                        option.textContent = `${cls.name} (${cls.level})`;
-                        select.appendChild(option);
-                    });
-                }
-            });
-        }
+         // Populate class dropdowns with loaded classes (consistent with user-management.html)
+         function populateClassDropdowns() {
+             const classSelects = ['studentClass', 'editStudentClass', 'classFilter'];
+             classSelects.forEach(selectId => {
+                 const select = document.getElementById(selectId);
+                 if (select) {
+                     select.innerHTML = selectId === 'classFilter' ? '<option value="all">All Classes</option>' : '<option value="">Select Class</option>';
+                     classes.forEach(cls => {
+                         const option = document.createElement('option');
+                         option.value = cls.name.toUpperCase(); // Use uppercase for consistency
+                         option.textContent = `${cls.name} (${cls.level})`;
+                         select.appendChild(option);
+                     });
+                 }
+             });
+         }
 
         // Create new class function (consistent with user-management.html)
         async function createNewClass() {
@@ -988,20 +988,22 @@
             try {
                 showLoading('Creating new class...');
                 
-                // Generate class ID
-                const classId = className.toLowerCase().replace(/\s+/g, '_');
-                
-                // Create class document in Firestore
-                const classData = {
-                    id: classId,
-                    name: className,
-                    level: classLevel,
-                    stream: classStream || null,
-                    description: classDescription || '',
-                    status: 'active',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: window.currentUser?.uid || 'system'
-                };
+                 // Generate class ID and normalize name
+                 const classId = className.toLowerCase().replace(/\s+/g, '_');
+                 const normalizedClassName = className.toUpperCase();
+                 
+                 // Create class document in Firestore
+                 const classData = {
+                     id: classId,
+                     name: normalizedClassName,
+                     displayName: className, // Keep original case for display
+                     level: classLevel,
+                     stream: classStream || null,
+                     description: classDescription || '',
+                     status: 'active',
+                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                     createdBy: window.currentUser?.uid || 'system'
+                 };
                 
                 await db.collection('classes').doc(classId).set(classData);
                 
@@ -1011,11 +1013,11 @@
                 // Update the class dropdowns
                 populateClassDropdowns();
                 
-                // Select the newly created class
-                const classSelect = document.getElementById('studentClass');
-                if (classSelect) {
-                    classSelect.value = className;
-                }
+                 // Select the newly created class
+                 const classSelect = document.getElementById('studentClass');
+                 if (classSelect) {
+                     classSelect.value = normalizedClassName;
+                 }
                 
                 // Close the modal
                 bootstrap.Modal.getInstance(document.getElementById('createClassModal')).hide();
@@ -1202,7 +1204,7 @@
             const classSelect = document.getElementById('studentClass');
             const streamSelect = document.getElementById('studentStream');
             
-            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+            if (classSelect.value === 'S5' || classSelect.value === 'S6') {
                 // A-Level streams
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
@@ -1211,7 +1213,7 @@
                     <option value="Commercial">Commercial</option>
                     <option value="Technical">Technical</option>
                 `;
-            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+            } else if (classSelect.value === 'S3' || classSelect.value === 'S4') {
                 // O-Level streams
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
@@ -1221,7 +1223,7 @@
                     <option value="Technical">Technical</option>
                 `;
             } else {
-                // S.1 and S.2 - no streams typically
+                // S1 and S2 - no streams typically
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
                 `;
@@ -1236,9 +1238,9 @@
                 
                 // Determine level based on class
                 let levelPrefix = 'ST'; // Default for O-Level
-                if (studentClass === 'S.5' || studentClass === 'S.6') {
+                if (studentClass === 'S5' || studentClass === 'S6') {
                     levelPrefix = 'AL'; // A-Level
-                } else if (studentClass === 'S.1' || studentClass === 'S.2' || studentClass === 'S.3' || studentClass === 'S.4') {
+                } else if (studentClass === 'S1' || studentClass === 'S2' || studentClass === 'S3' || studentClass === 'S4') {
                     levelPrefix = 'OL'; // O-Level
                 }
                 
@@ -1265,7 +1267,7 @@
                 // Fallback to timestamp-based ID
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2);
-                const levelPrefix = (studentClass === 'S.5' || studentClass === 'S.6') ? 'AL' : 'OL';
+                const levelPrefix = (studentClass === 'S5' || studentClass === 'S6') ? 'AL' : 'OL';
                 return 'ASS' + levelPrefix + yearPrefix + String(Date.now()).slice(-4);
             }
         }
@@ -1312,28 +1314,31 @@
                 const studentId = await generateStudentId(studentClass);
                 const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
                 
-                const studentData = {
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email || '',
-                    phone: phone || '',
-                    studentId: studentId,
-                    admissionNumber: finalAdmissionNumber,
-                    paymentCode: paymentCode,
-                    class: studentClass,
-                    stream: studentStream || null,
-                    academicYear: academicYear,
-                    dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
-                    gender: gender,
-                    address: address || '',
-                    // Add academicInfo structure for consistency with teachers
-                    academicInfo: {
-                        currentClass: studentClass,
-                        assignedClass: studentClass,
-                        stream: studentStream || null,
-                        academicYear: academicYear,
-                        level: classes.find(c => c.name === studentClass)?.level || 'O Level'
-                    },
+                 // Normalize class name to uppercase for consistency
+                 const normalizedClass = studentClass.toUpperCase();
+                 
+                 const studentData = {
+                     firstName: firstName,
+                     lastName: lastName,
+                     email: email || '',
+                     phone: phone || '',
+                     studentId: studentId,
+                     admissionNumber: finalAdmissionNumber,
+                     paymentCode: paymentCode,
+                     class: normalizedClass,
+                     stream: studentStream || null,
+                     academicYear: academicYear,
+                     dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
+                     gender: gender,
+                     address: address || '',
+                     // Add academicInfo structure for consistency with teachers
+                     academicInfo: {
+                         currentClass: normalizedClass,
+                         assignedClass: normalizedClass,
+                         stream: studentStream || null,
+                         academicYear: academicYear,
+                         level: classes.find(c => c.name.toUpperCase() === normalizedClass)?.level || 'O Level'
+                     },
                     parent: {
                         name: parentName,
                         relationship: parentRelationship,
@@ -1376,7 +1381,7 @@
             const classSelect = document.getElementById('editStudentClass');
             const streamSelect = document.getElementById('editStudentStream');
             
-            if (classSelect.value === 'S.5' || classSelect.value === 'S.6') {
+            if (classSelect.value === 'S5' || classSelect.value === 'S6') {
                 // A-Level streams
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
@@ -1385,7 +1390,7 @@
                     <option value="Commercial">Commercial</option>
                     <option value="Technical">Technical</option>
                 `;
-            } else if (classSelect.value === 'S.3' || classSelect.value === 'S.4') {
+            } else if (classSelect.value === 'S3' || classSelect.value === 'S4') {
                 // O-Level streams
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
@@ -1395,7 +1400,7 @@
                     <option value="Technical">Technical</option>
                 `;
             } else {
-                // S.1 and S.2 - no streams typically
+                // S1 and S2 - no streams typically
                 streamSelect.innerHTML = `
                     <option value="">No Stream</option>
                 `;
@@ -1475,30 +1480,33 @@
                 return;
             }
             
-            try {
-                showLoading('Updating student...');
-                
-                await db.collection('students').doc(studentId).update({
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email || '',
-                    phone: phone || '',
-                    class: studentClass,
-                    stream: studentStream || null,
-                    academicYear: academicYear,
-                    dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
-                    gender: gender,
-                    address: address || '',
-                    paymentCode: paymentCode,
-                    admissionNumber: admissionNumber || '',
-                    // Update academicInfo structure for consistency with teachers
-                    academicInfo: {
-                        currentClass: studentClass,
-                        assignedClass: studentClass,
-                        stream: studentStream || null,
-                        academicYear: academicYear,
-                        level: classes.find(c => c.name === studentClass)?.level || 'O Level'
-                    },
+             try {
+                 showLoading('Updating student...');
+                 
+                 // Normalize class name to uppercase for consistency
+                 const normalizedClass = studentClass.toUpperCase();
+                 
+                 await db.collection('students').doc(studentId).update({
+                     firstName: firstName,
+                     lastName: lastName,
+                     email: email || '',
+                     phone: phone || '',
+                     class: normalizedClass,
+                     stream: studentStream || null,
+                     academicYear: academicYear,
+                     dateOfBirth: firebase.firestore.Timestamp.fromDate(new Date(dateOfBirth)),
+                     gender: gender,
+                     address: address || '',
+                     paymentCode: paymentCode,
+                     admissionNumber: admissionNumber || '',
+                     // Update academicInfo structure for consistency with teachers
+                     academicInfo: {
+                         currentClass: normalizedClass,
+                         assignedClass: normalizedClass,
+                         stream: studentStream || null,
+                         academicYear: academicYear,
+                         level: classes.find(c => c.name.toUpperCase() === normalizedClass)?.level || 'O Level'
+                     },
                     parent: {
                         name: parentName,
                         relationship: parentRelationship,

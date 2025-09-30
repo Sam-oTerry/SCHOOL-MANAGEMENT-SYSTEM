@@ -574,13 +574,13 @@
                     try {
                         // First try academicInfo.currentClass
                         let snap = await window.db.collection('students')
-                            .where('academicInfo.currentClass', '==', className)
+                            .where('academicInfo.currentClass', '==', className.toUpperCase())
                             .get();
                         
                         // If no students found, try direct class field
                         if (snap.empty) {
                             snap = await window.db.collection('students')
-                                .where('class', '==', className)
+                                .where('class', '==', className.toUpperCase())
                                 .get();
                         }
                         
@@ -594,7 +594,7 @@
                                                    (data.academicInfo && data.academicInfo.currentClass) ||
                                                    (data.academicInfo && data.academicInfo.assignedClass);
                                 
-                                if (studentClass && studentClass.toLowerCase() === className.toLowerCase()) {
+                                if (studentClass && studentClass.toUpperCase() === className.toUpperCase()) {
                                     manualFiltered.push(doc);
                                 }
                             });

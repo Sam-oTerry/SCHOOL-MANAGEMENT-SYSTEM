@@ -1123,7 +1123,7 @@
                 // Create class document in Firestore
                 const classData = {
                     id: classId,
-                    name: className,
+                    name: className.toUpperCase(),
                     level: classLevel,
                     stream: classStream || null,
                     description: classDescription || '',
@@ -1676,7 +1676,7 @@
                         departments: Array.from(userDepartments),
                         departmentNames: departmentNames,
                         subjects: userSubjects,
-                        assignedClass: role === 'class_teacher' ? assignedClassId : null,
+                        assignedClass: role === 'class_teacher' ? assignedClassId.toUpperCase() : null,
                         classStream: role === 'class_teacher' ? classStream : null
                     },
                     employmentInfo: {

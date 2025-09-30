@@ -803,9 +803,9 @@
                 try {
                     // First try the direct 'class' field (most common)
                     studentsSnapshot = await db.collection('students')
-                        .where('class', '==', assignedClass)
-                        .orderBy('createdAt', 'desc')
-                        .get();
+                    .where('class', '==', assignedClass)
+                    .orderBy('createdAt', 'desc')
+                    .get();
                     
                     console.log(`✅ Found ${studentsSnapshot.size} students using 'class' field`);
                     
