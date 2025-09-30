@@ -1025,7 +1025,7 @@
                 // Clear existing options (except first option)
                 classSelect.innerHTML = '<option value="">Select Class</option>';
                 subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-                teacherSelect.innerHTML = '<option value="">Select Teacher</option>';
+                teacherSelect.innerHTML = '<option value="">Select Subject First</option>';
                 
                 // Populate classes
                 if (classes && classes.length > 0) {
@@ -1053,9 +1053,89 @@
                     console.log('⚠️ No subjects available for modal');
                 }
                 
-                // Populate teachers
-                if (teachers && teachers.length > 0) {
-                    teachers.forEach(teacher => {
+                // Setup subject change listener to filter teachers
+                setupSubjectChangeListener();
+                
+            } catch (error) {
+                console.error('Error populating create timetable modal:', error);
+                showError('Failed to load modal data. Please try again.');
+            }
+        }
+        
+        // Setup subject change listener to filter teachers
+        function setupSubjectChangeListener() {
+            try {
+                const subjectSelect = document.getElementById('timetable-subject');
+                const teacherSelect = document.getElementById('timetable-teacher');
+                
+                if (!subjectSelect || !teacherSelect) {
+                    console.error('Subject or teacher select elements not found');
+                    return;
+                }
+                
+                // Remove existing listener to prevent duplicates
+                subjectSelect.removeEventListener('change', handleSubjectChange);
+                
+                // Add new listener
+                subjectSelect.addEventListener('change', handleSubjectChange);
+                
+                console.log('✅ Subject change listener setup complete');
+                
+            } catch (error) {
+                console.error('Error setting up subject change listener:', error);
+            }
+        }
+        
+        // Handle subject change to filter teachers
+        async function handleSubjectChange() {
+            try {
+                const subjectSelect = document.getElementById('timetable-subject');
+                const teacherSelect = document.getElementById('timetable-teacher');
+                
+                if (!subjectSelect || !teacherSelect) {
+                    return;
+                }
+                
+                const selectedSubjectId = subjectSelect.value;
+                
+                // Clear teacher dropdown
+                teacherSelect.innerHTML = '<option value="">Select Teacher</option>';
+                
+                if (!selectedSubjectId) {
+                    teacherSelect.innerHTML = '<option value="">Select Subject First</option>';
+                    return;
+                }
+                
+                console.log(`🔄 Filtering teachers for subject: ${selectedSubjectId}`);
+                
+                // Load teachers assigned to this subject
+                const teachersSnapshot = await db.collection('users')
+                    .where('role', 'in', ['subject_teacher', 'class_teacher'])
+                    .get();
+                
+                const subjectTeachers = [];
+                
+                teachersSnapshot.forEach(doc => {
+                    const teacher = doc.data();
+                    
+                    // Check if teacher is assigned to this subject
+                    const assignedSubjects = teacher.assignedSubjects || [];
+                    const isAssignedToSubject = assignedSubjects.some(assignment => 
+                        assignment.subjectId === selectedSubjectId || 
+                        assignment.subject === selectedSubjectId
+                    );
+                    
+                    if (isAssignedToSubject) {
+                        subjectTeachers.push({
+                            id: doc.id,
+                            ...teacher
+                        });
+                    }
+                });
+                
+                // Populate teacher dropdown with filtered teachers
+                if (subjectTeachers.length > 0) {
+                    subjectTeachers.forEach(teacher => {
                         const option = document.createElement('option');
                         option.value = teacher.id;
                         option.textContent = teacher.personalInfo?.fullName || 
@@ -1063,14 +1143,19 @@
                                           teacher.email || 'Unknown Teacher';
                         teacherSelect.appendChild(option);
                     });
-                    console.log(`✅ Populated ${teachers.length} teachers in modal`);
+                    console.log(`✅ Populated ${subjectTeachers.length} teachers for selected subject`);
                 } else {
-                    console.log('⚠️ No teachers available for modal');
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No teachers assigned to this subject';
+                    option.disabled = true;
+                    teacherSelect.appendChild(option);
+                    console.log('⚠️ No teachers assigned to selected subject');
                 }
                 
             } catch (error) {
-                console.error('Error populating create timetable modal:', error);
-                showError('Failed to load modal data. Please try again.');
+                console.error('Error filtering teachers by subject:', error);
+                showError('Failed to load teachers for selected subject.');
             }
         }
         
@@ -1097,6 +1182,7 @@
         // Make functions globally available
         window.initializeTimetable = initializeTimetable;
         window.populateCreateTimetableModal = populateCreateTimetableModal;
+        window.handleSubjectChange = handleSubjectChange;
         window.logout = DOSUtils.logout;
     </script>
     
