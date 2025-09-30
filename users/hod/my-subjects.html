@@ -553,9 +553,71 @@
             
             totalClassesEl.textContent = uniqueClasses.length;
 
-            // Without a reliable mapping from subjects to students, leave as em dash
-            totalStudentsEl.textContent = '—';
+            // Calculate total students using robust fallback system
+            const totalStudents = await calculateTotalStudents(uniqueClasses);
+            totalStudentsEl.textContent = totalStudents;
+            
+            // Calculate average performance (placeholder for now)
             avgPerfEl.textContent = '—';
+        }
+
+        // Enhanced student counting with robust fallback system
+        async function calculateTotalStudents(classes) {
+            if (!classes || classes.length === 0) return 0;
+            
+            console.log('🔍 Calculating total students for classes:', classes);
+            let totalStudents = 0;
+            
+            try {
+                // Try to get students for each class using robust fallback
+                const studentCounts = await Promise.all(classes.map(async (className) => {
+                    try {
+                        // First try academicInfo.currentClass
+                        let snap = await window.db.collection('students')
+                            .where('academicInfo.currentClass', '==', className)
+                            .get();
+                        
+                        // If no students found, try direct class field
+                        if (snap.empty) {
+                            snap = await window.db.collection('students')
+                                .where('class', '==', className)
+                                .get();
+                        }
+                        
+                        // If still no students, try manual filtering
+                        if (snap.empty) {
+                            const allStudentsSnap = await window.db.collection('students').get();
+                            const manualFiltered = [];
+                            allStudentsSnap.forEach(doc => {
+                                const data = doc.data();
+                                const studentClass = data.class || 
+                                                   (data.academicInfo && data.academicInfo.currentClass) ||
+                                                   (data.academicInfo && data.academicInfo.assignedClass);
+                                
+                                if (studentClass && studentClass.toLowerCase() === className.toLowerCase()) {
+                                    manualFiltered.push(doc);
+                                }
+                            });
+                            snap = { size: manualFiltered.length };
+                        }
+                        
+                        console.log(`📊 Found ${snap.size} students for class ${className}`);
+                        return snap.size;
+                    } catch (error) {
+                        console.error(`Error counting students for class ${className}:`, error);
+                        return 0;
+                    }
+                }));
+                
+                totalStudents = studentCounts.reduce((sum, count) => sum + count, 0);
+                console.log(`✅ Total students calculated: ${totalStudents}`);
+                
+            } catch (error) {
+                console.error('Error calculating total students:', error);
+                totalStudents = 0;
+            }
+            
+            return totalStudents;
         }
 
         // Get teacher assignments for a specific teacher
@@ -591,7 +653,8 @@
             const teacherAssignments = await getTeacherAssignments(window.currentUser.uid);
             console.log('Teacher assignments:', teacherAssignments);
             
-            subjects.forEach(s => {
+            // Process each subject with student counts
+            for (const s of subjects) {
                 const row = document.createElement('tr');
                 const classes = Array.isArray(s.classes) ? s.classes : [];
                 const status = (s.status || 'active').toString().toLowerCase();
@@ -605,6 +668,9 @@
                 // Get assigned classes for this subject
                 const assignedClasses = subjectAssignments.map(assignment => assignment.class).filter(Boolean);
                 const uniqueClasses = [...new Set(assignedClasses)];
+                
+                // Calculate student count for this subject's classes
+                const studentCount = await calculateTotalStudents(uniqueClasses);
                 
                 // Format classes display
                 const classesDisplay = uniqueClasses.length > 0 
@@ -626,7 +692,7 @@
                             ${classesDisplay}
                         </div>
                     </td>
-                    <td>—</td>
+                    <td><span class="badge bg-primary">${studentCount}</span></td>
                     <td>—</td>
                     <td>—</td>
                     <td><span class="badge ${statusClass}">${(s.status || 'Active').toString().charAt(0).toUpperCase() + (s.status || 'Active').toString().slice(1)}</span></td>
@@ -635,7 +701,7 @@
                         <button class="btn btn-sm btn-warning" onclick="editSubject('${s.id}')"><i class="fas fa-edit"></i> Edit</button>
                     </td>`;
                 tbody.appendChild(row);
-            });
+            }
         }
 
         // Initialize page

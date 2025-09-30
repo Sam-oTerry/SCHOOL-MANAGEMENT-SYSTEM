@@ -797,10 +797,80 @@
                 }
                 
                 console.log('🔍 Querying students collection for class:', assignedClass);
-                const studentsSnapshot = await db.collection('students')
-                    .where('class', '==', assignedClass)
-                    .orderBy('createdAt', 'desc')
-                    .get();
+                
+                // Try multiple possible field structures for class
+                let studentsSnapshot;
+                try {
+                    // First try the direct 'class' field (most common)
+                    studentsSnapshot = await db.collection('students')
+                        .where('class', '==', assignedClass)
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                    
+                    console.log(`✅ Found ${studentsSnapshot.size} students using 'class' field`);
+                    
+                    // If no students found, try 'academicInfo.currentClass'
+                    if (studentsSnapshot.empty) {
+                        console.log('🔄 No students found with "class" field, trying "academicInfo.currentClass"...');
+                        studentsSnapshot = await db.collection('students')
+                            .where('academicInfo.currentClass', '==', assignedClass)
+                            .orderBy('createdAt', 'desc')
+                            .get();
+                        console.log(`✅ Found ${studentsSnapshot.size} students using 'academicInfo.currentClass' field`);
+                    }
+                    
+                    // If still no students, try manual filtering
+                    if (studentsSnapshot.empty) {
+                        console.log('🔄 No students found with either field, trying manual filtering...');
+                        const allStudentsSnapshot = await db.collection('students').get();
+                        const filteredDocs = [];
+                        
+                        allStudentsSnapshot.forEach(doc => {
+                            const data = doc.data();
+                            const studentClass = data.class || 
+                                               data.academicInfo?.currentClass ||
+                                               data.academicInfo?.assignedClass;
+                            
+                            if (studentClass && studentClass.toLowerCase() === assignedClass.toLowerCase()) {
+                                filteredDocs.push(doc);
+                            }
+                        });
+                        
+                        console.log(`✅ Found ${filteredDocs.length} students using manual filtering`);
+                        
+                        // Create a mock snapshot-like object
+                        studentsSnapshot = {
+                            forEach: (callback) => filteredDocs.forEach(callback),
+                            empty: filteredDocs.length === 0,
+                            size: filteredDocs.length
+                        };
+                    }
+                    
+                } catch (queryError) {
+                    console.error('❌ Error with Firestore queries, trying manual filtering...', queryError);
+                    // Fallback to manual filtering
+                    const allStudentsSnapshot = await db.collection('students').get();
+                    const filteredDocs = [];
+                    
+                    allStudentsSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const studentClass = data.class || 
+                                           data.academicInfo?.currentClass ||
+                                           data.academicInfo?.assignedClass;
+                        
+                        if (studentClass && studentClass.toLowerCase() === assignedClass.toLowerCase()) {
+                            filteredDocs.push(doc);
+                        }
+                    });
+                    
+                    console.log(`✅ Found ${filteredDocs.length} students using fallback manual filtering`);
+                    
+                    studentsSnapshot = {
+                        forEach: (callback) => filteredDocs.forEach(callback),
+                        empty: filteredDocs.length === 0,
+                        size: filteredDocs.length
+                    };
+                }
                 
                 console.log('📊 Students snapshot received:', studentsSnapshot.size, 'documents');
                 

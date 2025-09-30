@@ -1025,11 +1025,42 @@
 
                 // Calculate total students for this department only
                 for (const classData of classesData) {
-                    const studentsSnapshot = await db.collection('students')
-                        .where('academicInfo.currentClass', '==', classData.id)
-                        .where('academicInfo.status', '==', 'active')
-                        .get();
-                    stats.totalStudents += studentsSnapshot.size;
+                    let studentsSnapshot;
+                    try {
+                        // First try academicInfo.currentClass
+                        studentsSnapshot = await db.collection('students')
+                            .where('academicInfo.currentClass', '==', classData.id)
+                            .where('academicInfo.status', '==', 'active')
+                            .get();
+                        
+                        // If no students found, try direct class field
+                        if (studentsSnapshot.empty) {
+                            studentsSnapshot = await db.collection('students')
+                                .where('class', '==', classData.id)
+                                .get();
+                        }
+                        
+                        // If still no students, try manual filtering
+                        if (studentsSnapshot.empty) {
+                            const allStudentsSnapshot = await db.collection('students').get();
+                            let count = 0;
+                            allStudentsSnapshot.forEach(doc => {
+                                const data = doc.data();
+                                const studentClass = data.class || 
+                                                   data.academicInfo?.currentClass ||
+                                                   data.academicInfo?.assignedClass;
+                                if (studentClass === classData.id) {
+                                    count++;
+                                }
+                            });
+                            stats.totalStudents += count;
+                        } else {
+                            stats.totalStudents += studentsSnapshot.size;
+                        }
+                    } catch (error) {
+                        console.error(`Error loading students for class ${classData.id}:`, error);
+                        // Continue with other classes
+                    }
                 }
                 console.log(`Total students in department: ${stats.totalStudents}`);
 
@@ -1308,13 +1339,43 @@
                 averagePerformance: 85
             };
 
-            // Calculate total students
+            // Calculate total students with robust fallback
             Promise.all(classesData.map(async (classData) => {
-                const studentsSnapshot = await db.collection('students')
-                    .where('academicInfo.currentClass', '==', classData.id)
-                    .where('academicInfo.status', '==', 'active')
-                    .get();
-                return studentsSnapshot.size;
+                try {
+                    // First try academicInfo.currentClass
+                    let studentsSnapshot = await db.collection('students')
+                        .where('academicInfo.currentClass', '==', classData.id)
+                        .where('academicInfo.status', '==', 'active')
+                        .get();
+                    
+                    // If no students found, try direct class field
+                    if (studentsSnapshot.empty) {
+                        studentsSnapshot = await db.collection('students')
+                            .where('class', '==', classData.id)
+                            .get();
+                    }
+                    
+                    // If still no students, try manual filtering
+                    if (studentsSnapshot.empty) {
+                        const allStudentsSnapshot = await db.collection('students').get();
+                        let count = 0;
+                        allStudentsSnapshot.forEach(doc => {
+                            const data = doc.data();
+                            const studentClass = data.class || 
+                                               data.academicInfo?.currentClass ||
+                                               data.academicInfo?.assignedClass;
+                            if (studentClass === classData.id) {
+                                count++;
+                            }
+                        });
+                        return count;
+                    }
+                    
+                    return studentsSnapshot.size;
+                } catch (error) {
+                    console.error(`Error loading students for class ${classData.id}:`, error);
+                    return 0;
+                }
             })).then(studentCounts => {
                 stats.totalStudents = studentCounts.reduce((sum, count) => sum + count, 0);
                 

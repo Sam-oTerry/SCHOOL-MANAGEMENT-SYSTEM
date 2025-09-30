@@ -504,16 +504,75 @@
                 return;
             }
             
-            // Fetch students in selected class
-            const snap = await db.collection('students')
-                .where('academicInfo.currentClass', '==', classSelect)
-                .get();
+            console.log('👥 Loading students for grade entry - Class:', classSelect);
+            
+            // Try multiple possible field structures for class
+            let snap;
+            try {
+                // First try the direct 'class' field (most common)
+                snap = await db.collection('students')
+                    .where('class', '==', classSelect)
+                    .get();
+                
+                console.log(`✅ Found ${snap.size} students using 'class' field`);
+                
+                // If no students found, try 'academicInfo.currentClass'
+                if (snap.empty) {
+                    console.log('🔄 No students found with "class" field, trying "academicInfo.currentClass"...');
+                    snap = await db.collection('students')
+                        .where('academicInfo.currentClass', '==', classSelect)
+                        .get();
+                    console.log(`✅ Found ${snap.size} students using 'academicInfo.currentClass' field`);
+                }
+                
+                // If still no students, try manual filtering
+                if (snap.empty) {
+                    console.log('🔄 No students found with either field, trying manual filtering...');
+                    const allStudentsSnap = await db.collection('students').get();
+                    const filteredDocs = [];
+                    
+                    allStudentsSnap.forEach(doc => {
+                        const data = doc.data();
+                        const studentClass = data.class || 
+                                           data.academicInfo?.currentClass ||
+                                           data.academicInfo?.assignedClass;
+                        
+                        if (studentClass && studentClass.toLowerCase() === classSelect.toLowerCase()) {
+                            filteredDocs.push(doc);
+                        }
+                    });
+                    
+                    console.log(`✅ Found ${filteredDocs.length} students using manual filtering`);
+                    
+                    // Create a mock snapshot-like object
+                    snap = {
+                        forEach: (callback) => filteredDocs.forEach(callback),
+                        empty: filteredDocs.length === 0,
+                        size: filteredDocs.length
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading students:', error);
+                alert('Failed to load students. Please try again.');
+                return;
+            }
+            
             currentStudents = [];
             snap.forEach(doc => {
                 const s = doc.data();
-                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
-                currentStudents.push({ id: doc.id, name });
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || 
+                           `${s.firstName || ''} ${s.lastName || ''}`.trim() || 
+                           s.name || 
+                           'Unnamed Student';
+                currentStudents.push({ 
+                    id: doc.id, 
+                    name,
+                    studentId: s.studentId || doc.id
+                });
             });
+
+            console.log(`✅ Loaded ${currentStudents.length} students for grade entry`);
 
             // Optionally prefill existing grades for this subject/term
             const gradeSnap = await db.collection('grades')

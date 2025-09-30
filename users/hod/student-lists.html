@@ -464,16 +464,42 @@
         }
         
         async function loadStudentsAndGrades() {
-            // Load students
-            const studentsSnap = await db.collection('students').limit(1000).get();
+            // Load students with robust fallback system
+            console.log('👥 Loading students for HOD student lists...');
+            
+            let studentsSnap;
+            try {
+                // First try to load all students
+                studentsSnap = await db.collection('students').limit(1000).get();
+                console.log(`✅ Loaded ${studentsSnap.size} students from Firestore`);
+            } catch (error) {
+                console.error('❌ Error loading students:', error);
+                // Create empty snapshot for fallback
+                studentsSnap = {
+                    forEach: () => {},
+                    size: 0,
+                    empty: true
+                };
+            }
+            
             const studentsMap = {};
             studentsSnap.forEach(doc => {
                 const s = doc.data();
-                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || s.name || 'Unnamed Student';
-                const className = (s.academicInfo && s.academicInfo.currentClass) || s.class || '—';
+                const name = (s.personalInfo && (s.personalInfo.fullName || `${s.personalInfo.firstName || ''} ${s.personalInfo.lastName || ''}`.trim())) || 
+                           `${s.firstName || ''} ${s.lastName || ''}`.trim() || 
+                           s.name || 
+                           'Unnamed Student';
+                
+                // Try multiple class field structures
+                const className = s.class || 
+                                s.academicInfo?.currentClass || 
+                                s.academicInfo?.assignedClass || 
+                                '—';
                 const classSlug = className.toLowerCase().replace(/\s+/g, '-');
                 studentsMap[doc.id] = { id: doc.id, name, className, classSlug };
             });
+            
+            console.log(`✅ Processed ${Object.keys(studentsMap).length} students for student lists`);
             
             // Load grades for assigned subjects
             let grades = [];

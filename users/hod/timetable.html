@@ -543,17 +543,50 @@
                 });
             });
 
-            // Attempt to estimate students by counting students in classes taught
+            // Attempt to estimate students by counting students in classes taught with robust fallback
             let students = 0;
             try {
                 const classNames = Array.from(classesSet).slice(0, 10); // limit to avoid massive queries
                 if (classNames.length > 0) {
-                        const snaps = await Promise.all(classNames.map(cn => window.db.collection('students').where('academicInfo.currentClass', '==', cn).get()));
-                    snaps.forEach(snap => { students += snap.size; });
+                    // Try multiple field structures for each class
+                    const studentCounts = await Promise.all(classNames.map(async (cn) => {
+                        try {
+                            // First try academicInfo.currentClass
+                            let snap = await window.db.collection('students').where('academicInfo.currentClass', '==', cn).get();
+                            
+                            // If no students found, try direct class field
+                            if (snap.empty) {
+                                snap = await window.db.collection('students').where('class', '==', cn).get();
+                            }
+                            
+                            // If still no students, try manual filtering
+                            if (snap.empty) {
+                                const allStudentsSnap = await window.db.collection('students').get();
+                                let count = 0;
+                                allStudentsSnap.forEach(doc => {
+                                    const data = doc.data();
+                                    const studentClass = data.class || 
+                                                       data.academicInfo?.currentClass ||
+                                                       data.academicInfo?.assignedClass;
+                                    if (studentClass === cn) {
+                                        count++;
+                                    }
+                                });
+                                return count;
+                            }
+                            
+                            return snap.size;
+                        } catch (error) {
+                            console.error(`Error loading students for class ${cn}:`, error);
+                            return 0;
+                        }
+                    }));
+                    
+                    students = studentCounts.reduce((sum, count) => sum + count, 0);
                 }
-                } catch (e) {
-                    console.log('Could not load student count:', e);
-                }
+            } catch (e) {
+                console.log('Could not load student count:', e);
+            }
 
                 // Update stats display
                 const statHours = document.getElementById('stat-hours');

@@ -460,21 +460,58 @@
         async function loadClasses() {
             console.log('Loading classes for results approval');
             try {
-                // Generate S1-S6 classes with streams
-                const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-                const streams = ['A', 'B', 'C', 'D'];
-                
+                // Load classes dynamically from Firestore
+                const classesSnapshot = await window.db.collection('classes').get();
                 classes = [];
-                classLevels.forEach(level => {
-                    // Add main class
-                    classes.push({ id: level.toLowerCase(), name: level });
-                    // Add stream classes
-                    streams.forEach(stream => {
-                        classes.push({ 
-                            id: `${level.toLowerCase()}_${stream.toLowerCase()}`, 
-                            name: `${level} ${stream}` 
+                
+                if (!classesSnapshot.empty) {
+                    // Load from Firestore classes collection
+                    classesSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        classes.push({
+                            id: doc.id,
+                            name: data.name || data.className || doc.id,
+                            level: data.level || data.classLevel || '',
+                            stream: data.stream || '',
+                            department: data.department || data.departmentId || ''
                         });
                     });
+                    console.log('Classes loaded from Firestore:', classes.length);
+                } else {
+                    // Fallback: Generate S1-S6 classes with streams if no classes exist in Firestore
+                    console.log('No classes found in Firestore, generating default classes');
+                    const classLevels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+                    const streams = ['A', 'B', 'C', 'D'];
+                    
+                    classLevels.forEach(level => {
+                        // Add main class
+                        classes.push({ 
+                            id: level.toLowerCase(), 
+                            name: level,
+                            level: level,
+                            stream: '',
+                            department: ''
+                        });
+                        // Add stream classes
+                        streams.forEach(stream => {
+                            classes.push({ 
+                                id: `${level.toLowerCase()}_${stream.toLowerCase()}`, 
+                                name: `${level} ${stream}`,
+                                level: level,
+                                stream: stream,
+                                department: ''
+                            });
+                        });
+                    });
+                    console.log('Default classes generated:', classes.length);
+                }
+                
+                // Sort classes by level and stream
+                classes.sort((a, b) => {
+                    if (a.level !== b.level) {
+                        return a.level.localeCompare(b.level);
+                    }
+                    return a.stream.localeCompare(b.stream);
                 });
                 
                 // Populate class filter dropdown
@@ -485,17 +522,19 @@
                 console.log('Classes loaded:', classes.length);
             } catch (error) {
                 console.error('Error loading classes:', error);
+                // Fallback to empty classes array
+                classes = [];
             }
         }
 
         async function loadResults() {
             console.log('Loading results for approval');
             try {
-                // Load results from Firestore
+                // Load results from Firestore with enhanced querying
                 const resultsSnapshot = await window.db.collection('results')
                     .where('status', 'in', ['pending', 'approved', 'rejected'])
                     .orderBy('submittedDate', 'desc')
-                    .limit(100)
+                    .limit(200) // Increased limit for better data coverage
                     .get();
                 
                 results = [];
@@ -508,8 +547,14 @@
                     });
                 });
                 
-                console.log('Results loaded:', results.length);
-            displayResults();
+                // Load additional data to enhance results
+                results = await enhanceResultsWithAdditionalData(results);
+                
+                // Validate and enhance student data in results
+                results = await validateResultsStudentData(results);
+                
+                console.log('Results loaded and enhanced:', results.length);
+                displayResults();
                 updateApprovalStats();
                 
             } catch (error) {
@@ -518,6 +563,148 @@
                 displayResults();
                 updateApprovalStats();
             }
+        }
+
+        // Enhanced function to load additional data for results
+        async function enhanceResultsWithAdditionalData(results) {
+            console.log('🔍 Enhancing results with additional data');
+            
+            try {
+                // Get unique subject IDs and teacher IDs from results
+                const subjectIds = [...new Set(results.map(r => r.subjectId).filter(Boolean))];
+                const teacherIds = [...new Set(results.map(r => r.teacherId).filter(Boolean))];
+                
+                // Load subjects data
+                const subjectsMap = new Map();
+                if (subjectIds.length > 0) {
+                    const subjectsSnapshot = await window.db.collection('subjects')
+                        .where(firebase.firestore.FieldPath.documentId(), 'in', subjectIds.slice(0, 10)) // Firestore limit
+                        .get();
+                    
+                    subjectsSnapshot.forEach(doc => {
+                        subjectsMap.set(doc.id, { id: doc.id, ...doc.data() });
+                    });
+                }
+                
+                // Load teachers data
+                const teachersMap = new Map();
+                if (teacherIds.length > 0) {
+                    const teachersSnapshot = await window.db.collection('users')
+                        .where(firebase.firestore.FieldPath.documentId(), 'in', teacherIds.slice(0, 10)) // Firestore limit
+                        .get();
+                    
+                    teachersSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        teachersMap.set(doc.id, {
+                            id: doc.id,
+                            name: data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown Teacher',
+                            email: data.email || '',
+                            department: data.department || data.departmentId || ''
+                        });
+                    });
+                }
+                
+                // Enhance each result with additional data
+                const enhancedResults = results.map(result => {
+                    const enhanced = { ...result };
+                    
+                    // Enhance subject data
+                    if (result.subjectId && subjectsMap.has(result.subjectId)) {
+                        const subject = subjectsMap.get(result.subjectId);
+                        enhanced.subjectName = subject.name || subject.subjectName || result.subject;
+                        enhanced.subjectCode = subject.code || '';
+                        enhanced.subjectDepartment = subject.department || subject.departmentName || '';
+                    }
+                    
+                    // Enhance teacher data
+                    if (result.teacherId && teachersMap.has(result.teacherId)) {
+                        const teacher = teachersMap.get(result.teacherId);
+                        enhanced.teacherName = teacher.name;
+                        enhanced.teacherEmail = teacher.email;
+                        enhanced.teacherDepartment = teacher.department;
+                    }
+                    
+                    // Calculate average score if not provided
+                    if (!enhanced.averageScore && enhanced.results && Array.isArray(enhanced.results)) {
+                        const validScores = enhanced.results
+                            .map(s => s.total || s.totalScore || 0)
+                            .filter(score => score > 0);
+                        
+                        if (validScores.length > 0) {
+                            enhanced.averageScore = validScores.reduce((sum, score) => sum + score, 0) / validScores.length;
+                        }
+                    }
+                    
+                    return enhanced;
+                });
+                
+                console.log('✅ Results enhanced with additional data');
+                return enhancedResults;
+                
+            } catch (error) {
+                console.error('Error enhancing results:', error);
+                return results; // Return original results if enhancement fails
+            }
+        }
+
+        // Enhanced function to validate and enhance student data in results
+        async function validateResultsStudentData(results) {
+            console.log('🔍 Validating student data in results');
+            
+            try {
+                // For each result, validate that the student data is consistent
+                const enhancedResults = await Promise.all(results.map(async (result) => {
+                    if (result.results && Array.isArray(result.results)) {
+                        // Validate each student result
+                        const validatedStudents = await Promise.all(result.results.map(async (student) => {
+                            // Ensure student data is properly formatted
+                            const validatedStudent = {
+                                studentId: student.studentId || student.id || 'TBD',
+                                studentName: student.studentName || student.name || 'TBD',
+                                midterm: student.midterm || student.midTerm || 0,
+                                endterm: student.endterm || student.endTerm || 0,
+                                total: student.total || student.totalScore || 0,
+                                grade: student.grade || 'TBD'
+                            };
+                            
+                            // Calculate total if not provided
+                            if (validatedStudent.total === 0 && validatedStudent.midterm > 0 && validatedStudent.endterm > 0) {
+                                validatedStudent.total = Math.round((validatedStudent.midterm * 0.2) + (validatedStudent.endterm * 0.8));
+                            }
+                            
+                            // Calculate grade if not provided
+                            if (validatedStudent.grade === 'TBD' && validatedStudent.total > 0) {
+                                validatedStudent.grade = calculateGrade(validatedStudent.total);
+                            }
+                            
+                            return validatedStudent;
+                        }));
+                        
+                        result.results = validatedStudents;
+                        result.students = validatedStudents.length;
+                        result.studentCount = validatedStudents.length;
+                    }
+                    
+                    return result;
+                }));
+                
+                console.log('✅ Student data validation completed');
+                return enhancedResults;
+                
+            } catch (error) {
+                console.error('Error validating student data:', error);
+                return results; // Return original results if validation fails
+            }
+        }
+
+        // Helper function to calculate grade based on score
+        function calculateGrade(score) {
+            if (score >= 90) return 'A';
+            if (score >= 80) return 'B';
+            if (score >= 70) return 'C';
+            if (score >= 60) return 'D';
+            if (score >= 50) return 'E';
+            return 'F';
         }
 
         function updateApprovalStats() {
@@ -555,28 +742,52 @@
             
             results.forEach(result => {
                 const row = document.createElement('tr');
+                const statusClass = getStatusColor(result.status);
+                const averageScore = result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD';
+                const studentCount = result.students || result.studentCount || (result.results ? result.results.length : 0);
+                
                 row.innerHTML = `
-                    <td><strong>${result.subject || result.subjectName || 'TBD'}</strong></td>
-                    <td>${result.class || result.className || 'TBD'}</td>
-                    <td>${result.teacher || result.teacherName || 'TBD'}</td>
-                    <td>${result.term || 'TBD'}</td>
-                    <td>${result.students || result.studentCount || 0}</td>
-                    <td>${result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD'}</td>
-                    <td><span class="badge ${getStatusColor(result.status)}">${result.status || 'Unknown'}</span></td>
-                    <td>${formatDate(result.submittedDate)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${result.status === 'pending' ? 
-                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult('${result.id}')">
-                                <i class="fas fa-check"></i>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-2"><i class="fas fa-book text-primary"></i></div>
+                            <div>
+                                <div class="fw-bold">${result.subjectName || result.subject || 'TBD'}</div>
+                                <small class="text-muted">${result.subjectCode ? `Code: ${result.subjectCode}` : ''} ${result.subjectDepartment ? `| Dept: ${result.subjectDepartment}` : ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${result.class || result.className || 'TBD'}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="teacher-icon me-2"><i class="fas fa-user-tie text-secondary"></i></div>
+                            <div>
+                                <div class="fw-bold">${result.teacherName || result.teacher || 'TBD'}</div>
+                                <small class="text-muted">${result.teacherEmail || ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-primary">${result.term || 'TBD'}</span></td>
+                    <td><span class="badge bg-success">${studentCount}</span></td>
+                    <td><span class="badge ${averageScore !== 'TBD' ? 'bg-info' : 'bg-secondary'}">${averageScore}</span></td>
+                    <td><span class="badge ${statusClass}">${result.status || 'Unknown'}</span></td>
+                    <td><small>${formatDate(result.submittedDate)}</small></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')" title="View Details">
+                                <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult('${result.id}')">
-                                <i class="fas fa-times"></i>
-                            </button>` : 
-                            ''
-                        }
+                            ${result.status === 'pending' ? 
+                                `<button class="btn btn-sm btn-outline-success" onclick="approveResult('${result.id}')" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="rejectResult('${result.id}')" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>` : 
+                                ''
+                            }
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -603,31 +814,36 @@
             
             currentResult = result;
             
-            // Populate modal
-            document.getElementById('detail-subject').textContent = result.subject || result.subjectName || 'TBD';
+            // Populate modal with enhanced data
+            document.getElementById('detail-subject').textContent = result.subjectName || result.subject || 'TBD';
             document.getElementById('detail-class').textContent = result.class || result.className || 'TBD';
-            document.getElementById('detail-teacher').textContent = result.teacher || result.teacherName || 'TBD';
+            document.getElementById('detail-teacher').textContent = result.teacherName || result.teacher || 'TBD';
             document.getElementById('detail-term').textContent = result.term || 'TBD';
-            document.getElementById('detail-students').textContent = result.students || result.studentCount || 0;
+            document.getElementById('detail-students').textContent = result.students || result.studentCount || (result.results ? result.results.length : 0);
             document.getElementById('detail-average').textContent = result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD';
             
-            // Populate results table
+            // Populate results table with enhanced student data
             const tbody = document.getElementById('results-detail-tbody');
             tbody.innerHTML = '';
             
             if (result.results && result.results.length > 0) {
-            result.results.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                        <td>${student.studentId || student.id || 'TBD'}</td>
-                        <td>${student.studentName || student.name || 'TBD'}</td>
-                        <td>${student.midterm || student.midTerm || 'TBD'}${student.midterm ? '%' : ''}</td>
-                        <td>${student.endterm || student.endTerm || 'TBD'}${student.endterm ? '%' : ''}</td>
-                        <td>${student.total || student.totalScore || 'TBD'}${student.total ? '%' : ''}</td>
-                        <td><span class="badge ${getGradeColor(student.grade)}">${student.grade || 'TBD'}</span></td>
-                `;
-                tbody.appendChild(row);
-            });
+                result.results.forEach(student => {
+                    const row = document.createElement('tr');
+                    const midtermScore = student.midterm || student.midTerm || 0;
+                    const endtermScore = student.endterm || student.endTerm || 0;
+                    const totalScore = student.total || student.totalScore || 0;
+                    const grade = student.grade || 'TBD';
+                    
+                    row.innerHTML = `
+                        <td><span class="badge bg-secondary">${student.studentId || student.id || 'TBD'}</span></td>
+                        <td><strong>${student.studentName || student.name || 'TBD'}</strong></td>
+                        <td><span class="badge ${midtermScore >= 50 ? 'bg-success' : 'bg-warning'}">${midtermScore}%</span></td>
+                        <td><span class="badge ${endtermScore >= 50 ? 'bg-success' : 'bg-warning'}">${endtermScore}%</span></td>
+                        <td><span class="badge ${totalScore >= 50 ? 'bg-primary' : 'bg-danger'}">${totalScore}%</span></td>
+                        <td><span class="badge ${getGradeColor(grade)}">${grade}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
                 
                 // Update grade distribution
                 updateGradeDistribution(result.results);
@@ -812,7 +1028,7 @@
             
             if (subjectId) {
                 const subject = subjects.find(s => s.id === subjectId);
-            if (subject) {
+                if (subject) {
                     filteredResults = filteredResults.filter(r => 
                         r.subject === subject.name || 
                         r.subjectName === subject.name ||
@@ -860,28 +1076,52 @@
             
             filteredResults.forEach(result => {
                 const row = document.createElement('tr');
+                const statusClass = getStatusColor(result.status);
+                const averageScore = result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD';
+                const studentCount = result.students || result.studentCount || (result.results ? result.results.length : 0);
+                
                 row.innerHTML = `
-                    <td><strong>${result.subject || result.subjectName || 'TBD'}</strong></td>
-                    <td>${result.class || result.className || 'TBD'}</td>
-                    <td>${result.teacher || result.teacherName || 'TBD'}</td>
-                    <td>${result.term || 'TBD'}</td>
-                    <td>${result.students || result.studentCount || 0}</td>
-                    <td>${result.averageScore ? result.averageScore.toFixed(1) + '%' : 'TBD'}</td>
-                    <td><span class="badge ${getStatusColor(result.status)}">${result.status || 'Unknown'}</span></td>
-                    <td>${formatDate(result.submittedDate)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${result.status === 'pending' ? 
-                            `<button class="btn btn-sm btn-outline-success ms-1" onclick="approveResult('${result.id}')">
-                                <i class="fas fa-check"></i>
+                        <div class="d-flex align-items-center">
+                            <div class="subject-icon me-2"><i class="fas fa-book text-primary"></i></div>
+                            <div>
+                                <div class="fw-bold">${result.subjectName || result.subject || 'TBD'}</div>
+                                <small class="text-muted">${result.subjectCode ? `Code: ${result.subjectCode}` : ''} ${result.subjectDepartment ? `| Dept: ${result.subjectDepartment}` : ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${result.class || result.className || 'TBD'}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="teacher-icon me-2"><i class="fas fa-user-tie text-secondary"></i></div>
+                            <div>
+                                <div class="fw-bold">${result.teacherName || result.teacher || 'TBD'}</div>
+                                <small class="text-muted">${result.teacherEmail || ''}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-primary">${result.term || 'TBD'}</span></td>
+                    <td><span class="badge bg-success">${studentCount}</span></td>
+                    <td><span class="badge ${averageScore !== 'TBD' ? 'bg-info' : 'bg-secondary'}">${averageScore}</span></td>
+                    <td><span class="badge ${statusClass}">${result.status || 'Unknown'}</span></td>
+                    <td><small>${formatDate(result.submittedDate)}</small></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${result.id}')" title="View Details">
+                                <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="rejectResult('${result.id}')">
-                                <i class="fas fa-times"></i>
-                            </button>` : 
-                            ''
-                        }
+                            ${result.status === 'pending' ? 
+                                `<button class="btn btn-sm btn-outline-success" onclick="approveResult('${result.id}')" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="rejectResult('${result.id}')" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>` : 
+                                ''
+                            }
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
