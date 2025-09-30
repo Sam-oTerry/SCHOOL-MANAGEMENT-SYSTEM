@@ -1328,6 +1328,214 @@
             return studentId.toString();
         }
         
+        // Check for duplicate students before adding
+        async function checkForDuplicateStudent(studentData) {
+            try {
+                console.log('🔍 Checking for duplicate students...');
+                
+                // Check by student ID (if provided)
+                if (studentData.studentId) {
+                    const existingById = await db.collection('students')
+                        .where('studentId', '==', studentData.studentId)
+                        .get();
+                    
+                    if (!existingById.empty) {
+                        const existing = existingById.docs[0].data();
+                        return {
+                            isDuplicate: true,
+                            reason: 'Student ID',
+                            existingStudent: existing,
+                            message: `A student with ID "${studentData.studentId}" already exists: ${existing.firstName} ${existing.lastName}`
+                        };
+                    }
+                }
+                
+                // Check by admission number (if provided)
+                if (studentData.admissionNumber) {
+                    const existingByAdmission = await db.collection('students')
+                        .where('admissionNumber', '==', studentData.admissionNumber)
+                        .get();
+                    
+                    if (!existingByAdmission.empty) {
+                        const existing = existingByAdmission.docs[0].data();
+                        return {
+                            isDuplicate: true,
+                            reason: 'Admission Number',
+                            existingStudent: existing,
+                            message: `A student with admission number "${studentData.admissionNumber}" already exists: ${existing.firstName} ${existing.lastName}`
+                        };
+                    }
+                }
+                
+                // Check by payment code (if provided)
+                if (studentData.paymentCode) {
+                    const existingByPayment = await db.collection('students')
+                        .where('paymentCode', '==', studentData.paymentCode)
+                        .get();
+                    
+                    if (!existingByPayment.empty) {
+                        const existing = existingByPayment.docs[0].data();
+                        return {
+                            isDuplicate: true,
+                            reason: 'Payment Code',
+                            existingStudent: existing,
+                            message: `A student with payment code "${studentData.paymentCode}" already exists: ${existing.firstName} ${existing.lastName}`
+                        };
+                    }
+                }
+                
+                // Check by name and date of birth (more flexible check)
+                const existingByName = await db.collection('students')
+                    .where('firstName', '==', studentData.firstName)
+                    .where('lastName', '==', studentData.lastName)
+                    .get();
+                
+                if (!existingByName.empty) {
+                    // Check if any of the results have the same date of birth
+                    for (const doc of existingByName.docs) {
+                        const existing = doc.data();
+                        if (existing.dateOfBirth && studentData.dateOfBirth) {
+                            const existingDate = existing.dateOfBirth.toDate ? existing.dateOfBirth.toDate() : new Date(existing.dateOfBirth.seconds * 1000);
+                            const newDate = studentData.dateOfBirth.toDate ? studentData.dateOfBirth.toDate() : new Date(studentData.dateOfBirth.seconds * 1000);
+                            
+                            if (existingDate.getTime() === newDate.getTime()) {
+                                return {
+                                    isDuplicate: true,
+                                    reason: 'Name and Date of Birth',
+                                    existingStudent: existing,
+                                    message: `A student with the same name "${studentData.firstName} ${studentData.lastName}" and date of birth already exists`
+                                };
+                            }
+                        }
+                    }
+                }
+                
+                console.log('✅ No duplicate students found');
+                return { isDuplicate: false };
+                
+            } catch (error) {
+                console.error('❌ Error checking for duplicates:', error);
+                // If there's an error checking, allow the addition but log the error
+                return { isDuplicate: false, error: error.message };
+            }
+        }
+        
+        // Show duplicate error with detailed information
+        function showDuplicateError(duplicateInfo) {
+            const existingStudent = duplicateInfo.existingStudent;
+            const reason = duplicateInfo.reason;
+            const message = duplicateInfo.message;
+            
+            // Create a detailed error message
+            const errorMessage = `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Duplicate Student Detected</h6>
+                    <p><strong>Reason:</strong> ${reason}</p>
+                    <p><strong>Message:</strong> ${message}</p>
+                    <hr>
+                    <h6>Existing Student Details:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Name:</strong> ${existingStudent.firstName} ${existingStudent.lastName}</li>
+                        <li><strong>Student ID:</strong> ${formatStudentId(existingStudent.studentId) || 'N/A'}</li>
+                        <li><strong>Admission Number:</strong> ${existingStudent.admissionNumber || 'N/A'}</li>
+                        <li><strong>Payment Code:</strong> ${existingStudent.paymentCode || 'N/A'}</li>
+                        <li><strong>Class:</strong> ${existingStudent.class || 'N/A'}</li>
+                        <li><strong>Status:</strong> ${existingStudent.status || 'N/A'}</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Create modal for better display
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'duplicateStudentModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">
+                                <i class="fas fa-exclamation-triangle"></i> Duplicate Student Detected
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${errorMessage}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Please check:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Is this the same student?</li>
+                                    <li>Are you trying to re-enroll an existing student?</li>
+                                    <li>Did you enter incorrect information?</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="viewExistingStudent('${existingStudent.studentId || existingStudent.admissionNumber}')">
+                                <i class="fas fa-eye"></i> View Existing Student
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="forceAddStudent()">
+                                <i class="fas fa-plus"></i> Add Anyway (Not Recommended)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+        
+        // View existing student details
+        function viewExistingStudent(identifier) {
+            // Close the duplicate modal first
+            const duplicateModal = bootstrap.Modal.getInstance(document.getElementById('duplicateStudentModal'));
+            if (duplicateModal) {
+                duplicateModal.hide();
+            }
+            
+            // Find and show the existing student
+            const student = students.find(s => 
+                s.studentId === identifier || 
+                s.admissionNumber === identifier || 
+                s.paymentCode === identifier
+            );
+            
+            if (student) {
+                viewStudentDetails(student.id);
+            } else {
+                showError('Could not find the existing student details.');
+            }
+        }
+        
+        // Force add student (not recommended)
+        function forceAddStudent() {
+            if (confirm('Are you sure you want to add this student anyway? This may create duplicate records and cause data inconsistencies.')) {
+                // Close the duplicate modal
+                const duplicateModal = bootstrap.Modal.getInstance(document.getElementById('duplicateStudentModal'));
+                if (duplicateModal) {
+                    duplicateModal.hide();
+                }
+                
+                // Proceed with adding the student
+                addStudentWithoutDuplicateCheck();
+            }
+        }
+        
+        // Add student without duplicate check (for force add)
+        async function addStudentWithoutDuplicateCheck() {
+            // This is the same as the original addStudent function but without duplicate checking
+            // Implementation would be the same as addStudent but skipping the duplicate check
+            showError('Force add functionality not implemented. Please review the duplicate and try again.');
+        }
+        
         // Generate unique student ID (ASS + Level + YY + 4 digits)
         async function generateStudentId(studentClass) {
             try {
@@ -1446,6 +1654,14 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     createdBy: currentUser.uid
                 };
+                
+                // Check for duplicates before adding
+                const duplicateCheck = await checkForDuplicateStudent(studentData);
+                if (duplicateCheck.isDuplicate) {
+                    hideLoading();
+                    showDuplicateError(duplicateCheck);
+                    return;
+                }
                 
                 await db.collection('students').add(studentData);
                 
@@ -2038,6 +2254,10 @@
         window.updateStreamOptions = updateStreamOptions;
         window.updateEditStreamOptions = updateEditStreamOptions;
         window.fixMalformedStudentIds = fixMalformedStudentIds;
+        window.checkForDuplicateStudent = checkForDuplicateStudent;
+        window.showDuplicateError = showDuplicateError;
+        window.viewExistingStudent = viewExistingStudent;
+        window.forceAddStudent = forceAddStudent;
         window.logout = logout;
     </script>
 </body>
