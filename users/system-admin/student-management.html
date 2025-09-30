@@ -1594,7 +1594,7 @@
             }
         }
         
-        // Generate a new student ID for fixing malformed ones (shorter format)
+        // Generate a new student ID for fixing malformed ones (exactly 10 characters)
         function generateNewStudentId(studentClass, sequenceNumber) {
             const currentYear = new Date().getFullYear();
             const yearPrefix = currentYear.toString().slice(-2);
@@ -1604,11 +1604,19 @@
                 levelPrefix = 'A'; // A-Level
             }
             
-            const prefix = 'S' + levelPrefix + yearPrefix;
-            const finalId = prefix + String(sequenceNumber).padStart(4, '0');
+            const prefix = 'ASS' + levelPrefix + yearPrefix; // 6 characters
+            const finalId = prefix + String(sequenceNumber).padStart(4, '0'); // + 4 characters = 10 total
             
-            // Ensure ID is not longer than 10 characters
-            return finalId.length > 10 ? finalId.substring(0, 10) : finalId;
+            // Ensure ID is exactly 10 characters
+            if (finalId.length !== 10) {
+                console.error('❌ Generated new ID length is not 10 characters:', finalId.length);
+                // Force exactly 10 characters
+                const correctedId = finalId.padEnd(10, '0').substring(0, 10);
+                console.log('🔧 Corrected new ID:', correctedId, '(Length:', correctedId.length, ')');
+                return correctedId;
+            }
+            
+            return finalId;
         }
         
         // Format student ID to handle malformed IDs
@@ -1617,9 +1625,9 @@
             
             console.log('🔧 Formatting student ID:', studentId, 'Type:', typeof studentId);
             
-            // If it's already a proper string format, return as is
-            if (typeof studentId === 'string' && studentId.match(/^S[A-Z]\d{2}\d{4}$/)) {
-                console.log('✅ Student ID is already properly formatted');
+            // If it's already a proper string format (exactly 10 characters), return as is
+            if (typeof studentId === 'string' && studentId.length === 10 && studentId.match(/^ASS[A-Z]\d{2}\d{4}$/)) {
+                console.log('✅ Student ID is already properly formatted (10 characters)');
                 return studentId;
             }
             
@@ -1689,15 +1697,15 @@
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2); // Last 2 digits of year
                 
-                // Determine level based on class - shorter prefixes
+                // Determine level based on class - single character
                 let levelPrefix = 'O'; // O-Level
                 if (studentClass === 'S5' || studentClass === 'S6') {
                     levelPrefix = 'A'; // A-Level
                 }
                 
-                // Create shorter prefix: S + Level + Year = 3 characters
-                const prefix = 'S' + levelPrefix + yearPrefix; // e.g., SO24, SA24
-                console.log('🆔 Generated prefix:', prefix);
+                // Create prefix: ASS + Level + Year = 6 characters (ASS + O + 24 = 6)
+                const prefix = 'ASS' + levelPrefix + yearPrefix; // e.g., ASSO24, ASSA24
+                console.log('🆔 Generated prefix:', prefix, '(Length:', prefix.length, ')');
                 
                 // Get all students with this prefix to find the highest number
                 const querySnapshot = await db.collection('students')
@@ -1734,7 +1742,7 @@
                     console.log('🔍 No existing students found with prefix', prefix);
                 }
                 
-                // Ensure the number doesn't exceed 4 digits (total length = 3 + 4 = 7 characters)
+                // Ensure the number doesn't exceed 4 digits (total length = 6 + 4 = 10 characters)
                 if (nextNumber > 9999) {
                     console.warn('⚠️ Student ID sequence exceeded 9999, using fallback');
                     throw new Error('Student ID sequence exceeded maximum');
@@ -1743,10 +1751,10 @@
                 const finalId = prefix + String(nextNumber).padStart(4, '0');
                 console.log('✅ Generated final student ID:', finalId, '(Length:', finalId.length, ')');
                 
-                // Ensure ID is not longer than 10 characters
-                if (finalId.length > 10) {
-                    console.warn('⚠️ Generated ID too long, truncating:', finalId);
-                    return finalId.substring(0, 10);
+                // Ensure ID is exactly 10 characters
+                if (finalId.length !== 10) {
+                    console.error('❌ Generated ID length is not 10 characters:', finalId.length);
+                    throw new Error(`Generated ID length is ${finalId.length}, expected 10`);
                 }
                 
                 return finalId;
@@ -1754,16 +1762,26 @@
             } catch (error) {
                 console.error('❌ Error generating student ID:', error);
                 
-                // Improved fallback with shorter format
+                // Improved fallback with ASS prefix - exactly 10 characters
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2);
                 const levelPrefix = (studentClass === 'S5' || studentClass === 'S6') ? 'A' : 'O';
                 
-                // Generate a shorter fallback ID: S + Level + Year + 3 random digits = 6 characters
-                const randomSuffix = Math.floor(Math.random() * 900) + 100; // 100-999
-                const fallbackId = 'S' + levelPrefix + yearPrefix + String(randomSuffix);
+                // Generate fallback ID: ASS + Level + Year + 4 random digits = 10 characters
+                const randomSuffix = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+                const fallbackId = 'ASS' + levelPrefix + yearPrefix + String(randomSuffix);
                 
                 console.log('🔄 Using fallback ID:', fallbackId, '(Length:', fallbackId.length, ')');
+                
+                // Ensure fallback is exactly 10 characters
+                if (fallbackId.length !== 10) {
+                    console.error('❌ Fallback ID length is not 10 characters:', fallbackId.length);
+                    // Force exactly 10 characters by padding or truncating
+                    const paddedId = fallbackId.padEnd(10, '0').substring(0, 10);
+                    console.log('🔧 Corrected fallback ID:', paddedId, '(Length:', paddedId.length, ')');
+                    return paddedId;
+                }
+                
                 return fallbackId;
             }
         }
