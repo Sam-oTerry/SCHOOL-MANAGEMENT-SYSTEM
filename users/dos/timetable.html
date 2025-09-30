@@ -347,11 +347,6 @@
                                     <label class="form-label">Class</label>
                                     <select class="form-select" id="timetable-class" required>
                                         <option value="">Select Class</option>
-                                        <option value="s4-science-a">S.4 Science A</option>
-                                        <option value="s4-science-b">S.4 Science B</option>
-                                        <option value="s3-science">S.3 Science</option>
-                                        <option value="s2-science">S.2 Science</option>
-                                        <option value="s1-science">S.1 Science</option>
                                     </select>
                                 </div>
                             </div>
@@ -476,6 +471,9 @@
                 // Setup real-time listeners
                 setupRealTimeListeners();
                 
+                // Setup modal event listeners
+                setupModalEventListeners();
+                
                 // Initialize page display
                 displayTimetable();
                 updateTimetableStatistics();
@@ -564,11 +562,13 @@
                 teacherSel.innerHTML = '<option value="">Select Teacher</option>';
                 filterTeacherSel.innerHTML = '<option value="">All Teachers</option>';
                 teachersIndex = {};
+                teachers = []; // Clear and populate global teachers array
                 
                 teachersSnapshot.forEach(doc => {
                     const user = doc.data();
                     const name = user.personalInfo?.fullName || user.email || doc.id;
                     teachersIndex[doc.id] = name;
+                    teachers.push({ id: doc.id, ...user }); // Store in global array
                     teacherSel.insertAdjacentHTML('beforeend', `<option value="${doc.id}">${name}</option>`);
                     filterTeacherSel.insertAdjacentHTML('beforeend', `<option value="${doc.id}">${name}</option>`);
                 });
@@ -582,11 +582,13 @@
                 subjSel.innerHTML = '<option value="">Select Subject</option>';
                 filterSubjectSel.innerHTML = '<option value="">All Subjects</option>';
                 subjectsIndex = {};
+                subjects = []; // Clear and populate global subjects array
                 
                 subjectsSnapshot.forEach(doc => {
                     const subject = doc.data();
                     const name = subject.name || subject.subjectName || 'Subject';
                     subjectsIndex[doc.id] = name;
+                    subjects.push({ id: doc.id, ...subject }); // Store in global array
                     subjSel.insertAdjacentHTML('beforeend', `<option value="${doc.id}">${name}</option>`);
                     filterSubjectSel.insertAdjacentHTML('beforeend', `<option value="${doc.id}">${name}</option>`);
                 });
@@ -600,11 +602,13 @@
                 classSel.innerHTML = '<option value="">Select Class</option>';
                 filterClassSel.innerHTML = '<option value="">All Classes</option>';
                 classesList = [];
+                classes = []; // Clear and populate global classes array
                 
                 classesSnapshot.forEach(doc => {
                     const classData = doc.data();
                     const name = classData.className || classData.name || classData.class || doc.id;
                     classesList.push(name);
+                    classes.push({ id: doc.id, ...classData }); // Store in global array
                     classSel.insertAdjacentHTML('beforeend', `<option value="${name}">${name}</option>`);
                     filterClassSel.insertAdjacentHTML('beforeend', `<option value="${name}">${name}</option>`);
                 });
@@ -1003,8 +1007,96 @@
             initializeMobileSidebar();
         });
         
+        // Populate create timetable modal with dynamic data
+        async function populateCreateTimetableModal() {
+            try {
+                console.log('🔄 Populating create timetable modal...');
+                
+                // Get modal elements
+                const classSelect = document.getElementById('timetable-class');
+                const subjectSelect = document.getElementById('timetable-subject');
+                const teacherSelect = document.getElementById('timetable-teacher');
+                
+                if (!classSelect || !subjectSelect || !teacherSelect) {
+                    console.error('Modal elements not found');
+                    return;
+                }
+                
+                // Clear existing options (except first option)
+                classSelect.innerHTML = '<option value="">Select Class</option>';
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                teacherSelect.innerHTML = '<option value="">Select Teacher</option>';
+                
+                // Populate classes
+                if (classes && classes.length > 0) {
+                    classes.forEach(classItem => {
+                        const option = document.createElement('option');
+                        option.value = classItem.id || classItem.name;
+                        option.textContent = classItem.name || classItem.className;
+                        classSelect.appendChild(option);
+                    });
+                    console.log(`✅ Populated ${classes.length} classes in modal`);
+                } else {
+                    console.log('⚠️ No classes available for modal');
+                }
+                
+                // Populate subjects
+                if (subjects && subjects.length > 0) {
+                    subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject.id;
+                        option.textContent = subject.name || subject.subjectName;
+                        subjectSelect.appendChild(option);
+                    });
+                    console.log(`✅ Populated ${subjects.length} subjects in modal`);
+                } else {
+                    console.log('⚠️ No subjects available for modal');
+                }
+                
+                // Populate teachers
+                if (teachers && teachers.length > 0) {
+                    teachers.forEach(teacher => {
+                        const option = document.createElement('option');
+                        option.value = teacher.id;
+                        option.textContent = teacher.personalInfo?.fullName || 
+                                          `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() || 
+                                          teacher.email || 'Unknown Teacher';
+                        teacherSelect.appendChild(option);
+                    });
+                    console.log(`✅ Populated ${teachers.length} teachers in modal`);
+                } else {
+                    console.log('⚠️ No teachers available for modal');
+                }
+                
+            } catch (error) {
+                console.error('Error populating create timetable modal:', error);
+                showError('Failed to load modal data. Please try again.');
+            }
+        }
+        
+        // Setup modal event listeners
+        function setupModalEventListeners() {
+            try {
+                const createModal = document.getElementById('createTimetableModal');
+                if (createModal) {
+                    createModal.addEventListener('show.bs.modal', function () {
+                        console.log('📋 Create timetable modal opening, populating data...');
+                        populateCreateTimetableModal();
+                    });
+                    
+                    createModal.addEventListener('hidden.bs.modal', function () {
+                        console.log('📋 Create timetable modal closed, resetting form...');
+                        document.getElementById('create-timetable-form').reset();
+                    });
+                }
+            } catch (error) {
+                console.error('Error setting up modal event listeners:', error);
+            }
+        }
+        
         // Make functions globally available
         window.initializeTimetable = initializeTimetable;
+        window.populateCreateTimetableModal = populateCreateTimetableModal;
         window.logout = DOSUtils.logout;
     </script>
     
