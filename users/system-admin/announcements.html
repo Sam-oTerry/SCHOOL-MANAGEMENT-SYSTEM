@@ -617,7 +617,12 @@
         // Create announcement card
         function createAnnouncementCard(announcement) {
             const card = document.createElement('div');
-            card.className = `card mb-3 announcement-card ${announcement.type} ${announcement.pinned ? 'pinned' : ''}`;
+            
+            // Provide default values for missing properties
+            const announcementType = announcement.type || 'general';
+            const announcementStatus = announcement.status || 'active';
+            
+            card.className = `card mb-3 announcement-card ${announcementType} ${announcement.pinned ? 'pinned' : ''}`;
             
             const typeColors = {
                 'general': 'primary',
@@ -645,10 +650,10 @@
                 'draft': 'fas fa-edit'
             };
             
-            const typeColor = typeColors[announcement.type] || 'primary';
-            const statusColor = statusColors[announcement.status] || 'secondary';
-            const typeIcon = typeIcons[announcement.type] || 'fas fa-bullhorn';
-            const statusIcon = statusIcons[announcement.status] || 'fas fa-circle';
+            const typeColor = typeColors[announcementType] || 'primary';
+            const statusColor = statusColors[announcementStatus] || 'secondary';
+            const typeIcon = typeIcons[announcementType] || 'fas fa-bullhorn';
+            const statusIcon = statusIcons[announcementStatus] || 'fas fa-circle';
             
             const startDate = announcement.startDate ? new Date(announcement.startDate.seconds * 1000).toLocaleString() : 'Not set';
             const endDate = announcement.endDate ? new Date(announcement.endDate.seconds * 1000).toLocaleString() : 'No end date';
@@ -665,7 +670,7 @@
                             <i class="${typeIcon} text-${typeColor} fa-2x"></i>
                         </div>
                         <div>
-                            <h6 class="card-title mb-1 text-dark fw-bold">${announcement.title}</h6>
+                            <h6 class="card-title mb-1 text-dark fw-bold">${announcement.title || 'Untitled Announcement'}</h6>
                             <small class="text-muted">
                                 <i class="fas fa-clock me-1"></i>Created ${timeAgo}
                             </small>
@@ -674,10 +679,10 @@
                     <div class="d-flex flex-column align-items-end">
                         <div class="mb-2">
                             <span class="badge bg-${typeColor} me-2">
-                                <i class="${typeIcon} me-1"></i>${announcement.type.toUpperCase()}
+                                <i class="${typeIcon} me-1"></i>${announcementType.toUpperCase()}
                             </span>
                             <span class="badge bg-${statusColor}">
-                                <i class="${statusIcon} me-1"></i>${announcement.status.toUpperCase()}
+                                <i class="${statusIcon} me-1"></i>${announcementStatus.toUpperCase()}
                             </span>
                         </div>
                         ${announcement.pinned ? '<span class="badge bg-warning"><i class="fas fa-thumbtack me-1"></i>PINNED</span>' : ''}
@@ -686,7 +691,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <p class="card-text text-dark">${announcement.content}</p>
+                            <p class="card-text text-dark">${announcement.content || 'No content available'}</p>
                         </div>
                         <div class="col-md-4">
                             <div class="announcement-meta">
