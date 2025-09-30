@@ -247,6 +247,45 @@
                     </div>
                 </div>
                 
+                <!-- Class Color Legend -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-palette"></i> Class Color Legend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="legend-item">
+                                <div class="legend-color class-s1"></div>
+                                <span>S1 - Senior One</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-s2"></div>
+                                <span>S2 - Senior Two</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-s3"></div>
+                                <span>S3 - Senior Three</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-s4"></div>
+                                <span>S4 - Senior Four</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-s5"></div>
+                                <span>S5 - Senior Five</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-s6"></div>
+                                <span>S6 - Senior Six</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color class-default"></div>
+                                <span>Other Classes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Timetable Summary -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -738,14 +777,34 @@
             const subjectName = subjectsIndex[cellData.subjectId] || cellData.subject || 'Subject';
             const teacherName = cellData.teacher || teachersIndex[cellData.teacherId] || 'Unknown Teacher';
             
+            // Get class color
+            const classColor = getClassColor(cellData.class);
+            
             return `
-                <div class="timetable-cell">
-                    <div class="fw-bold mb-2">${cellData.class}</div>
+                <div class="timetable-cell ${classColor}">
+                    <div class="class-header fw-bold mb-2">${cellData.class}</div>
                     <div class="subject-badge mb-1">${subjectName}</div>
                     <div class="teacher-badge mb-1">${teacherName}</div>
                     <div class="room-badge">${cellData.room || 'TBD'}</div>
                 </div>
             `;
+        }
+        
+        // Get color class for different class levels
+        function getClassColor(className) {
+            if (!className) return '';
+            
+            const classLevel = className.toUpperCase();
+            
+            if (classLevel.includes('S1')) return 'class-s1';
+            if (classLevel.includes('S2')) return 'class-s2';
+            if (classLevel.includes('S3')) return 'class-s3';
+            if (classLevel.includes('S4')) return 'class-s4';
+            if (classLevel.includes('S5')) return 'class-s5';
+            if (classLevel.includes('S6')) return 'class-s6';
+            
+            // Default color for other classes
+            return 'class-default';
         }
         
         function updateTimetableStats() {
@@ -1399,6 +1458,114 @@
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 500;
+        }
+        
+        /* Class-specific color coding */
+        .timetable-cell.class-s1 {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+        }
+        
+        .timetable-cell.class-s2 {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border-left: 4px solid #4caf50;
+        }
+        
+        .timetable-cell.class-s3 {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+            border-left: 4px solid #ff9800;
+        }
+        
+        .timetable-cell.class-s4 {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            border-left: 4px solid #e91e63;
+        }
+        
+        .timetable-cell.class-s5 {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .timetable-cell.class-s6 {
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+            border-left: 4px solid #009688;
+        }
+        
+        .timetable-cell.class-default {
+            background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+            border-left: 4px solid #9e9e9e;
+        }
+        
+        .class-header {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Hover effects for class cells */
+        .timetable-cell.class-s1:hover {
+            background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .timetable-cell.class-s2:hover {
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .timetable-cell.class-s3:hover {
+            background: linear-gradient(135deg, #ffcc02 0%, #ffb300 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+        
+        .timetable-cell.class-s4:hover {
+            background: linear-gradient(135deg, #f8bbd9 0%, #f48fb1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+        
+        .timetable-cell.class-s5:hover {
+            background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+        }
+        
+        .timetable-cell.class-s6:hover {
+            background: linear-gradient(135deg, #b2dfdb 0%, #80cbc4 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 150, 136, 0.3);
+        }
+        
+        .timetable-cell.class-default:hover {
+            background: linear-gradient(135deg, #eeeeee 0%, #e0e0e0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(158, 158, 158, 0.3);
+        }
+        
+        /* Legend styles */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .legend-item span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #495057;
         }
         
         @media print {
