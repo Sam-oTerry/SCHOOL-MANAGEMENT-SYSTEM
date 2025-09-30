@@ -799,7 +799,14 @@
                                 const entry = schedule[day][timeSlot];
                                 // Add teacher information to the entry
                                 entry.teacherId = data.teacherId;
-                                entry.teacher = teachersIndex[data.teacherId] || 'Unknown Teacher';
+                                // Try multiple ways to get teacher name
+                                let teacherName = entry.teacher || teachersIndex[data.teacherId];
+                                if (!teacherName) {
+                                    // Try to find teacher in the teachers array
+                                    const teacher = teachers.find(t => t.id === data.teacherId);
+                                    teacherName = teacher ? teacher.name : 'Unknown Teacher';
+                                }
+                                entry.teacher = teacherName;
                                 timetableData[normalizedTimeSlot][day] = entry;
                                 console.log('Added entry for', normalizedTimeSlot, day, ':', entry);
                             }
@@ -856,13 +863,9 @@
         }
         
         function formatTimetableCell(cellData, timeSlot, day) {
-            if (!cellData) {
-                return '<div class="timetable-cell empty"><span class="text-muted">Free</span></div>';
-            }
-            
             // Handle break periods
-            if (cellData === 'BREAK' || cellData === 'LUNCH' || cellData.class === 'BREAK' || cellData.class === 'LUNCH' || cellData.periodType === 'break' || cellData.periodType === 'lunch') {
-                const isLunch = cellData === 'LUNCH' || cellData.class === 'LUNCH' || cellData.periodType === 'lunch';
+            if (cellData === 'BREAK' || cellData === 'LUNCH') {
+                const isLunch = cellData === 'LUNCH';
                 const icon = isLunch ? 'fas fa-utensils' : 'fas fa-coffee';
                 const text = isLunch ? 'Lunch' : 'Break';
                 const className = isLunch ? 'lunch-period' : 'break-period';
@@ -875,29 +878,64 @@
                 `;
             }
             
-            const subjectName = subjectsIndex[cellData.subjectId] || cellData.subject || 'Subject';
-            const teacherName = cellData.teacher || teachersIndex[cellData.teacherId] || 'Unknown Teacher';
+            // Get all classes for this time slot and day
+            const allClasses = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+            const classEntries = [];
             
-            // Get class color
-            const classColor = getClassColor(cellData.class);
-            console.log('Formatting cell:', {
-                className: cellData.class,
-                classColor: classColor,
-                subjectName: subjectName,
-                teacherName: teacherName
+            allClasses.forEach(className => {
+                // Find entry for this class in the current time slot
+                const entry = timetableData[timeSlot] && timetableData[timeSlot][day];
+                if (entry && entry.class === className) {
+                    const subjectName = subjectsIndex[entry.subjectId] || entry.subject || 'Subject';
+                    const teacherName = entry.teacher || teachersIndex[entry.teacherId] || 'Unknown Teacher';
+                    
+                    // Get teacher initials
+                    const getTeacherInitials = (name) => {
+                        if (!name || name === 'Unknown Teacher') return 'UT';
+                        return name.split(' ')
+                            .map(word => word.charAt(0).toUpperCase())
+                            .join('')
+                            .substring(0, 3);
+                    };
+                    
+                    const teacherInitials = getTeacherInitials(teacherName);
+                    const classColor = getClassColor(className);
+                    
+                    classEntries.push({
+                        className,
+                        subjectName,
+                        teacherName,
+                        teacherInitials,
+                        classColor,
+                        entry
+                    });
+                } else {
+                    // Empty slot for this class
+                    classEntries.push({
+                        className,
+                        subjectName: 'Free',
+                        teacherName: '',
+                        teacherInitials: '',
+                        classColor: 'class-empty',
+                        entry: null
+                    });
+                }
             });
             
             return `
-                <div class="timetable-cell ${classColor} editable-cell" 
-                     onclick="editTimetableEntry('${cellData.class}', '${cellData.subjectId}', '${cellData.teacherId}', '${timeSlot}', '${day}', '')"
-                     title="Click to edit this timetable entry - ${subjectName} with ${teacherName}">
-                    <div class="class-header fw-bold mb-2">${cellData.class}</div>
-                    <div class="subject-info mb-2">
-                        <div class="subject-name fw-semibold">${subjectName}</div>
-                        <div class="teacher-name text-muted small">${teacherName}</div>
-                    </div>
-                    <div class="edit-hint">
-                        <i class="fas fa-edit"></i>
+                <div class="timetable-cell multi-class-cell" 
+                     title="Click to edit timetable entries for ${timeSlot}">
+                    <div class="time-slot-header">${timeSlot}</div>
+                    <div class="classes-container">
+                        ${classEntries.map(entry => `
+                            <div class="class-entry ${entry.classColor}" 
+                                 onclick="editClassEntry('${entry.className}', '${timeSlot}', '${day}', '${entry.entry ? entry.entry.subjectId : ''}', '${entry.entry ? entry.entry.teacherId : ''}')"
+                                 title="${entry.subjectName !== 'Free' ? `Click to edit ${entry.className} - ${entry.subjectName} with ${entry.teacherName}` : `Click to add lesson for ${entry.className}`}">
+                                <div class="class-label">${entry.className}</div>
+                                <div class="subject-text">${entry.subjectName}</div>
+                                ${entry.teacherInitials ? `<div class="teacher-badge">${entry.teacherInitials}</div>` : ''}
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
@@ -922,7 +960,7 @@
             if (classLevel.includes('S1')) return 'class-s1';
             if (classLevel.includes('S2')) return 'class-s2';
             if (classLevel.includes('S3')) return 'class-s3';
-            if (classLevel.includes('S4')) return 'class-s4';
+            if (classLevel.includes('S4') || classLevel.includes('S.4')) return 'class-s4';
             if (classLevel.includes('S5')) return 'class-s5';
             if (classLevel.includes('S6')) return 'class-s6';
             
@@ -1538,6 +1576,55 @@
             }
         }
         
+        // Edit individual class entry
+        async function editClassEntry(className, timeSlot, day, subjectId, teacherId) {
+            try {
+                console.log('Editing class entry:', { className, timeSlot, day, subjectId, teacherId });
+                
+                // If no subject/teacher, open create modal for this specific class
+                if (!subjectId || !teacherId) {
+                    // Pre-populate the create modal with the class and time slot
+                    document.getElementById('timetable-class').value = className;
+                    document.getElementById('timetable-period').value = timeSlot;
+                    document.getElementById('timetable-day').value = day;
+                    
+                    // Open the create modal
+                    const createModal = new bootstrap.Modal(document.getElementById('createTimetableModal'));
+                    createModal.show();
+                    return;
+                }
+                
+                // If entry exists, open edit modal
+                const subjectName = subjectsIndex[subjectId] || 'Unknown Subject';
+                const teacherName = teachersIndex[teacherId] || 'Unknown Teacher';
+                
+                // Populate edit modal with current data
+                document.getElementById('edit-class').value = className;
+                document.getElementById('edit-subject').value = subjectId;
+                document.getElementById('edit-teacher').value = teacherId;
+                document.getElementById('edit-day').value = day;
+                document.getElementById('edit-time-slot').value = timeSlot;
+                
+                // Store original data for reference
+                window.editingEntry = {
+                    originalTeacherId: teacherId,
+                    originalTimeSlot: timeSlot,
+                    originalDay: day
+                };
+                
+                // Populate dropdowns in edit modal
+                await populateEditModalDropdowns();
+                
+                // Open edit modal
+                const editModal = new bootstrap.Modal(document.getElementById('editTimetableModal'));
+                editModal.show();
+                
+            } catch (error) {
+                console.error('Error editing class entry:', error);
+                showError('Error opening edit modal. Please try again.');
+            }
+        }
+        
         // Edit timetable entry function
         async function editTimetableEntry(className, subjectId, teacherId, timeSlot, day) {
             try {
@@ -1918,6 +2005,131 @@
             color: #495057;
             font-size: 0.75rem;
             font-weight: 500;
+            font-style: italic;
+        }
+        
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 2px;
+        }
+        
+        .teacher-initials {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        /* Multi-class cell styles */
+        .multi-class-cell {
+            padding: 8px;
+            min-height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+        }
+        
+        .time-slot-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+            margin-bottom: 8px;
+            padding: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+        }
+        
+        .classes-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 4px;
+            height: calc(100% - 30px);
+        }
+        
+        .class-entry {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 45px;
+        }
+        
+        .class-entry:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .class-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        
+        .subject-text {
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+        
+        .teacher-badge {
+            font-size: 0.5rem;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 6px;
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            color: #495057;
+        }
+        
+        /* Class-specific colors for entries */
+        .class-entry.class-s1 {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 3px solid #2196f3;
+        }
+        
+        .class-entry.class-s2 {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border-left: 3px solid #4caf50;
+        }
+        
+        .class-entry.class-s3 {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+            border-left: 3px solid #ff9800;
+        }
+        
+        .class-entry.class-s4 {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            border-left: 3px solid #e91e63;
+        }
+        
+        .class-entry.class-s5 {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 3px solid #9c27b0;
+        }
+        
+        .class-entry.class-s6 {
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+            border-left: 3px solid #009688;
+        }
+        
+        .class-entry.class-empty {
+            background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+            border-left: 3px solid #9e9e9e;
+            opacity: 0.7;
+        }
+        
+        .class-entry.class-empty .subject-text {
+            color: #6c757d;
             font-style: italic;
         }
         
