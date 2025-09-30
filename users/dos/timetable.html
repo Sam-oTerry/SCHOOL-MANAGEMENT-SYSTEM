@@ -542,28 +542,28 @@
         function initializeSchoolSchedule() {
             return {
                 // Morning Period 1: 7:20-8:40 (80 minutes)
-                '07:20-08:40': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                '07:20-08:40': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] },
                 
                 // Morning Period 2: 8:40-10:00 (80 minutes)
-                '08:40-10:00': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                '08:40-10:00': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] },
                 
                 // Breakfast Break: 10:00-10:30 (30 minutes)
                 '10:00-10:30': { monday: 'BREAK', tuesday: 'BREAK', wednesday: 'BREAK', thursday: 'BREAK', friday: 'BREAK' },
                 
                 // Morning Period 3: 10:30-11:50 (80 minutes)
-                '10:30-11:50': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                '10:30-11:50': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] },
                 
                 // Morning Period 4: 11:50-13:10 (80 minutes)
-                '11:50-13:10': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                '11:50-13:10': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] },
                 
                 // Lunch Break: 13:10-14:10 (1 hour)
                 '13:10-14:10': { monday: 'LUNCH', tuesday: 'LUNCH', wednesday: 'LUNCH', thursday: 'LUNCH', friday: 'LUNCH' },
                 
                 // Afternoon Period 5: 14:10-15:30 (80 minutes)
-                '14:10-15:30': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null },
+                '14:10-15:30': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] },
                 
                 // Afternoon Period 6: 15:30-16:50 (80 minutes)
-                '15:30-16:50': { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null }
+                '15:30-16:50': { monday: [], tuesday: [], wednesday: [], thursday: [], friday: [] }
             };
         }
         
@@ -807,7 +807,14 @@
                                     teacherName = teacher ? teacher.name : 'Unknown Teacher';
                                 }
                                 entry.teacher = teacherName;
-                                timetableData[normalizedTimeSlot][day] = entry;
+                                
+                                // Initialize day as array if not exists
+                                if (!Array.isArray(timetableData[normalizedTimeSlot][day])) {
+                                    timetableData[normalizedTimeSlot][day] = [];
+                                }
+                                
+                                // Add entry to the array
+                                timetableData[normalizedTimeSlot][day].push(entry);
                                 console.log('Added entry for', normalizedTimeSlot, day, ':', entry);
                             }
                         });
@@ -884,8 +891,10 @@
             
             allClasses.forEach(className => {
                 // Find entry for this class in the current time slot
-                const entry = timetableData[timeSlot] && timetableData[timeSlot][day];
-                if (entry && entry.class === className) {
+                const entries = timetableData[timeSlot] && timetableData[timeSlot][day];
+                const entry = Array.isArray(entries) ? entries.find(e => e.class === className) : (entries && entries.class === className ? entries : null);
+                
+                if (entry) {
                     const subjectName = subjectsIndex[entry.subjectId] || entry.subject || 'Subject';
                     const teacherName = entry.teacher || teachersIndex[entry.teacherId] || 'Unknown Teacher';
                     
