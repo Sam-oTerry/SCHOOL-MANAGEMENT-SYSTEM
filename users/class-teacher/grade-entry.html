@@ -290,6 +290,9 @@
                                     <i class="fas fa-sync"></i> Load Students
                                 </button>
                                 <div>
+                                    <button type="button" class="btn btn-outline-info me-2" onclick="exportCurrentGrades()" id="export-current-btn" disabled>
+                                        <i class="fas fa-file-excel"></i> Export Current Grades
+                                    </button>
                                     <button type="button" class="btn btn-outline-secondary me-2" onclick="clearGrades()">
                                         <i class="fas fa-eraser"></i> Clear All
                                     </button>
@@ -304,8 +307,11 @@
                 
                 <!-- Recent Grade Entries -->
                 <div class="card mt-4">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Recent Grade Entries</h5>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="exportRecentGrades()" id="export-recent-btn">
+                            <i class="fas fa-file-excel"></i> Export All Recent
+                        </button>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -320,35 +326,10 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="recent-entries-tbody">
                                     <tr>
-                                        <td>2023-10-15</td>
-                                        <td>Mathematics</td>
-                                        <td>S.4 Science A</td>
-                                        <td>35 students</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewGrades('math-s4a-2023-10-15')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" onclick="editGrades('math-s4a-2023-10-15')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2023-10-14</td>
-                                        <td>Physics</td>
-                                        <td>S.4 Science B</td>
-                                        <td>32 students</td>
-                                        <td><span class="badge bg-warning">Pending</span></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewGrades('physics-s4b-2023-10-14')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" onclick="editGrades('physics-s4b-2023-10-14')">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="fas fa-circle-notch fa-spin"></i> Loading recent grade entries...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -361,6 +342,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -620,6 +603,12 @@
                 `;
                 tbody.appendChild(row);
             });
+            
+            // Enable export button when students are loaded
+            const exportBtn = document.getElementById('export-current-btn');
+            if (exportBtn) {
+                exportBtn.disabled = false;
+            }
         }
         
         function calculateFinalGrade(studentId) {
@@ -674,14 +663,454 @@
                 currentStudents.forEach(student => {
                     clearStudentGrade(student.id);
                 });
+                
+                // Disable export button when grades are cleared
+                const exportBtn = document.getElementById('export-current-btn');
+                if (exportBtn) {
+                    exportBtn.disabled = true;
+                }
             }
         }
         
-        function viewGrades(entryId) {
-            alert(`Viewing grades for entry: ${entryId}`);
+        // Excel Export Functions
+        function exportCurrentGrades() {
+            if (currentStudents.length === 0) {
+                alert('No students loaded. Please load students first.');
+                return;
+            }
+            
+            if (Object.keys(currentGrades).length === 0) {
+                alert('No grades entered. Please enter some grades first.');
+                return;
+            }
+            
+            const subject = document.getElementById('subject-select').value;
+            const classSelect = document.getElementById('class-select').value;
+            const term = document.getElementById('term-select').value;
+            
+            if (!subject || !classSelect || !term) {
+                alert('Please select subject, class, and term first.');
+                return;
+            }
+            
+            // Get subject name
+            const subjectName = document.getElementById('subject-select').selectedOptions[0]?.text || 'Unknown Subject';
+            
+            // Prepare data for export
+            const exportData = [
+                ['Student ID', 'Student Name', 'Mid-term (20%)', 'End-term (80%)', 'Final Score', 'Grade', 'Grade Description']
+            ];
+            
+            currentStudents.forEach(student => {
+                const grade = currentGrades[student.id];
+                if (grade) {
+                    const gradeInfo = getGrade(grade.finalScore);
+                    const gradeDescription = getGradeDescription(gradeInfo.grade);
+                    exportData.push([
+                        student.id,
+                        student.name,
+                        grade.midTerm,
+                        grade.endTerm,
+                        grade.finalScore.toFixed(1),
+                        gradeInfo.grade,
+                        gradeDescription
+                    ]);
+                } else {
+                    exportData.push([
+                        student.id,
+                        student.name,
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''
+                    ]);
+                }
+            });
+            
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { width: 15 }, // Student ID
+                { width: 25 }, // Student Name
+                { width: 15 }, // Mid-term
+                { width: 15 }, // End-term
+                { width: 15 }, // Final Score
+                { width: 10 }, // Grade
+                { width: 40 }  // Grade Description
+            ];
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Grades');
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().split('T')[0];
+            const filename = `${subjectName}_${classSelect}_${term}_${timestamp}.xlsx`;
+            
+            // Export file
+            XLSX.writeFile(wb, filename);
+            
+            console.log('Current grades exported successfully');
         }
         
+        async function exportRecentGrades() {
+            try {
+                const teacherId = window.currentUser?.uid;
+                if (!teacherId) {
+                    alert('User not authenticated');
+                    return;
+                }
+                
+                // Show loading state
+                const exportBtn = document.getElementById('export-recent-btn');
+                const originalText = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+                exportBtn.disabled = true;
+                
+                // Get all grade entries for this teacher (not just recent 10)
+                const gradesSnapshot = await db.collection('grades')
+                    .where('teacherId', '==', teacherId)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                if (gradesSnapshot.empty) {
+                    alert('No grade entries found to export');
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                    return;
+                }
+                
+                // Group grades by subject, class, and term
+                const entriesMap = new Map();
+                
+                gradesSnapshot.forEach(doc => {
+                    const gradeData = doc.data();
+                    const key = `${gradeData.subjectId}-${gradeData.classId}-${gradeData.term}`;
+                    
+                    if (!entriesMap.has(key)) {
+                        entriesMap.set(key, {
+                            subjectId: gradeData.subjectId,
+                            classId: gradeData.classId,
+                            term: gradeData.term,
+                            createdAt: gradeData.createdAt,
+                            grades: []
+                        });
+                    }
+                    
+                    entriesMap.get(key).grades.push({
+                        studentId: gradeData.studentId,
+                        scores: gradeData.scores,
+                        finalGrade: gradeData.finalGrade
+                    });
+                });
+                
+                // Get subject names
+                const subjectIds = [...new Set(Array.from(entriesMap.keys()).map(key => key.split('-')[0]))];
+                const subjectsMap = new Map();
+                
+                if (subjectIds.length > 0) {
+                    const subjectsSnapshot = await db.collection('subjects')
+                        .where(firebase.firestore.FieldPath.documentId(), 'in', subjectIds)
+                        .get();
+                    
+                    subjectsSnapshot.forEach(doc => {
+                        subjectsMap.set(doc.id, doc.data().name || doc.data().subjectName || 'Unknown Subject');
+                    });
+                }
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Create summary sheet
+                const summaryData = [
+                    ['Entry ID', 'Subject', 'Class', 'Term', 'Date', 'Student Count', 'Average Score']
+                ];
+                
+                // Create detailed sheets for each entry
+                let entryIndex = 1;
+                for (const [key, entry] of entriesMap) {
+                    const subjectName = subjectsMap.get(entry.subjectId) || 'Unknown Subject';
+                    const date = entry.createdAt ? 
+                        new Date(entry.createdAt.toDate ? entry.createdAt.toDate() : entry.createdAt).toLocaleDateString() : 
+                        'Unknown Date';
+                    
+                    // Calculate average score
+                    const totalScore = entry.grades.reduce((sum, grade) => sum + (grade.finalGrade?.percentage || 0), 0);
+                    const averageScore = entry.grades.length > 0 ? (totalScore / entry.grades.length).toFixed(1) : '0.0';
+                    
+                    summaryData.push([
+                        `Entry_${entryIndex}`,
+                        subjectName,
+                        entry.classId,
+                        entry.term,
+                        date,
+                        entry.grades.length,
+                        averageScore
+                    ]);
+                    
+                    // Create detailed sheet for this entry
+                    const detailData = [
+                        ['Student ID', 'Mid-term', 'End-term', 'Final Score', 'Grade', 'Grade Description']
+                    ];
+                    
+                    entry.grades.forEach(grade => {
+                        const midTerm = grade.scores?.midterm || '';
+                        const endTerm = grade.scores?.endterm || '';
+                        const finalScore = grade.finalGrade?.percentage || '';
+                        const letterGrade = grade.finalGrade?.letterGrade || '';
+                        const gradeDescription = getGradeDescription(letterGrade);
+                        
+                        detailData.push([
+                            grade.studentId,
+                            midTerm,
+                            endTerm,
+                            finalScore,
+                            letterGrade,
+                            gradeDescription
+                        ]);
+                    });
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(detailData);
+                    ws['!cols'] = [
+                        { width: 15 }, // Student ID
+                        { width: 12 }, // Mid-term
+                        { width: 12 }, // End-term
+                        { width: 12 }, // Final Score
+                        { width: 8 },  // Grade
+                        { width: 40 }  // Grade Description
+                    ];
+                    
+                    const sheetName = `Entry_${entryIndex}`.substring(0, 31); // Excel sheet name limit
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    entryIndex++;
+                }
+                
+                // Add summary sheet
+                const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+                summaryWs['!cols'] = [
+                    { width: 15 }, // Entry ID
+                    { width: 20 }, // Subject
+                    { width: 15 }, // Class
+                    { width: 15 }, // Term
+                    { width: 12 }, // Date
+                    { width: 12 }, // Student Count
+                    { width: 12 }  // Average Score
+                ];
+                XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+                
+                // Generate filename
+                const timestamp = new Date().toISOString().split('T')[0];
+                const filename = `Recent_Grade_Entries_${timestamp}.xlsx`;
+                
+                // Export file
+                XLSX.writeFile(wb, filename);
+                
+                console.log('Recent grades exported successfully');
+                
+            } catch (error) {
+                console.error('Error exporting recent grades:', error);
+                alert('Failed to export recent grades. Please try again.');
+            } finally {
+                // Restore button state
+                const exportBtn = document.getElementById('export-recent-btn');
+                exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Export All Recent';
+                exportBtn.disabled = false;
+            }
+        }
+        
+        function getGradeDescription(grade) {
+            const descriptions = {
+                'A': 'Excellent: Demonstrates exceptional mastery of subject competencies',
+                'B': 'Very Good: Shows solid understanding and effective application',
+                'C': 'Good: Achieves basic competencies but with some gaps',
+                'D': 'Fair: Meets minimum requirements with significant limitations',
+                'E': 'Poor: Fails to demonstrate adequate competencies'
+            };
+            return descriptions[grade] || '';
+        }
+        
+        
+        async function loadRecentGradeEntries() {
+            try {
+                console.log('Loading recent grade entries...');
+                const tbody = document.getElementById('recent-entries-tbody');
+                
+                // Show loading state
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-circle-notch fa-spin"></i> Loading recent grade entries...
+                        </td>
+                    </tr>
+                `;
+                
+                // Get current user's grade entries
+                const teacherId = window.currentUser?.uid;
+                if (!teacherId) {
+                    console.error('No current user found');
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-exclamation-triangle"></i> User not authenticated
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Query grades collection for this teacher, ordered by creation date
+                const gradesSnapshot = await db.collection('grades')
+                    .where('teacherId', '==', teacherId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .get();
+                
+                if (gradesSnapshot.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox"></i> No grade entries found
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Group grades by subject, class, and term to create entries
+                const entriesMap = new Map();
+                
+                gradesSnapshot.forEach(doc => {
+                    const gradeData = doc.data();
+                    const key = `${gradeData.subjectId}-${gradeData.classId}-${gradeData.term}`;
+                    
+                    if (!entriesMap.has(key)) {
+                        entriesMap.set(key, {
+                            subjectId: gradeData.subjectId,
+                            classId: gradeData.classId,
+                            term: gradeData.term,
+                            createdAt: gradeData.createdAt,
+                            studentCount: 0,
+                            status: 'Completed'
+                        });
+                    }
+                    
+                    entriesMap.get(key).studentCount++;
+                });
+                
+                // Convert to array and sort by date
+                const entries = Array.from(entriesMap.values())
+                    .sort((a, b) => b.createdAt - a.createdAt)
+                    .slice(0, 10);
+                
+                // Load subject names for display
+                const subjectIds = [...new Set(entries.map(entry => entry.subjectId))];
+                const subjectsMap = new Map();
+                
+                if (subjectIds.length > 0) {
+                    const subjectsSnapshot = await db.collection('subjects')
+                        .where(firebase.firestore.FieldPath.documentId(), 'in', subjectIds)
+                        .get();
+                    
+                    subjectsSnapshot.forEach(doc => {
+                        subjectsMap.set(doc.id, doc.data().name || doc.data().subjectName || 'Unknown Subject');
+                    });
+                }
+                
+                // Render entries
+                renderRecentEntries(entries, subjectsMap);
+                
+            } catch (error) {
+                console.error('Error loading recent grade entries:', error);
+                const tbody = document.getElementById('recent-entries-tbody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading grade entries
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function renderRecentEntries(entries, subjectsMap) {
+            const tbody = document.getElementById('recent-entries-tbody');
+            
+            if (entries.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox"></i> No grade entries found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = entries.map(entry => {
+                const subjectName = subjectsMap.get(entry.subjectId) || 'Unknown Subject';
+                const date = entry.createdAt ? 
+                    new Date(entry.createdAt.toDate ? entry.createdAt.toDate() : entry.createdAt).toLocaleDateString() : 
+                    'Unknown Date';
+                
+                const statusClass = entry.status === 'Completed' ? 'bg-success' : 'bg-warning';
+                const entryId = `${entry.subjectId}-${entry.classId}-${entry.term}`;
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${subjectName}</td>
+                        <td>${entry.classId}</td>
+                        <td>${entry.studentCount} students</td>
+                        <td><span class="badge ${statusClass}">${entry.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewGrades('${entryId}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="editGrades('${entryId}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function setupRecentEntriesListener() {
+            // Set up real-time listener for recent grade entries
+            const teacherId = window.currentUser?.uid;
+            if (!teacherId) return;
+            
+            // Remove existing listener if any
+            if (recentEntriesListener) {
+                recentEntriesListener();
+            }
+            
+            recentEntriesListener = db.collection('grades')
+                .where('teacherId', '==', teacherId)
+                .orderBy('createdAt', 'desc')
+                .limit(10)
+                .onSnapshot(async (snapshot) => {
+                    console.log('Recent entries updated');
+                    await loadRecentGradeEntries();
+                }, (error) => {
+                    console.error('Error in recent entries listener:', error);
+                });
+        }
+        
+        // Clean up listener when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (recentEntriesListener) {
+                recentEntriesListener();
+            }
+        });
+        
+        
         function editGrades(entryId) {
+            console.log('Editing grades for entry:', entryId);
+            // TODO: Implement edit grades functionality
             alert(`Editing grades for entry: ${entryId}`);
         }
         
@@ -857,6 +1286,10 @@
                 document.getElementById('subject-select').addEventListener('change', async () => {
                     await renderClassesForSubject(subjects);
                 });
+                
+                // Load recent grade entries
+                await loadRecentGradeEntries();
+                setupRecentEntriesListener();
                 
             } catch (error) {
                 console.error('❌ Error loading assigned subjects:', error);
@@ -1048,6 +1481,9 @@
         });
                 await batch.commit();
                 alert('Grades saved successfully.');
+                
+                // Refresh recent entries
+                await loadRecentGradeEntries();
             } catch (err) {
                 console.error('Save grades error:', err);
                 alert('Failed to save grades.');
