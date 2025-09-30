@@ -117,6 +117,9 @@
                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printStudents()">
                                 <i class="fas fa-print"></i> Print
                             </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="fixMalformedStudentIds()" title="Fix malformed student IDs">
+                                <i class="fas fa-wrench"></i> Fix IDs
+                            </button>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                             <i class="fas fa-plus"></i> Add Student
@@ -1137,7 +1140,7 @@
                         <div>
                             <strong>${fullName}</strong><br>
                             <small class="text-muted">${student.email || 'No email'}</small><br>
-                            <small class="text-muted">ID: ${student.studentId || 'N/A'}</small>
+                            <small class="text-muted">ID: ${formatStudentId(student.studentId) || 'N/A'}</small>
                         </div>
                     </div>
                 </td>
@@ -1230,6 +1233,95 @@
             }
         }
         
+        // Fix malformed student IDs in the database
+        async function fixMalformedStudentIds() {
+            try {
+                console.log('🔧 Starting to fix malformed student IDs...');
+                showLoading('Fixing malformed student IDs...');
+                
+                const studentsSnapshot = await db.collection('students').get();
+                let fixedCount = 0;
+                
+                const batch = db.batch();
+                
+                studentsSnapshot.forEach(doc => {
+                    const studentData = doc.data();
+                    const studentId = studentData.studentId;
+                    
+                    // Check if ID is malformed (scientific notation or very long number)
+                    if (studentId && (typeof studentId === 'number' || 
+                        (typeof studentId === 'string' && studentId.includes('e+')) ||
+                        (typeof studentId === 'string' && studentId.length > 15))) {
+                        
+                        console.log(`🔧 Fixing malformed ID for student: ${studentData.firstName} ${studentData.lastName}`);
+                        console.log(`   Old ID: ${studentId}`);
+                        
+                        // Generate a new proper ID
+                        const newId = generateNewStudentId(studentData.class, fixedCount + 1);
+                        console.log(`   New ID: ${newId}`);
+                        
+                        batch.update(doc.ref, { studentId: newId });
+                        fixedCount++;
+                    }
+                });
+                
+                if (fixedCount > 0) {
+                    await batch.commit();
+                    console.log(`✅ Fixed ${fixedCount} malformed student IDs`);
+                    showSuccess(`Fixed ${fixedCount} malformed student IDs!`);
+                    loadStudents(); // Reload to show updated IDs
+                } else {
+                    console.log('✅ No malformed student IDs found');
+                    showSuccess('All student IDs are properly formatted!');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error fixing malformed student IDs:', error);
+                showError('Failed to fix malformed student IDs: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Generate a new student ID for fixing malformed ones
+        function generateNewStudentId(studentClass, sequenceNumber) {
+            const currentYear = new Date().getFullYear();
+            const yearPrefix = currentYear.toString().slice(-2);
+            
+            let levelPrefix = 'OL'; // Default for O-Level
+            if (studentClass === 'S5' || studentClass === 'S6') {
+                levelPrefix = 'AL'; // A-Level
+            }
+            
+            const prefix = 'ASS' + levelPrefix + yearPrefix;
+            return prefix + String(sequenceNumber).padStart(4, '0');
+        }
+        
+        // Format student ID to handle malformed IDs
+        function formatStudentId(studentId) {
+            if (!studentId) return null;
+            
+            // If it's already a proper string format, return as is
+            if (typeof studentId === 'string' && studentId.match(/^ASS[A-Z]{2}\d{2}\d{4,6}$/)) {
+                return studentId;
+            }
+            
+            // If it's a number or scientific notation, convert to string
+            if (typeof studentId === 'number' || (typeof studentId === 'string' && studentId.includes('e+'))) {
+                const numStr = studentId.toString();
+                // If it's in scientific notation, convert it
+                if (numStr.includes('e+')) {
+                    const num = parseFloat(numStr);
+                    const str = num.toFixed(0); // Convert to integer string
+                    return str;
+                }
+                return numStr;
+            }
+            
+            // If it's a string but doesn't match the pattern, return as is
+            return studentId.toString();
+        }
+        
         // Generate unique student ID (ASS + Level + YY + 4 digits)
         async function generateStudentId(studentClass) {
             try {
@@ -1264,11 +1356,13 @@
                 return prefix + String(nextNumber).padStart(4, '0');
             } catch (error) {
                 console.error('Error generating student ID:', error);
-                // Fallback to timestamp-based ID
+                // Fallback to timestamp-based ID with proper formatting
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2);
                 const levelPrefix = (studentClass === 'S5' || studentClass === 'S6') ? 'AL' : 'OL';
-                return 'ASS' + levelPrefix + yearPrefix + String(Date.now()).slice(-4);
+                // Use a shorter timestamp to avoid scientific notation
+                const timestamp = Date.now().toString().slice(-6); // Last 6 digits
+                return 'ASS' + levelPrefix + yearPrefix + timestamp;
             }
         }
         
@@ -1578,7 +1672,7 @@
                     
                     <h5>Personal Information</h5>
                     <strong>Name:</strong> ${student.firstName} ${student.lastName}<br>
-                    <strong>Student ID:</strong> ${student.studentId || 'N/A'}<br>
+                    <strong>Student ID:</strong> ${formatStudentId(student.studentId) || 'N/A'}<br>
                     <strong>Admission Number:</strong> ${student.admissionNumber || 'N/A'}<br>
                     <strong>Payment Code:</strong> ${student.paymentCode || 'N/A'}<br>
                     <strong>Email:</strong> ${student.email || 'Not provided'}<br>
@@ -1965,6 +2059,7 @@
         window.printStudents = printStudents;
         window.updateStreamOptions = updateStreamOptions;
         window.updateEditStreamOptions = updateEditStreamOptions;
+        window.fixMalformedStudentIds = fixMalformedStudentIds;
         window.logout = logout;
     </script>
 </body>
