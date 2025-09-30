@@ -477,7 +477,6 @@
         // System Admin Announcements Functionality
         let announcements = [];
         let filteredAnnouncements = [];
-        let currentUser = null;
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -488,10 +487,10 @@
         async function initializeAnnouncements() {
             try {
                 // Wait for authentication and get the user
-                currentUser = await waitForAuth(); // From system-admin-utils.js
+                window.currentUser = await waitForAuth(); // From system-admin-utils.js
                 
                 // Load user data using utility function
-                const userResult = await loadSystemAdminUserData(db, currentUser); // From system-admin-utils.js
+                const userResult = await loadSystemAdminUserData(db, window.currentUser); // From system-admin-utils.js
                 if (!userResult.success) {
                     showError(userResult.error); // From system-admin-utils.js
                     return;
@@ -807,7 +806,7 @@
                     pinned: pinned,
                     status: 'active',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: currentUser.uid
+                    createdBy: window.currentUser.uid
                 };
                 
                 await db.collection('announcements').add(announcementData);
@@ -849,7 +848,7 @@
                     pinned: pinned,
                     status: 'draft',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: currentUser.uid
+                    createdBy: window.currentUser.uid
                 };
                 
                 await db.collection('announcements').add(announcementData);
@@ -915,7 +914,7 @@
                     targetAudience: targetAudience,
                     pinned: pinned,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
+                    updatedBy: window.currentUser.uid
                 });
                 
                 showSuccess('Announcement updated successfully!');
@@ -978,7 +977,7 @@
                 await db.collection('announcements').doc(announcementId).update({
                     status: newStatus,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
+                    updatedBy: window.currentUser.uid
                 });
                 
                 showSuccess(`Announcement ${newStatus === 'active' ? 'published' : 'saved as draft'}!`);
@@ -1172,7 +1171,7 @@
         
         // Create sample announcements for testing
         async function createSampleAnnouncements() {
-            if (!currentUser) {
+            if (!window.currentUser) {
                 console.log('❌ No current user, cannot create sample announcements');
                 return;
             }
@@ -1217,7 +1216,7 @@
                     await db.collection('announcements').add({
                         ...announcementData,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        createdBy: currentUser.uid
+                        createdBy: window.currentUser.uid
                     });
                 }
                 
