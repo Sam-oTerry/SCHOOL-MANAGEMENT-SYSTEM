@@ -597,8 +597,8 @@
                 // Wait for authentication and get the user
                 console.log('🔐 Waiting for authentication...');
                 if (typeof waitForAuth === 'function') {
-                    currentUser = await waitForAuth();
-                    console.log('✅ Authentication successful:', currentUser?.uid);
+                    window.currentUser = await waitForAuth();
+                    console.log('✅ Authentication successful:', window.currentUser?.uid);
                 } else {
                     console.error('❌ waitForAuth function not available');
                     throw new Error('waitForAuth function not available');
@@ -607,7 +607,7 @@
                 // Load user data using utility function
                 console.log('👤 Loading user data...');
                 if (typeof loadSystemAdminUserData === 'function') {
-                    const userResult = await loadSystemAdminUserData(db, currentUser);
+                    const userResult = await loadSystemAdminUserData(db, window.currentUser);
                     if (!userResult.success) {
                         showError(userResult.error);
                         return;
@@ -619,7 +619,7 @@
                     console.warn('⚠️ loadSystemAdminUserData function not available, using fallback');
                     // Fallback user display
                     updateUserDisplay({
-                        userName: currentUser.displayName || currentUser.email,
+                        userName: window.currentUser.displayName || window.currentUser.email,
                         staffId: 'SYS1234',
                         departmentId: 'system',
                         departmentName: 'System Administration'
@@ -855,7 +855,7 @@
                             description: `${subject.name} - ${subject.code}${subject.paper ? ` (${subject.paper})` : ''}`,
                             isActive: true,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            createdBy: currentUser.uid
+                            createdBy: window.currentUser.uid
                         };
                         
                         batch.set(subjectRef, subjectData);
@@ -1151,7 +1151,7 @@
                         name: customName,
                         code: customCode.toUpperCase(),
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        createdBy: currentUser.uid
+                        createdBy: window.currentUser.uid
                     };
                     
                     const departmentRef = await db.collection('departments').add(departmentData);
@@ -1201,7 +1201,7 @@
                     hoursPerWeek: hours ? parseInt(hours) : null,
                     isActive: true,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: currentUser.uid
+                    createdBy: window.currentUser.uid
                 };
                 
                 await db.collection('subjects').add(subjectData);
@@ -1242,7 +1242,7 @@
                     credits: credits ? parseInt(credits) : null,
                     hoursPerWeek: hours ? parseInt(hours) : null,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedBy: currentUser.uid
+                    updatedBy: window.currentUser.uid
                 };
                 
                 await db.collection('subjects').doc(subjectId).update(subjectData);
