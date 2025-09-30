@@ -1594,18 +1594,21 @@
             }
         }
         
-        // Generate a new student ID for fixing malformed ones
+        // Generate a new student ID for fixing malformed ones (shorter format)
         function generateNewStudentId(studentClass, sequenceNumber) {
             const currentYear = new Date().getFullYear();
             const yearPrefix = currentYear.toString().slice(-2);
             
-            let levelPrefix = 'OL'; // Default for O-Level
+            let levelPrefix = 'O'; // Default for O-Level
             if (studentClass === 'S5' || studentClass === 'S6') {
-                levelPrefix = 'AL'; // A-Level
+                levelPrefix = 'A'; // A-Level
             }
             
-            const prefix = 'ASS' + levelPrefix + yearPrefix;
-            return prefix + String(sequenceNumber).padStart(4, '0');
+            const prefix = 'S' + levelPrefix + yearPrefix;
+            const finalId = prefix + String(sequenceNumber).padStart(4, '0');
+            
+            // Ensure ID is not longer than 10 characters
+            return finalId.length > 10 ? finalId.substring(0, 10) : finalId;
         }
         
         // Format student ID to handle malformed IDs
@@ -1615,7 +1618,7 @@
             console.log('🔧 Formatting student ID:', studentId, 'Type:', typeof studentId);
             
             // If it's already a proper string format, return as is
-            if (typeof studentId === 'string' && studentId.match(/^ASS[A-Z]{2}\d{2}\d{4}$/)) {
+            if (typeof studentId === 'string' && studentId.match(/^S[A-Z]\d{2}\d{4}$/)) {
                 console.log('✅ Student ID is already properly formatted');
                 return studentId;
             }
@@ -1678,7 +1681,7 @@
             return studentId.toString();
         }
         
-        // Generate unique student ID (ASS + Level + YY + 4 digits)
+        // Generate unique student ID (maximum 10 characters)
         async function generateStudentId(studentClass) {
             try {
                 console.log('🆔 Generating student ID for class:', studentClass);
@@ -1686,15 +1689,14 @@
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2); // Last 2 digits of year
                 
-                // Determine level based on class
-                let levelPrefix = 'OL'; // Default for O-Level
+                // Determine level based on class - shorter prefixes
+                let levelPrefix = 'O'; // O-Level
                 if (studentClass === 'S5' || studentClass === 'S6') {
-                    levelPrefix = 'AL'; // A-Level
-                } else if (studentClass === 'S1' || studentClass === 'S2' || studentClass === 'S3' || studentClass === 'S4') {
-                    levelPrefix = 'OL'; // O-Level
+                    levelPrefix = 'A'; // A-Level
                 }
                 
-                const prefix = 'ASS' + levelPrefix + yearPrefix; // e.g., ASSOL24, ASSAL24
+                // Create shorter prefix: S + Level + Year = 3 characters
+                const prefix = 'S' + levelPrefix + yearPrefix; // e.g., SO24, SA24
                 console.log('🆔 Generated prefix:', prefix);
                 
                 // Get all students with this prefix to find the highest number
@@ -1732,29 +1734,36 @@
                     console.log('🔍 No existing students found with prefix', prefix);
                 }
                 
-                // Ensure the number doesn't exceed 4 digits
+                // Ensure the number doesn't exceed 4 digits (total length = 3 + 4 = 7 characters)
                 if (nextNumber > 9999) {
                     console.warn('⚠️ Student ID sequence exceeded 9999, using fallback');
                     throw new Error('Student ID sequence exceeded maximum');
                 }
                 
                 const finalId = prefix + String(nextNumber).padStart(4, '0');
-                console.log('✅ Generated final student ID:', finalId);
+                console.log('✅ Generated final student ID:', finalId, '(Length:', finalId.length, ')');
+                
+                // Ensure ID is not longer than 10 characters
+                if (finalId.length > 10) {
+                    console.warn('⚠️ Generated ID too long, truncating:', finalId);
+                    return finalId.substring(0, 10);
+                }
+                
                 return finalId;
                 
             } catch (error) {
                 console.error('❌ Error generating student ID:', error);
                 
-                // Improved fallback with better formatting
+                // Improved fallback with shorter format
                 const currentYear = new Date().getFullYear();
                 const yearPrefix = currentYear.toString().slice(-2);
-                const levelPrefix = (studentClass === 'S5' || studentClass === 'S6') ? 'AL' : 'OL';
+                const levelPrefix = (studentClass === 'S5' || studentClass === 'S6') ? 'A' : 'O';
                 
-                // Generate a more controlled fallback ID
-                const randomSuffix = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
-                const fallbackId = 'ASS' + levelPrefix + yearPrefix + String(randomSuffix);
+                // Generate a shorter fallback ID: S + Level + Year + 3 random digits = 6 characters
+                const randomSuffix = Math.floor(Math.random() * 900) + 100; // 100-999
+                const fallbackId = 'S' + levelPrefix + yearPrefix + String(randomSuffix);
                 
-                console.log('🔄 Using fallback ID:', fallbackId);
+                console.log('🔄 Using fallback ID:', fallbackId, '(Length:', fallbackId.length, ')');
                 return fallbackId;
             }
         }
@@ -2020,7 +2029,17 @@
                 
                 // Generate student ID with level and year prefix and sequential numbering
                 const studentId = await generateStudentId(studentClass);
-                const finalAdmissionNumber = admissionNumber || `ADM${Date.now().toString().slice(-6)}`;
+                
+                // Generate admission number if not provided - shorter format
+                let finalAdmissionNumber = admissionNumber;
+                if (!finalAdmissionNumber) {
+                    const currentYear = new Date().getFullYear();
+                    const yearPrefix = currentYear.toString().slice(-2);
+                    const randomSuffix = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+                    finalAdmissionNumber = `ADM${yearPrefix}${randomSuffix}`;
+                }
+                
+                console.log('📝 Generated IDs:', { studentId, admissionNumber: finalAdmissionNumber });
                 
                  // Normalize class name to uppercase for consistency
                  const normalizedClass = studentClass.toUpperCase();
