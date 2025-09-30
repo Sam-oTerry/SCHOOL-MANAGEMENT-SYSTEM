@@ -910,6 +910,17 @@
             displayFilteredReportCards(filteredCards);
         }
         
+        // Display all report cards
+        function displayReportCards() {
+            try {
+                console.log('📋 Displaying report cards:', reportCards.length);
+                displayFilteredReportCards(reportCards);
+            } catch (error) {
+                console.error('Error displaying report cards:', error);
+                showError('Error displaying report cards');
+            }
+        }
+        
         function displayFilteredReportCards(filteredCards) {
             const tbody = document.getElementById('report-cards-tbody');
             tbody.innerHTML = '';
