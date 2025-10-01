@@ -23,11 +23,12 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
+            overflow: visible; /* Changed from hidden to visible */
+            width: 100%; /* Changed from fixed A4 width to 100% */
+            max-width: 100%;
+            min-height: 100vh; /* Changed from fixed A4 height */
             margin: 0 auto;
-            padding: 20mm;
+            padding: 20px; /* Reduced padding */
             position: relative;
         }
 
@@ -472,12 +473,13 @@
         
         /* A4 Paper Optimization - Perfect Fit for Image Layout */
         .report-card-container {
-            max-width: 210mm; /* A4 width */
+            max-width: 100%; /* Changed from fixed A4 width to 100% */
             margin: 0 auto;
-            padding: 0;
+            padding: 15px; /* Increased padding for better spacing */
             font-family: 'Arial', sans-serif;
-            line-height: 1.1;
-            font-size: 9px;
+            line-height: 1.2; /* Increased line height */
+            font-size: 10px; /* Increased font size */
+            overflow: visible; /* Ensure content is not cut off */
         }
         
         /* Header Optimization - Match Image Exactly */
@@ -672,11 +674,57 @@
             }
         }
         
+        /* Ensure all content is visible and not cut off */
+        .academic-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .academic-table table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+        
+        .academic-table th,
+        .academic-table td {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            padding: 4px 2px;
+        }
+        
+        /* Ensure bottom tables fit */
+        .bottom-tables {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .bottom-table {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .bottom-table table {
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+        /* Ensure signatures section is visible */
+        .signatures {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .signature-section {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
         /* Print Styles - Single Page Layout */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 0.5in;
+                margin: 0.3in; /* Reduced margins for more content space */
             }
             
             body {
@@ -1903,7 +1951,7 @@
             
             // Configure PDF options
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
+                margin: [0.3, 0.3, 0.3, 0.3], // Reduced margins
                 filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
@@ -1911,7 +1959,7 @@
                     pixelRatio: 2
                 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.8, // Optimized scale
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -1921,9 +1969,11 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1200,
-                    windowHeight: 1600,
-                    dpi: 300
+                    windowWidth: 1400, // Increased window width
+                    windowHeight: 2000, // Increased window height
+                    dpi: 300,
+                    foreignObjectRendering: true,
+                    removeContainer: true
                 },
                 jsPDF: { 
                     unit: 'in', 
@@ -2565,7 +2615,7 @@
             console.log('Element dimensions:', $element[0].offsetWidth, 'x', $element[0].offsetHeight);
             
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5], // 0.5in margins
+                margin: [0.3, 0.3, 0.3, 0.3], // Reduced margins to prevent cutoff
                 filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
@@ -2573,7 +2623,7 @@
                     pixelRatio: 2 // Higher quality for better text rendering
                 },
                 html2canvas: { 
-                    scale: 2, // Higher scale for better quality
+                    scale: 1.8, // Reduced scale to fit better
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -2583,16 +2633,20 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1200,
-                    windowHeight: 1600,
-                    dpi: 300 // High DPI for print quality
+                    windowWidth: 1400, // Increased window width
+                    windowHeight: 2000, // Increased window height
+                    dpi: 300, // High DPI for print quality
+                    foreignObjectRendering: true,
+                    removeContainer: true
                 },
                 jsPDF: { 
                     unit: 'in', 
                     format: 'a4', 
                     orientation: 'portrait',
                     compress: true,
-                    precision: 2
+                    precision: 2,
+                    putOnlyUsedFonts: true,
+                    floatPrecision: 16
                 },
                 pagebreak: { 
                     mode: ['avoid-all', 'css', 'legacy'],
@@ -2650,15 +2704,15 @@
             
             // Configure advanced options
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
+                margin: [0.2, 0.2, 0.2, 0.2], // Minimal margins for maximum content
                 filename: `Advanced_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
                     quality: 0.99,
-                    pixelRatio: 3
+                    pixelRatio: 2.5
                 },
                 html2canvas: { 
-                    scale: 2.5,
+                    scale: 1.6, // Optimized scale for full content
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -2668,10 +2722,12 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1400,
-                    windowHeight: 1800,
+                    windowWidth: 1600, // Wider window
+                    windowHeight: 2200, // Taller window
                     dpi: 300,
-                    foreignObjectRendering: true
+                    foreignObjectRendering: true,
+                    removeContainer: true,
+                    scaleWindow: true
                 },
                 jsPDF: { 
                     unit: 'in', 
