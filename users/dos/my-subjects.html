@@ -572,17 +572,17 @@
                     loadAllSubjectsData().then(() => {
                         displaySubjects();
                         updateSubjectStatistics();
-                    });
                 });
-                
+            });
+            
                 // Listen for teachers changes
                 db.collection('users').onSnapshot((snapshot) => {
                     console.log('👨‍🏫 Teachers collection updated');
                     loadAllSubjectsData().then(() => {
                         displaySubjects();
-                    });
-                });
-                
+            });
+        });
+
             } catch (error) {
                 console.error('Error setting up real-time listeners:', error);
             }

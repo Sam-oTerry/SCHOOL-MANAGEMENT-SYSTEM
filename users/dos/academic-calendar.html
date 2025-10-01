@@ -501,9 +501,9 @@
                 
                 // Initialize calendar display
                 populateAcademicYearDropdown();
-                displayCalendar();
-                displayUpcomingEvents();
-                updateStatistics();
+            displayCalendar();
+            displayUpcomingEvents();
+            updateStatistics();
                 
                 hideLoading();
                 console.log('✅ Academic calendar initialized successfully');
@@ -560,8 +560,8 @@
             // Add years from events
             events.forEach(event => {
                 if (event.startDate) {
-                    const year = new Date(event.startDate).getFullYear();
-                    years.add(year);
+                const year = new Date(event.startDate).getFullYear();
+                years.add(year);
                 }
             });
             
@@ -637,33 +637,33 @@
                 const termsCount = allTerms.length;
                 
                 // Count event types
-                let academicDays = 0;
-                let examinations = 0;
-                let holidays = 0;
+            let academicDays = 0;
+            let examinations = 0;
+            let holidays = 0;
                 let meetings = 0;
                 let sports = 0;
-                
-                allEvents.forEach(event => {
+            
+            allEvents.forEach(event => {
                     switch(event.type?.toLowerCase()) {
-                        case 'academic':
-                            academicDays++;
-                            break;
-                        case 'examination':
-                            examinations++;
-                            break;
-                        case 'holiday':
-                            holidays++;
-                            break;
+                    case 'academic':
+                        academicDays++;
+                        break;
+                    case 'examination':
+                        examinations++;
+                        break;
+                    case 'holiday':
+                        holidays++;
+                        break;
                         case 'meeting':
                             meetings++;
                             break;
                         case 'sports':
                             sports++;
                             break;
-                    }
-                });
-                
-                // Update statistics display
+                }
+            });
+            
+            // Update statistics display
                 const statTerms = document.getElementById('stat-terms');
                 const statAcademicDays = document.getElementById('stat-academic-days');
                 const statExaminations = document.getElementById('stat-examinations');
@@ -1017,14 +1017,14 @@
                 
                 // Check if we're editing an existing event
                 const editingId = document.getElementById('create-event-form').getAttribute('data-editing-id');
-                
-                const eventData = {
-                    title,
-                    type,
-                    startDate,
-                    endDate,
-                    startTime: allDay ? null : startTime,
-                    endTime: allDay ? null : endTime,
+            
+            const eventData = {
+                title,
+                type,
+                startDate,
+                endDate,
+                startTime: allDay ? null : startTime,
+                endTime: allDay ? null : endTime,
                     description: description || '',
                     location: location || '',
                     allDay: allDay || false
@@ -1034,34 +1034,34 @@
                 if (editingId) {
                     // Update existing event
                     result = await DOSUtils.updateEvent(editingId, eventData);
-                    if (result.success) {
+                        if (result.success) {
                         showSuccess('Event updated successfully!');
-                    } else {
+                        } else {
                         showError('Failed to update event: ' + result.error);
-                        return;
-                    }
-                } else {
+                            return;
+                        }
+                    } else {
                     // Create new event
                     result = await DOSUtils.createEvent(eventData);
-                    if (result.success) {
+                        if (result.success) {
                         showSuccess('Event created successfully!');
-                    } else {
+                        } else {
                         showError('Failed to create event: ' + result.error);
-                        return;
+                            return;
                     }
                 }
                 
                 // Refresh data and display
                 await loadAllData();
                 populateAcademicYearDropdown();
-                displayCalendar();
-                displayUpcomingEvents();
+            displayCalendar();
+            displayUpcomingEvents();
                 updateStatistics();
-                
-                // Close modal and reset form
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createEventModal'));
-                modal.hide();
-                document.getElementById('create-event-form').reset();
+            
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createEventModal'));
+            modal.hide();
+            document.getElementById('create-event-form').reset();
                 document.getElementById('create-event-form').removeAttribute('data-editing-id');
                 
                 // Reset modal title
@@ -1138,15 +1138,15 @@
                 showLoading('Deleting event...');
                 
                 const result = await DOSUtils.deleteEvent(eventId);
-                if (result.success) {
+                    if (result.success) {
                     showSuccess('Event deleted successfully!');
                     
                     // Refresh data and display
                     await loadAllData();
-                    populateAcademicYearDropdown();
-                    displayCalendar();
-                    displayUpcomingEvents();
-                    updateStatistics();
+                populateAcademicYearDropdown();
+                displayCalendar();
+                displayUpcomingEvents();
+                updateStatistics();
                 } else {
                     showError('Failed to delete event: ' + result.error);
                 }
@@ -1196,9 +1196,9 @@
                 showLoading('Refreshing calendar...');
                 await loadAllData();
                 populateAcademicYearDropdown();
-                displayCalendar();
-                displayUpcomingEvents();
-                updateStatistics();
+            displayCalendar();
+            displayUpcomingEvents();
+            updateStatistics();
                 showSuccess('Calendar refreshed successfully!');
             } catch (error) {
                 console.error('Error refreshing calendar:', error);

@@ -845,7 +845,7 @@
                 const gradesSnapshot = await db.collection('grades')
                     .orderBy('createdAt', 'desc')
                     .get();
-                
+
                 console.log('📊 Grades snapshot received:', gradesSnapshot.size, 'documents');
                 
                 const gradesData = [];

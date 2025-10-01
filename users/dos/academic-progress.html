@@ -515,8 +515,8 @@
                     studentsData.push({
                         id: doc.id,
                         ...studentData
-                    });
                 });
+            });
                 
                 console.log(`✅ Loaded ${studentsData.length} students from Firestore`);
                 return studentsData;
@@ -554,12 +554,39 @@
         function processProgressData() {
             progressData = [];
             
+            console.log('📊 Processing progress data...');
+            console.log('Classes to process:', classes.length);
+            console.log('Students to process:', students.length);
+            console.log('Sample student data:', students.length > 0 ? students[0] : 'No students');
+            
             classes.forEach(cls => {
-                // Get students for this class
-                const classStudents = students.filter(student => 
-                    student.academicInfo?.classId === cls.id || 
-                    student.academicInfo?.className === cls.name
-                );
+                console.log(`Processing class: ${cls.name} (ID: ${cls.id})`);
+                
+                // Get students for this class - try multiple matching strategies
+                const classStudents = students.filter(student => {
+                    const studentClassId = student.academicInfo?.classId;
+                    const studentClassName = student.academicInfo?.className;
+                    const studentClass = student.academicInfo?.class;
+                    const directClass = student.class; // Direct class field
+                    
+                    console.log(`Student ${student.personalInfo?.fullName || student.id}: classId=${studentClassId}, className=${studentClassName}, class=${studentClass}, directClass=${directClass}`);
+                    
+                    // Primary matching: direct class field (most reliable)
+                    if (directClass === cls.name || directClass === cls.id) {
+                        return true;
+                    }
+                    
+                    // Secondary matching: academicInfo fields
+                    return (
+                        studentClassId === cls.id || 
+                        studentClassName === cls.name ||
+                        studentClass === cls.name ||
+                        studentClassId === cls.name ||
+                        studentClassName === cls.id
+                    );
+                });
+                
+                console.log(`Found ${classStudents.length} students for class ${cls.name}`);
                 
                 // Get grades for this class
                 const classGrades = grades.filter(grade => 
@@ -812,10 +839,15 @@
             const cls = classes.find(c => c.name === className);
             if (!cls) return;
             
-            const classStudents = students.filter(student => 
-                student.academicInfo?.classId === cls.id || 
-                student.academicInfo?.className === cls.name
-            );
+            const classStudents = students.filter(student => {
+                const directClass = student.class;
+                return (
+                    directClass === cls.name || 
+                    directClass === cls.id ||
+                    student.academicInfo?.classId === cls.id || 
+                    student.academicInfo?.className === cls.name
+                );
+            });
             
             const classProgress = progressData.filter(item => item.class === className);
             
@@ -961,7 +993,7 @@
                     students.push({
                         id: doc.id,
                         name: data.personalInfo?.fullName || data.displayName || 'Unknown Student',
-                        class: data.academicInfo?.currentClass || data.class,
+                        class: data.class || data.academicInfo?.currentClass || data.academicInfo?.className,
                         subjects: data.subjects || []
                     });
                 });
@@ -1091,7 +1123,8 @@
                 const classGrades = academicData.grades.filter(g => 
                     g.class === classItem.name || 
                     g.className === classItem.name ||
-                    g.classId === classItem.id
+                    g.classId === classItem.id ||
+                    g.studentClass === classItem.name
                 );
 
                 const validClassGrades = classGrades.filter(g => {
@@ -1172,7 +1205,8 @@
                             const classGrades = academicData.grades.filter(g => 
                                 g.class === classItem.name || 
                                 g.className === classItem.name ||
-                                g.classId === classItem.id
+                                g.classId === classItem.id ||
+                                g.studentClass === classItem.name
                             );
                             const validGrades = classGrades.filter(g => {
                                 if (g.finalGrade && typeof g.finalGrade.percentage === 'number') return true;
@@ -1394,7 +1428,12 @@
                     classes: academicData.classes.map(classItem => ({
                         name: classItem.name,
                         level: classItem.level,
-                        studentCount: academicData.students.filter(s => s.class === classItem.name).length
+                        studentCount: academicData.students.filter(s => 
+                            s.class === classItem.name || 
+                            s.class === classItem.id ||
+                            s.academicInfo?.className === classItem.name ||
+                            s.academicInfo?.classId === classItem.id
+                        ).length
                     })),
                     generatedAt: new Date().toISOString(),
                     generatedBy: window.currentUser?.email || 'Unknown'
@@ -1447,7 +1486,12 @@
                 return;
             }
             
-            const studentsInClass = academicData.students.filter(s => s.class === className).length;
+            const studentsInClass = academicData.students.filter(s => 
+                s.class === className || 
+                s.class === classItem.id ||
+                s.academicInfo?.className === className ||
+                s.academicInfo?.classId === classItem.id
+            ).length;
             const classGrades = academicData.grades.filter(g => 
                 g.class === className || 
                 g.className === className ||
