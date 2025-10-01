@@ -1412,6 +1412,8 @@
                 
                 // Create table row with S/N
                 const rowNumber = subjectCount;
+                const subjectPosition = calculateSubjectPosition(card.studentId, grade.subjectId, card.termId);
+                const teacherInitials = getTeacherInitials(subjectName, card.class);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${rowNumber}</td>
@@ -1420,8 +1422,9 @@
                     <td>${endTerm}</td>
                     <td>${total.toFixed(1)}</td>
                     <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
+                    <td>${subjectPosition}</td>
                     <td>${getGradeRemark(letterGrade)}</td>
-                    <td>${getTeacherInitials(subjectName)}</td>
+                    <td>${teacherInitials}</td>
                 `;
                 subjectsTableBody.appendChild(row);
             });
@@ -1436,6 +1439,7 @@
                 blankRow.innerHTML = `
                     <td class="text-muted">${blankRowNumber}</td>
                     <td class="fw-bold text-muted">-</td>
+                    <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
@@ -1503,10 +1507,17 @@
             }
         }
         
-        // Helper function to get teacher initials
-        function getTeacherInitials(subjectName) {
-            // Sample teacher initials based on subject
-            const teacherMap = {
+        // Helper function to get teacher initials from actual teacher name
+        function getTeacherInitials(subjectName, studentClass) {
+            // Find the teacher assigned to this subject and class
+            const teacherAssignment = findTeacherForSubject(subjectName, studentClass);
+            
+            if (teacherAssignment && teacherAssignment.teacherName) {
+                return generateInitialsFromName(teacherAssignment.teacherName);
+            }
+            
+            // Fallback to sample initials if no teacher found
+            const sampleTeacherMap = {
                 'Mathematics': 'JM',
                 'English Language': 'BK',
                 'Integrated Science': 'AS',
@@ -1522,7 +1533,75 @@
                 'Agriculture': 'VM',
                 'Business Studies': 'QZ'
             };
-            return teacherMap[subjectName] || 'XX';
+            return sampleTeacherMap[subjectName] || 'XX';
+        }
+        
+        // Helper function to find teacher assigned to a subject and class
+        function findTeacherForSubject(subjectName, studentClass) {
+            // First, try to find in teacherAssignments collection data
+            if (window.teacherAssignments && window.teacherAssignments.length > 0) {
+                const assignment = window.teacherAssignments.find(ta => 
+                    ta.subjectName === subjectName && 
+                    ta.assignedClasses && 
+                    ta.assignedClasses.includes(studentClass)
+                );
+                if (assignment) {
+                    return {
+                        teacherName: assignment.teacherName,
+                        teacherId: assignment.teacherId
+                    };
+                }
+            }
+            
+            // Second, try to find in users collection (teachers)
+            if (window.teachers && window.teachers.length > 0) {
+                const teacher = window.teachers.find(t => {
+                    // Check if teacher is assigned to this subject and class
+                    return t.academicInfo && 
+                           t.academicInfo.assignedSubjects && 
+                           t.academicInfo.assignedSubjects.some(subject => 
+                               subject.name === subjectName || subject.id === subjectName
+                           ) &&
+                           t.academicInfo.assignedClasses && 
+                           t.academicInfo.assignedClasses.includes(studentClass);
+                });
+                
+                if (teacher) {
+                    return {
+                        teacherName: teacher.personalInfo?.fullName || 
+                                   `${teacher.personalInfo?.firstName || ''} ${teacher.personalInfo?.lastName || ''}`.trim() ||
+                                   teacher.name,
+                        teacherId: teacher.id
+                    };
+                }
+            }
+            
+            return null;
+        }
+        
+        // Helper function to generate initials from full name
+        function generateInitialsFromName(fullName) {
+            if (!fullName || typeof fullName !== 'string') {
+                return 'XX';
+            }
+            
+            // Split name into words and filter out empty strings
+            const nameParts = fullName.trim().split(/\s+/).filter(part => part.length > 0);
+            
+            if (nameParts.length === 0) {
+                return 'XX';
+            }
+            
+            if (nameParts.length === 1) {
+                // If only one name, take first two characters
+                return nameParts[0].substring(0, 2).toUpperCase();
+            }
+            
+            // Take first letter of first name and first letter of last name
+            const firstName = nameParts[0];
+            const lastName = nameParts[nameParts.length - 1];
+            
+            return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
         }
         
         // Helper function to calculate student position in a subject
@@ -1939,8 +2018,225 @@
             
             // Add sample data to global arrays
             students.push(sampleStudent);
-            grades.push(...sampleGrades);
+            
+            // Add more sample students for position calculation
+            const additionalStudents = [
+                {
+                    id: 'sample-student-002',
+                    personalInfo: { fullName: 'Jane Smith' },
+                    admissionNumber: 'ADM002',
+                    class: 'S1',
+                    sex: 'F'
+                },
+                {
+                    id: 'sample-student-003',
+                    personalInfo: { fullName: 'Mike Johnson' },
+                    admissionNumber: 'ADM003',
+                    class: 'S1',
+                    sex: 'M'
+                },
+                {
+                    id: 'sample-student-004',
+                    personalInfo: { fullName: 'Sarah Wilson' },
+                    admissionNumber: 'ADM004',
+                    class: 'S1',
+                    sex: 'F'
+                }
+            ];
+            
+            students.push(...additionalStudents);
+            
+            // Add grades for additional students to demonstrate position calculation
+            const additionalGrades = [
+                // Jane Smith grades (better than John Doe)
+                {
+                    id: 'grade-007',
+                    studentId: 'sample-student-002',
+                    subjectId: 'math-subject',
+                    term: 'first-term',
+                    scores: { midterm: 90, endterm: 95 },
+                    finalGrade: { percentage: 94, letterGrade: 'A' }
+                },
+                {
+                    id: 'grade-008',
+                    studentId: 'sample-student-002',
+                    subjectId: 'english-subject',
+                    term: 'first-term',
+                    scores: { midterm: 85, endterm: 90 },
+                    finalGrade: { percentage: 89, letterGrade: 'A' }
+                },
+                // Mike Johnson grades (worse than John Doe)
+                {
+                    id: 'grade-009',
+                    studentId: 'sample-student-003',
+                    subjectId: 'math-subject',
+                    term: 'first-term',
+                    scores: { midterm: 60, endterm: 65 },
+                    finalGrade: { percentage: 64, letterGrade: 'C' }
+                },
+                {
+                    id: 'grade-010',
+                    studentId: 'sample-student-003',
+                    subjectId: 'english-subject',
+                    term: 'first-term',
+                    scores: { midterm: 55, endterm: 60 },
+                    finalGrade: { percentage: 59, letterGrade: 'C' }
+                },
+                // Sarah Wilson grades (middle performance)
+                {
+                    id: 'grade-011',
+                    studentId: 'sample-student-004',
+                    subjectId: 'math-subject',
+                    term: 'first-term',
+                    scores: { midterm: 75, endterm: 80 },
+                    finalGrade: { percentage: 79, letterGrade: 'B' }
+                },
+                {
+                    id: 'grade-012',
+                    studentId: 'sample-student-004',
+                    subjectId: 'english-subject',
+                    term: 'first-term',
+                    scores: { midterm: 70, endterm: 75 },
+                    finalGrade: { percentage: 74, letterGrade: 'B' }
+                }
+            ];
+            
+            grades.push(...sampleGrades, ...additionalGrades);
             subjects.push(...sampleSubjects);
+            
+            // Add sample teacher data for initials demonstration
+            const sampleTeachers = [
+                {
+                    id: 'teacher-001',
+                    personalInfo: {
+                        fullName: 'John Mwangi',
+                        firstName: 'John',
+                        lastName: 'Mwangi'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'Mathematics', id: 'math-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                },
+                {
+                    id: 'teacher-002',
+                    personalInfo: {
+                        fullName: 'Betty Kiprop',
+                        firstName: 'Betty',
+                        lastName: 'Kiprop'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'English Language', id: 'english-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                },
+                {
+                    id: 'teacher-003',
+                    personalInfo: {
+                        fullName: 'Andrew Ssemwogerere',
+                        firstName: 'Andrew',
+                        lastName: 'Ssemwogerere'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'Integrated Science', id: 'science-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                },
+                {
+                    id: 'teacher-004',
+                    personalInfo: {
+                        fullName: 'Mary Nakato',
+                        firstName: 'Mary',
+                        lastName: 'Nakato'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'History', id: 'history-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                },
+                {
+                    id: 'teacher-005',
+                    personalInfo: {
+                        fullName: 'Peter Lwanga',
+                        firstName: 'Peter',
+                        lastName: 'Lwanga'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'Geography', id: 'geography-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                },
+                {
+                    id: 'teacher-006',
+                    personalInfo: {
+                        fullName: 'Rose Tumusiime',
+                        firstName: 'Rose',
+                        lastName: 'Tumusiime'
+                    },
+                    academicInfo: {
+                        assignedSubjects: [
+                            { name: 'Art & Design', id: 'art-subject' }
+                        ],
+                        assignedClasses: ['S1']
+                    }
+                }
+            ];
+            
+            // Make teachers globally available
+            window.teachers = sampleTeachers;
+            
+            // Add sample teacher assignments
+            const sampleTeacherAssignments = [
+                {
+                    teacherId: 'teacher-001',
+                    teacherName: 'John Mwangi',
+                    subjectName: 'Mathematics',
+                    assignedClasses: ['S1']
+                },
+                {
+                    teacherId: 'teacher-002',
+                    teacherName: 'Betty Kiprop',
+                    subjectName: 'English Language',
+                    assignedClasses: ['S1']
+                },
+                {
+                    teacherId: 'teacher-003',
+                    teacherName: 'Andrew Ssemwogerere',
+                    subjectName: 'Integrated Science',
+                    assignedClasses: ['S1']
+                },
+                {
+                    teacherId: 'teacher-004',
+                    teacherName: 'Mary Nakato',
+                    subjectName: 'History',
+                    assignedClasses: ['S1']
+                },
+                {
+                    teacherId: 'teacher-005',
+                    teacherName: 'Peter Lwanga',
+                    subjectName: 'Geography',
+                    assignedClasses: ['S1']
+                },
+                {
+                    teacherId: 'teacher-006',
+                    teacherName: 'Rose Tumusiime',
+                    subjectName: 'Art & Design',
+                    assignedClasses: ['S1']
+                }
+            ];
+            
+            // Make teacher assignments globally available
+            window.teacherAssignments = sampleTeacherAssignments;
             
             // Create sample report card
             const sampleCard = {
