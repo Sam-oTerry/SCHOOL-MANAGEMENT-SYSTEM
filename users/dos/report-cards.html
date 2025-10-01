@@ -91,6 +91,16 @@
             font-size: 10px;
         }
 
+        .book-graduation-icon {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .logo-code {
+            font-size: 9px;
+            font-weight: bold;
+        }
+
         .student-photo {
             position: absolute;
             right: 0;
@@ -99,12 +109,17 @@
             height: 100px;
             border: 2px solid #000;
             background: white;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             color: #666;
             z-index: 1;
+        }
+
+        .photo-placeholder {
+            font-size: 32px;
         }
 
         .header-content {
@@ -1238,15 +1253,15 @@
                                         <div class="logo-text-bottom">EDUCATION IS THE KEY TO SUCCESS</div>
                                         </div>
                                     <div class="logo-inner">
-                                        <div>E21D-3000</div>
-                                        <div style="font-size: 8px;">📖🌱</div>
+                                        <div class="book-graduation-icon">📖🌱</div>
+                                        <div class="logo-code">E21D:5000</div>
                                     </div>
                                     </div>
 
                                 <!-- Student Photo Placeholder -->
                                 <div class="student-photo">
-                                    Student Photo
-                                        </div>
+                                    <div class="photo-placeholder">👤</div>
+                                </div>
 
                                 <!-- School Information -->
                                 <div class="header-content">
@@ -1303,6 +1318,25 @@
                                         <tbody id="subjectsTableBody">
                                             <!-- Subjects will be populated here -->
                                         </tbody>
+                                        <tfoot>
+                                            <tr class="summary-row">
+                                                <td colspan="2" class="subject-col">TOTAL MARKS:</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td colspan="4">OVERALL PERFORMANCE</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr class="summary-row">
+                                                <td colspan="2" class="subject-col">AVERAGE SCORE:</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
 
                             <!-- Bottom Section -->
