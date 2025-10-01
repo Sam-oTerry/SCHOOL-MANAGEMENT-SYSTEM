@@ -489,7 +489,12 @@
                 setupRealTimeListeners();
                 
                 // Initialize dashboard display
+                // Update dashboard statistics
                 updateDashboardStatistics();
+                
+                // Display data
+                console.log('📊 Calling display functions...');
+                console.log('Classes:', classes.length, 'Students:', students.length, 'Grades:', grades.length);
                 displayAcademicProgress();
                 displayRecentActivity();
                 displayUpcomingEvents();
@@ -712,12 +717,18 @@
         
         // Display academic progress with dynamic data
         function displayAcademicProgress() {
+            console.log('📊 displayAcademicProgress called');
             const tbody = document.getElementById('academicProgressTbody');
-            if (!tbody) return;
+            if (!tbody) {
+                console.error('academicProgressTbody element not found');
+                return;
+            }
             
+            console.log('Classes to display:', classes.length);
             tbody.innerHTML = '';
             
             if (classes.length === 0) {
+                console.log('No classes found, showing empty message');
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">
@@ -784,17 +795,25 @@
                     </td>
                 `;
                 tbody.appendChild(row);
+                console.log(`Added row for class: ${cls.name}, students: ${classStudents.length}`);
             });
+            console.log('✅ displayAcademicProgress completed');
         }
         
         // Display recent activity with dynamic data
         function displayRecentActivity() {
+            console.log('📢 displayRecentActivity called');
             const container = document.getElementById('recentActivityContainer');
-            if (!container) return;
+            if (!container) {
+                console.error('recentActivityContainer element not found');
+                return;
+            }
             
+            console.log('Announcements to display:', announcements.length);
             container.innerHTML = '';
             
             if (announcements.length === 0) {
+                console.log('No announcements found, showing empty message');
                 container.innerHTML = `
                     <div class="text-center text-muted py-3">
                         <i class="fas fa-bullhorn fa-2x mb-2"></i><br>
@@ -823,14 +842,21 @@
                     </div>
                 `;
                 container.appendChild(activityItem);
+                console.log(`Added announcement: ${announcement.title}`);
             });
+            console.log('✅ displayRecentActivity completed');
         }
         
         // Display upcoming events with dynamic data
         function displayUpcomingEvents() {
+            console.log('📅 displayUpcomingEvents called');
             const container = document.getElementById('upcomingEventsContainer');
-            if (!container) return;
+            if (!container) {
+                console.error('upcomingEventsContainer element not found');
+                return;
+            }
             
+            console.log('Events to display:', events.length);
             container.innerHTML = '';
             
             // Get upcoming events (next 7 days)
@@ -844,7 +870,10 @@
                 return eventDate >= today && eventDate <= nextWeek;
             }).sort((a, b) => new Date(a.startDate + 'T00:00:00') - new Date(b.startDate + 'T00:00:00'));
             
+            console.log('Upcoming events found:', upcomingEvents.length);
+            
             if (upcomingEvents.length === 0) {
+                console.log('No upcoming events found, showing empty message');
                 container.innerHTML = `
                     <div class="text-center text-muted py-3">
                         <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
@@ -871,7 +900,9 @@
                     </div>
                 `;
                 container.appendChild(eventItem);
+                console.log(`Added event: ${event.title}`);
             });
+            console.log('✅ displayUpcomingEvents completed');
         }
         
         // View class details
