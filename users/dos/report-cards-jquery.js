@@ -44,6 +44,12 @@ $(document).ready(function() {
         // Test PDF generation button
         $(document).on('click', '#testPdfBtn', function(e) {
             e.preventDefault();
+            testReportCardPDF();
+        });
+        
+        // Test preview button
+        $(document).on('click', '#testPreviewBtn', function(e) {
+            e.preventDefault();
             testReportCard();
         });
         
@@ -577,23 +583,25 @@ $(document).ready(function() {
     }
     
     /**
-     * View report card using jQuery
+     * View report card preview (without PDF generation)
      */
-    function viewReportCard(studentId) {
-        console.log('Looking for report card for student:', studentId);
-        console.log('Available report cards:', reportCards);
+    function viewReportCardPreview(studentId) {
+        console.log('Viewing report card preview for student:', studentId);
+        
+        // Load sample data if needed
+        if (reportCards.length === 0) {
+            loadSampleData();
+            createSampleReportCard();
+        }
         
         const card = reportCards.find(c => c.studentId === studentId);
         if (!card) {
             console.log('Report card not found, creating sample data...');
-            // Create sample report card if none exists
             createSampleReportCard();
             const sampleCard = reportCards.find(c => c.studentId === studentId);
             if (sampleCard) {
                 populateReportCardTemplate(sampleCard);
-                setTimeout(function() {
-                    exportToPDF();
-                }, 500);
+                showReportCardModal();
             } else {
                 showAlert('Unable to create report card', 'error');
             }
@@ -603,10 +611,21 @@ $(document).ready(function() {
         // Populate the template with card data
         populateReportCardTemplate(card);
         
-        // Generate PDF directly
-        setTimeout(function() {
-            exportToPDF();
-        }, 500);
+        // Show the modal with preview
+        showReportCardModal();
+    }
+    
+    /**
+     * Show report card in modal
+     */
+    function showReportCardModal() {
+        // Show the modal
+        $('#reportCardModal').modal('show');
+        
+        // Scroll to top of modal content
+        $('#reportCardPreview').scrollTop(0);
+        
+        console.log('Report card modal displayed');
     }
     
     /**
@@ -818,10 +837,41 @@ $(document).ready(function() {
     }
     
     /**
-     * Test report card generation
+     * Test report card generation with preview
      */
     function testReportCard() {
         console.log('Testing jQuery report card generation...');
+        
+        // Always load sample data first
+        loadSampleData();
+        
+        // Find the sample report card
+        const sampleCard = reportCards.find(card => card.studentId === 'sample-student-001');
+        if (sampleCard) {
+            console.log('Sample report card found:', sampleCard);
+            populateReportCardTemplate(sampleCard);
+            
+            // Show preview first
+            showReportCardModal();
+            
+            console.log('Sample report card preview displayed');
+        } else {
+            console.error('Sample report card not found, creating new one...');
+            // Create sample report card
+            createSampleReportCard();
+            const newCard = reportCards.find(card => card.studentId === 'sample-student-001');
+            if (newCard) {
+                populateReportCardTemplate(newCard);
+                showReportCardModal();
+            }
+        }
+    }
+    
+    /**
+     * Test report card with direct PDF generation
+     */
+    function testReportCardPDF() {
+        console.log('Testing jQuery report card PDF generation...');
         
         // Always load sample data first
         loadSampleData();
@@ -1148,12 +1198,15 @@ $(document).ready(function() {
     
     // Make functions globally available
     window.testReportCard = testReportCard;
+    window.testReportCardPDF = testReportCardPDF;
     window.viewReportCard = viewReportCard;
+    window.viewReportCardPreview = viewReportCardPreview;
     window.exportToPDF = exportToPDF;
     window.generateAllReportCards = generateAllReportCards;
     window.exportReportCards = exportReportCards;
     window.loadSampleData = loadSampleData;
     window.createSampleReportCard = createSampleReportCard;
+    window.showReportCardModal = showReportCardModal;
     
     // Simple test function for debugging
     window.debugReportCard = function() {
@@ -1180,11 +1233,14 @@ $(document).ready(function() {
     
     console.log('jQuery Report Card System ready!');
     console.log('Available functions:');
-    console.log('- testReportCard() - Test PDF generation');
+    console.log('- testReportCard() - Show report card preview in modal');
+    console.log('- testReportCardPDF() - Generate PDF directly');
     console.log('- viewReportCard(studentId) - View specific report card');
+    console.log('- viewReportCardPreview(studentId) - Preview specific report card');
     console.log('- exportToPDF() - Export current report card to PDF');
     console.log('- generateAllReportCards() - Generate all report cards');
     console.log('- exportReportCards() - Export to Excel');
     console.log('- loadSampleData() - Load sample data for testing');
     console.log('- debugReportCard() - Debug report card system');
+    console.log('- showReportCardModal() - Show the report card modal');
 });
