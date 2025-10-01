@@ -95,6 +95,17 @@
             font-weight: bold;
         }
         
+        /* Blank row styling */
+        .text-muted {
+            color: #6c757d !important;
+            font-style: italic;
+        }
+        
+        .report-table tr td.text-muted {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+        
         /* A4 Paper Optimization */
         .report-card-container {
             max-width: 8.27in; /* A4 width */
@@ -179,6 +190,18 @@
             }
             
             .grade-excellent, .grade-very-good, .grade-good, .grade-fair, .grade-poor {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .text-muted {
+                color: #6c757d !important;
+                font-style: italic;
+            }
+            
+            .report-table tr td.text-muted {
+                background-color: #f8f9fa !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 color-adjust: exact;
@@ -1254,13 +1277,14 @@
             document.getElementById('classPosition').textContent = card.position;
             document.getElementById('totalStudents').textContent = students.filter(s => s.class === card.class).length;
             
-            // Populate subjects table
+            // Populate subjects table with 14 rows (filled + blank)
             const subjectsTableBody = document.getElementById('subjectsTableBody');
             subjectsTableBody.innerHTML = '';
             
             let totalScore = 0;
             let subjectCount = 0;
             
+            // First, add rows for subjects with grades
             Object.keys(subjectGrades).forEach(subjectName => {
                 const grades = subjectGrades[subjectName];
                 const grade = grades[0]; // Take the first grade for this subject
@@ -1288,6 +1312,24 @@
                 `;
                 subjectsTableBody.appendChild(row);
             });
+            
+            // Add blank rows to make total of 14 subjects
+            const filledSubjects = Object.keys(subjectGrades).length;
+            const blankRowsNeeded = Math.max(0, 14 - filledSubjects);
+            
+            for (let i = 0; i < blankRowsNeeded; i++) {
+                const blankRow = document.createElement('tr');
+                blankRow.innerHTML = `
+                    <td class="fw-bold text-muted">-</td>
+                    <td class="text-muted">-</td>
+                    <td class="text-muted">-</td>
+                    <td class="text-muted">-</td>
+                    <td class="text-muted">-</td>
+                    <td class="text-muted">-</td>
+                    <td class="text-muted">-</td>
+                `;
+                subjectsTableBody.appendChild(blankRow);
+            }
             
             // Calculate and populate summary
             const overallAverage = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : '0.0';
@@ -1678,14 +1720,22 @@
                 }
             ];
             
-            // Sample subjects data
+            // Sample subjects data - 6 subjects with grades, 8 will be blank
             const sampleSubjects = [
                 { id: 'math-subject', name: 'Mathematics' },
                 { id: 'english-subject', name: 'English Language' },
                 { id: 'science-subject', name: 'Integrated Science' },
                 { id: 'history-subject', name: 'History' },
                 { id: 'geography-subject', name: 'Geography' },
-                { id: 'art-subject', name: 'Art & Design' }
+                { id: 'art-subject', name: 'Art & Design' },
+                { id: 'physics-subject', name: 'Physics' },
+                { id: 'chemistry-subject', name: 'Chemistry' },
+                { id: 'biology-subject', name: 'Biology' },
+                { id: 'economics-subject', name: 'Economics' },
+                { id: 'literature-subject', name: 'Literature' },
+                { id: 'computer-subject', name: 'Computer Studies' },
+                { id: 'agriculture-subject', name: 'Agriculture' },
+                { id: 'business-subject', name: 'Business Studies' }
             ];
             
             // Add sample data to global arrays
