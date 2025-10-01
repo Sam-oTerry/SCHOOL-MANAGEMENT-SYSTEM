@@ -420,14 +420,14 @@ $(document).ready(function() {
     }
     
     /**
-     * Load sample grades
+     * Load sample grades with template subjects
      */
     function loadSampleGrades() {
         grades = [
             {
                 id: 'grade-001',
                 studentId: 'sample-student-001',
-                subjectId: 'biology-subject',
+                subjectId: 'maths',
                 term: 'Term 1',
                 scores: { midterm: 39, endterm: 10 },
                 finalGrade: { percentage: 70, letterGrade: 'C' }
@@ -435,7 +435,7 @@ $(document).ready(function() {
             {
                 id: 'grade-002',
                 studentId: 'sample-student-001',
-                subjectId: 'physics-subject',
+                subjectId: 'english',
                 term: 'Term 1',
                 scores: { midterm: 39, endterm: 9 },
                 finalGrade: { percentage: 78, letterGrade: 'B' }
@@ -443,10 +443,18 @@ $(document).ready(function() {
             {
                 id: 'grade-003',
                 studentId: 'sample-student-001',
-                subjectId: 'math-subject',
+                subjectId: 'lit-in-english',
                 term: 'Term 1',
                 scores: { midterm: 40, endterm: 10 },
                 finalGrade: { percentage: 70, letterGrade: 'C' }
+            },
+            {
+                id: 'grade-004',
+                studentId: 'sample-student-001',
+                subjectId: 'cre',
+                term: 'Term 1',
+                scores: { midterm: 38, endterm: 8 },
+                finalGrade: { percentage: 65, letterGrade: 'B' }
             }
         ];
     }
@@ -613,81 +621,105 @@ $(document).ready(function() {
     }
     
     /**
-     * Populate academic table using jQuery
+     * Populate academic table with exact template structure
      */
     function populateAcademicTable(card) {
         const $tbody = $('#subjectsTableBody');
         $tbody.empty();
         
+        // Pre-filled subjects as per XML template
+        const preFilledSubjects = [
+            { name: 'MATHS', row: 1 },
+            { name: 'ENGLISH', row: 2 },
+            { name: 'LIT IN ENGLISH', row: 3 },
+            { name: 'CRE', row: 4 }
+        ];
+        
         let subjectCount = 0;
         let totalScore = 0;
         
-        // Process grades
-        card.grades.forEach(function(grade) {
-            const subject = subjects.find(s => s.id === grade.subjectId);
-            const subjectName = subject?.name || 'Unknown Subject';
+        // Add pre-filled subjects
+        preFilledSubjects.forEach(function(subject) {
+            const grade = card.grades.find(g => g.subjectId === subject.name.toLowerCase().replace(/\s+/g, '-'));
             
-            const midTerm = grade.scores?.midterm || 0;
-            const endTerm = grade.scores?.endterm || 0;
-            const total = grade.finalGrade?.percentage || 0;
-            const letterGrade = grade.finalGrade?.letterGrade || 'N/A';
-            
-            // Calculate totals
-            totalScore += total;
-            subjectCount++;
-            
-            // Create table row
-            const rowNumber = subjectCount;
-            const subjectPosition = calculateSubjectPosition(card.studentId, grade.subjectId, card.termId);
-            const subjectRemark = generateSubjectRemark(letterGrade, total, subjectName);
-            
-            const $row = $('<tr>').html(`
-                <td>${rowNumber}</td>
-                <td class="fw-bold">${subjectName}</td>
-                <td>${midTerm}</td>
-                <td>${endTerm}</td>
-                <td>${total.toFixed(0)}%</td>
-                <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
-                <td>${subjectPosition}</td>
-                <td>${subjectRemark}</td>
-                <td></td>
-            `);
-            
-            $tbody.append($row);
+            if (grade) {
+                const midTerm = grade.scores?.midterm || 0;
+                const endTerm = grade.scores?.endterm || 0;
+                const total = grade.finalGrade?.percentage || 0;
+                const letterGrade = grade.finalGrade?.letterGrade || '';
+                const subjectRemark = generateSubjectRemark(letterGrade, total, subject.name);
+                
+                totalScore += total;
+                subjectCount++;
+                
+                const $row = $('<tr>').html(`
+                    <td>${subject.row}</td>
+                    <td class="fw-bold">${subject.name}</td>
+                    <td>${midTerm}</td>
+                    <td>${endTerm}</td>
+                    <td>${total.toFixed(0)}%</td>
+                    <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
+                    <td>${subjectRemark}</td>
+                    <td></td>
+                `);
+                
+                $tbody.append($row);
+            } else {
+                // Empty row for pre-filled subject
+                const $row = $('<tr>').html(`
+                    <td>${subject.row}</td>
+                    <td class="fw-bold">${subject.name}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                `);
+                $tbody.append($row);
+            }
         });
         
-        // Add blank rows to make total of 14 subjects
-        const filledSubjects = card.grades.length;
-        const blankRowsNeeded = Math.max(0, 14 - filledSubjects);
-        
-        for (let i = 0; i < blankRowsNeeded; i++) {
-            const blankRowNumber = filledSubjects + i + 1;
-            const blankRemark = generateBlankSubjectRemark();
-            
+        // Add blank rows 5-15 as per template
+        for (let i = 5; i <= 15; i++) {
             const $blankRow = $('<tr>').html(`
-                <td class="text-muted">${blankRowNumber}</td>
-                <td class="fw-bold text-muted">-</td>
-                <td class="text-muted">-</td>
-                <td class="text-muted">-</td>
-                <td class="text-muted">-</td>
-                <td class="text-muted">-</td>
-                <td class="text-muted">-</td>
-                <td class="text-muted">${blankRemark}</td>
-                <td class="text-muted">-</td>
+                <td>${i}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             `);
-            
             $tbody.append($blankRow);
         }
         
-        // Calculate and populate summary
+        // Add summary rows as per template
         const overallAverage = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : '0.0';
         const overallGrade = calculateGrade(overallAverage);
         
-        $('#overallAverage').text(overallAverage);
-        $('#overallGrade').text(overallGrade);
-        $('#totalSubjects').text(subjectCount);
-        $('#rankingPosition').text(card.position || 'N/A');
-        $('#rankingOutOf').text(students.filter(s => s.class === card.class).length);
+        const $totalRow = $('<tr>').html(`
+            <td class="fw-bold">TOTAL MARKS:</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td colspan="3" class="fw-bold text-center">OVERALL PERFORMANCE</td>
+        `);
+        $tbody.append($totalRow);
+        
+        const $averageRow = $('<tr>').html(`
+            <td class="fw-bold">AVERAGE SCORE:</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        `);
+        $tbody.append($averageRow);
     }
     
     /**
@@ -720,16 +752,17 @@ $(document).ready(function() {
         console.log('Element dimensions:', $element.width(), 'x', $element.height());
         
         const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5], // 0.5in margins as specified
+            margin: [0.3, 0.3, 0.3, 0.3], // Smaller margins for single page
             filename: `report_card_${$('#studentNameLine').text() || 'student'}_${new Date().getFullYear()}.pdf`,
             image: { type: 'jpeg', quality: 0.95 },
             html2canvas: { 
-                scale: 1.5, // Reduced scale to prevent distortion
+                scale: 1.2, // Reduced scale for single page
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                letterSpacing: 0, // Prevent text distortion
-                logging: false
+                letterSpacing: 0,
+                logging: false,
+                height: window.innerHeight * 0.8 // Limit height
             },
             jsPDF: { 
                 unit: 'in', 
@@ -896,52 +929,46 @@ $(document).ready(function() {
     }
     
     /**
-     * Generate subject remark
+     * Generate subject remark with specific values
      */
     function generateSubjectRemark(grade, score, subjectName) {
         const remarks = {
             'A': [
-                'Outstanding performance! Excellent understanding and application.',
-                'Exceptional work! Demonstrates mastery of concepts.',
-                'Excellent! Shows deep understanding and critical thinking.',
-                'Outstanding! Consistent excellence in this subject.'
+                'Excellent',
+                'Outstanding',
+                'Very Good',
+                'Excellent work'
             ],
             'B': [
-                'Very good work! Strong understanding demonstrated.',
-                'Good performance! Shows solid grasp of concepts.',
-                'Well done! Consistent effort and understanding.',
-                'Very good! Continue this excellent progress.'
+                'Very Good',
+                'Good',
+                'Well done',
+                'Very good work'
             ],
             'C': [
-                'Good work! Shows understanding with room for improvement.',
-                'Satisfactory performance! Keep working hard.',
-                'Good effort! Focus on challenging areas.',
-                'Decent work! Continue practicing regularly.'
+                'Good',
+                'Fair',
+                'Satisfactory',
+                'Good effort'
             ],
             'D': [
-                'Needs improvement. Focus on understanding basic concepts.',
-                'Below average. Requires more study time and effort.',
-                'Needs attention. Seek help from teacher or peers.',
-                'Requires improvement. Practice more regularly.'
+                'Poor',
+                'Below average',
+                'Needs improvement',
+                'Poor performance'
             ],
             'E': [
-                'Poor performance. Immediate remedial support needed.',
-                'Below expectations. Intensive study required.',
-                'Needs urgent attention. Consider extra tutoring.',
-                'Requires immediate intervention and support.'
+                'Very Poor',
+                'Fail',
+                'Unsatisfactory',
+                'Very poor'
             ]
         };
         
         const gradeRemarks = remarks[grade] || ['N/A'];
         const randomRemark = gradeRemarks[Math.floor(Math.random() * gradeRemarks.length)];
         
-        if (grade === 'A' || grade === 'B') {
-            return `${randomRemark} Strong foundation in ${subjectName}.`;
-        } else if (grade === 'C') {
-            return `${randomRemark} Focus on ${subjectName} fundamentals.`;
-        } else {
-            return `${randomRemark} Priority subject: ${subjectName}.`;
-        }
+        return randomRemark;
     }
     
     /**
