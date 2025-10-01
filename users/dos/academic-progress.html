@@ -216,28 +216,18 @@
                                 <label class="form-label">Class Level</label>
                                 <select class="form-select" id="class-level" onchange="updateProgress()">
                                     <option value="">All Levels</option>
-                                    <option value="s1">S.1</option>
-                                    <option value="s2">S.2</option>
-                                    <option value="s3">S.3</option>
-                                    <option value="s4">S.4</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Subject</label>
                                 <select class="form-select" id="subject-filter" onchange="updateProgress()">
                                     <option value="">All Subjects</option>
-                                    <option value="mathematics">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="biology">Biology</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Term</label>
                                 <select class="form-select" id="term-filter" onchange="updateProgress()">
-                                    <option value="term1">Term 1</option>
-                                    <option value="term2">Term 2</option>
-                                    <option value="term3">Term 3</option>
+                                    <option value="">All Terms</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -248,6 +238,22 @@
                                     </button>
                                     <button class="btn btn-info btn-sm" onclick="exportProgress()">
                                         <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                        <i class="fas fa-times"></i> Clear Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Status Indicator -->
+                        <div class="row mt-3 filter-status" id="filter-status" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-info alert-sm d-flex align-items-center">
+                                    <i class="fas fa-filter me-2"></i>
+                                    <span id="filter-status-text">Filters applied</span>
+                                    <button class="btn btn-sm btn-outline-info ms-auto" onclick="clearFilters()">
+                                        <i class="fas fa-times"></i> Clear All
                                     </button>
                                 </div>
                             </div>
@@ -455,6 +461,7 @@
                 setupRealTimeListeners();
                 
                 // Initialize page display
+                populateFilterDropdowns();
                 displayProgressData();
                 updateProgressStatistics();
                 generateProgressChart();
@@ -549,6 +556,143 @@
                 console.error('Error loading grades:', error);
                 return [];
             }
+        }
+        
+        // Populate filter dropdowns with dynamic data
+        function populateFilterDropdowns() {
+            try {
+                console.log('🔧 Populating filter dropdowns...');
+                
+                // Populate class level filter
+                populateClassLevelFilter();
+                
+                // Populate subject filter
+                populateSubjectFilter();
+                
+                // Populate term filter
+                populateTermFilter();
+                
+                console.log('✅ Filter dropdowns populated');
+                
+            } catch (error) {
+                console.error('Error populating filter dropdowns:', error);
+            }
+        }
+        
+        // Populate class level filter
+        function populateClassLevelFilter() {
+            const classLevelSelect = document.getElementById('class-level');
+            if (!classLevelSelect) return;
+            
+            // Get unique class levels from classes
+            const classLevels = [...new Set(classes.map(cls => cls.level).filter(level => level))];
+            
+            // Clear existing options except "All Levels"
+            classLevelSelect.innerHTML = '<option value="">All Levels</option>';
+            
+            // Add class level options
+            classLevels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level.toLowerCase();
+                option.textContent = level;
+                classLevelSelect.appendChild(option);
+            });
+            
+            console.log(`📚 Populated class level filter with ${classLevels.length} levels`);
+        }
+        
+        // Populate subject filter
+        function populateSubjectFilter() {
+            const subjectSelect = document.getElementById('subject-filter');
+            if (!subjectSelect) return;
+            
+            // Clear existing options except "All Subjects"
+            subjectSelect.innerHTML = '<option value="">All Subjects</option>';
+            
+            // Add subject options
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name || subject.title || 'Unknown Subject';
+                subjectSelect.appendChild(option);
+            });
+            
+            console.log(`📖 Populated subject filter with ${subjects.length} subjects`);
+        }
+        
+        // Populate term filter
+        function populateTermFilter() {
+            const termSelect = document.getElementById('term-filter');
+            if (!termSelect) return;
+            
+            // Clear existing options except "All Terms"
+            termSelect.innerHTML = '<option value="">All Terms</option>';
+            
+            // Get unique terms from grades
+            const terms = [...new Set(grades.map(grade => grade.termId).filter(termId => termId))];
+            
+            // For now, add common terms (in a real system, this would come from a terms collection)
+            const commonTerms = [
+                { id: 'term1', name: 'Term 1' },
+                { id: 'term2', name: 'Term 2' },
+                { id: 'term3', name: 'Term 3' }
+            ];
+            
+            commonTerms.forEach(term => {
+                const option = document.createElement('option');
+                option.value = term.id;
+                option.textContent = term.name;
+                termSelect.appendChild(option);
+            });
+            
+            console.log(`📅 Populated term filter with ${commonTerms.length} terms`);
+        }
+        
+        // Get filtered progress data based on current filter selections
+        function getFilteredProgressData() {
+            const classLevel = document.getElementById('class-level')?.value || '';
+            const subjectId = document.getElementById('subject-filter')?.value || '';
+            const termId = document.getElementById('term-filter')?.value || '';
+            
+            console.log('🔍 Applying filters:', { classLevel, subjectId, termId });
+            
+            let filteredData = [...progressData];
+            
+            // Filter by class level
+            if (classLevel) {
+                filteredData = filteredData.filter(item => {
+                    const cls = classes.find(c => c.name === item.class);
+                    return cls && cls.level && cls.level.toLowerCase() === classLevel;
+                });
+            }
+            
+            // Filter by subject
+            if (subjectId) {
+                filteredData = filteredData.filter(item => {
+                    const subject = subjects.find(s => s.id === subjectId);
+                    return subject && item.subject === subject.name;
+                });
+            }
+            
+            // Filter by term (this would require term information in progressData)
+            // For now, we'll filter grades by term and then filter progress data accordingly
+            if (termId) {
+                const termGrades = grades.filter(grade => grade.termId === termId);
+                const termStudentIds = [...new Set(termGrades.map(grade => grade.studentId))];
+                
+                filteredData = filteredData.filter(item => {
+                    // Check if any students in this class have grades for this term
+                    const classStudents = students.filter(student => {
+                        const directClass = student.class;
+                        return directClass === item.class || directClass === item.class;
+                    });
+                    
+                    return classStudents.some(student => termStudentIds.includes(student.id));
+                });
+            }
+            
+            console.log(`📊 Filtered data: ${filteredData.length} items (from ${progressData.length} total)`);
+            return filteredData;
         }
         
         // Process progress data
@@ -688,26 +832,42 @@
             }
         }
         
-        // Display progress data with dynamic data
+        // Display progress data with dynamic data and filtering
         function displayProgressData() {
             const tbody = document.getElementById('progress-tbody');
             if (!tbody) return;
             
             tbody.innerHTML = '';
             
-            if (progressData.length === 0) {
+            // Get filtered data
+            const filteredData = getFilteredProgressData();
+            
+            if (filteredData.length === 0) {
+                const classLevel = document.getElementById('class-level')?.value || '';
+                const subjectId = document.getElementById('subject-filter')?.value || '';
+                const termId = document.getElementById('term-filter')?.value || '';
+                
+                let message = 'No progress data available';
+                if (classLevel || subjectId || termId) {
+                    message = 'No data matches the current filters';
+                }
+                
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">
                             <i class="fas fa-chart-line fa-2x mb-2"></i><br>
-                            No progress data available
+                            ${message}
+                            ${classLevel || subjectId || termId ? 
+                                '<br><small>Try adjusting your filter selections</small>' : 
+                                '<br><small>Add students and grades to see progress data</small>'
+                            }
                         </td>
                     </tr>
                 `;
                 return;
             }
             
-            progressData.forEach(item => {
+            filteredData.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${item.class}</strong></td>
@@ -728,40 +888,47 @@
             });
         }
         
-        // Update progress statistics
+        // Update progress statistics with filtered data
         function updateProgressStatistics() {
             try {
-                const totalClasses = classes.length;
-                const totalStudents = students.length;
-                const totalSubjects = subjects.length;
-                const totalGrades = grades.length;
+                // Get filtered data
+                const filteredData = getFilteredProgressData();
+                const filteredGrades = getFilteredGrades();
                 
-                // Calculate overall statistics
+                // Calculate statistics based on filtered data
+                const totalClasses = [...new Set(filteredData.map(item => item.class))].length;
+                const totalStudents = [...new Set(filteredGrades.map(grade => grade.studentId))].length;
+                const totalSubjects = [...new Set(filteredData.map(item => item.subject))].length;
+                const totalGrades = filteredGrades.length;
+                
+                // Calculate overall statistics from filtered data
                 let overallAverage = 0;
                 let overallPassRate = 0;
                 
-                if (progressData.length > 0) {
-                    const totalScore = progressData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
-                    const totalPassRate = progressData.reduce((sum, item) => sum + parseFloat(item.passRate), 0);
+                if (filteredData.length > 0) {
+                    const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
+                    const totalPassRate = filteredData.reduce((sum, item) => sum + parseFloat(item.passRate), 0);
                     
-                    overallAverage = (totalScore / progressData.length).toFixed(1);
-                    overallPassRate = (totalPassRate / progressData.length).toFixed(1);
+                    overallAverage = (totalScore / filteredData.length).toFixed(1);
+                    overallPassRate = (totalPassRate / filteredData.length).toFixed(1);
                 }
                 
                 // Update statistics display
                 const statTotalClasses = document.getElementById('stat-total-classes');
                 const statTotalStudents = document.getElementById('stat-total-students');
                 const statOverallAverage = document.getElementById('stat-overall-average');
-                const statOverallPassRate = document.getElementById('stat-overall-pass-rate');
+                const statPassRate = document.getElementById('stat-pass-rate');
                 
                 if (statTotalClasses) statTotalClasses.textContent = totalClasses;
                 if (statTotalStudents) statTotalStudents.textContent = totalStudents;
                 if (statOverallAverage) statOverallAverage.textContent = `${overallAverage}%`;
-                if (statOverallPassRate) statOverallPassRate.textContent = `${overallPassRate}%`;
+                if (statPassRate) statPassRate.textContent = `${overallPassRate}%`;
                 
-                console.log('📊 Progress statistics updated:', {
+                console.log('📊 Progress statistics updated with filters:', {
                     totalClasses,
                     totalStudents,
+                    totalSubjects,
+                    totalGrades,
                     overallAverage,
                     overallPassRate
                 });
@@ -809,10 +976,11 @@
                     window.classPerformanceChartInstance.destroy();
                 }
                 
-                // Prepare chart data
-                const classNames = [...new Set(progressData.map(item => item.class))];
+                // Prepare chart data using filtered data
+                const filteredData = getFilteredProgressData();
+                const classNames = [...new Set(filteredData.map(item => item.class))];
                 const chartData = classNames.map(className => {
-                    const classData = progressData.filter(item => item.class === className);
+                    const classData = filteredData.filter(item => item.class === className);
                     const averageScore = classData.length > 0 ? 
                         (classData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / classData.length) : 0;
                     return averageScore;
@@ -867,10 +1035,11 @@
                     window.subjectPerformanceChartInstance.destroy();
                 }
                 
-                // Prepare chart data
-                const subjectNames = [...new Set(progressData.map(item => item.subject))];
+                // Prepare chart data using filtered data
+                const filteredData = getFilteredProgressData();
+                const subjectNames = [...new Set(filteredData.map(item => item.subject))];
                 const chartData = subjectNames.map(subjectName => {
-                    const subjectData = progressData.filter(item => item.subject === subjectName);
+                    const subjectData = filteredData.filter(item => item.subject === subjectName);
                     const averageScore = subjectData.length > 0 ? 
                         (subjectData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / subjectData.length) : 0;
                     return averageScore;
@@ -918,7 +1087,7 @@
                     window.gradeDistributionChartInstance.destroy();
                 }
                 
-                // Calculate grade distribution from grades data
+                // Calculate grade distribution from filtered grades data
                 const gradeRanges = [
                     { label: 'A (80–100%)', min: 80, max: 100 },
                     { label: 'B (65–79%)', min: 65, max: 79 },
@@ -927,8 +1096,11 @@
                     { label: 'E (Below 40%)', min: 0, max: 39 }
                 ];
                 
+                // Get filtered grades based on current filters
+                const filteredGrades = getFilteredGrades();
+                
                 const chartData = gradeRanges.map(range => {
-                    return grades.filter(grade => {
+                    return filteredGrades.filter(grade => {
                         const score = parseFloat(grade.score) || 0;
                         return score >= range.min && score <= range.max;
                     }).length;
@@ -962,6 +1134,44 @@
             }
         }
         
+        // Get filtered grades based on current filter selections
+        function getFilteredGrades() {
+            const classLevel = document.getElementById('class-level')?.value || '';
+            const subjectId = document.getElementById('subject-filter')?.value || '';
+            const termId = document.getElementById('term-filter')?.value || '';
+            
+            let filteredGrades = [...grades];
+            
+            // Filter by class level
+            if (classLevel) {
+                const filteredClasses = classes.filter(cls => 
+                    cls.level && cls.level.toLowerCase() === classLevel
+                );
+                const filteredClassNames = filteredClasses.map(cls => cls.name);
+                
+                filteredGrades = filteredGrades.filter(grade => {
+                    // Find the student for this grade
+                    const student = students.find(s => s.id === grade.studentId);
+                    if (!student) return false;
+                    
+                    // Check if student's class matches filtered classes
+                    return filteredClassNames.includes(student.class);
+                });
+            }
+            
+            // Filter by subject
+            if (subjectId) {
+                filteredGrades = filteredGrades.filter(grade => grade.subjectId === subjectId);
+            }
+            
+            // Filter by term
+            if (termId) {
+                filteredGrades = filteredGrades.filter(grade => grade.termId === termId);
+            }
+            
+            return filteredGrades;
+        }
+        
         // Generate Progress Trends Chart
         function generateProgressTrendsChart() {
             try {
@@ -976,11 +1186,12 @@
                     window.progressTrendsChartInstance.destroy();
                 }
                 
-                // Calculate overall average for trend simulation
+                // Calculate overall average for trend simulation using filtered data
+                const filteredData = getFilteredProgressData();
                 let overallAverage = 0;
-                if (progressData.length > 0) {
-                    const totalScore = progressData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
-                    overallAverage = totalScore / progressData.length;
+                if (filteredData.length > 0) {
+                    const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
+                    overallAverage = totalScore / filteredData.length;
                 }
                 
                 // Simulate trend data (in a real system, this would come from historical data)
@@ -1711,13 +1922,29 @@
         }
 
         function updateProgress() {
-            const classLevel = document.getElementById('class-level').value;
-            const subject = document.getElementById('subject-filter').value;
-            const term = document.getElementById('term-filter').value;
+            try {
+                console.log('🔄 Updating progress with filters...');
             
-            // Filter data based on selections
+                // Update progress data display
             displayProgressData();
-            initializeCharts();
+                
+                // Update statistics
+                updateProgressStatistics();
+                
+                // Update charts
+                generateProgressChart();
+                
+                // Update insights and recommendations
+                generateInsightsAndRecommendations();
+                
+                // Update filter status indicator
+                updateFilterStatus();
+                
+                console.log('✅ Progress updated with filters');
+                
+            } catch (error) {
+                console.error('Error updating progress:', error);
+            }
         }
 
         function generateProgressReport() {
@@ -2068,6 +2295,71 @@
             initializeCharts();
         }
         
+        // Update filter status indicator
+        function updateFilterStatus() {
+            try {
+                const classLevel = document.getElementById('class-level')?.value || '';
+                const subjectId = document.getElementById('subject-filter')?.value || '';
+                const termId = document.getElementById('term-filter')?.value || '';
+                
+                const filterStatus = document.getElementById('filter-status');
+                const filterStatusText = document.getElementById('filter-status-text');
+                
+                if (!filterStatus || !filterStatusText) return;
+                
+                const activeFilters = [];
+                
+                if (classLevel) {
+                    const classLevelText = document.querySelector(`#class-level option[value="${classLevel}"]`)?.textContent || classLevel;
+                    activeFilters.push(`Class Level: ${classLevelText}`);
+                }
+                
+                if (subjectId) {
+                    const subjectText = document.querySelector(`#subject-filter option[value="${subjectId}"]`)?.textContent || 'Selected Subject';
+                    activeFilters.push(`Subject: ${subjectText}`);
+                }
+                
+                if (termId) {
+                    const termText = document.querySelector(`#term-filter option[value="${termId}"]`)?.textContent || 'Selected Term';
+                    activeFilters.push(`Term: ${termText}`);
+                }
+                
+                if (activeFilters.length > 0) {
+                    filterStatusText.textContent = `Active filters: ${activeFilters.join(', ')}`;
+                    filterStatus.style.display = 'block';
+                } else {
+                    filterStatus.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error updating filter status:', error);
+            }
+        }
+        
+        // Clear all filters and reset to show all data
+        function clearFilters() {
+            try {
+                console.log('🧹 Clearing all filters...');
+                
+                // Reset all filter dropdowns to "All" options
+                const classLevelSelect = document.getElementById('class-level');
+                const subjectSelect = document.getElementById('subject-filter');
+                const termSelect = document.getElementById('term-filter');
+                
+                if (classLevelSelect) classLevelSelect.value = '';
+                if (subjectSelect) subjectSelect.value = '';
+                if (termSelect) termSelect.value = '';
+                
+                // Update the display with all data
+                updateProgress();
+                
+                console.log('✅ All filters cleared');
+                
+            } catch (error) {
+                console.error('Error clearing filters:', error);
+            }
+        }
+        
         function generateProgressReport() {
             const classLevel = document.getElementById('class-level').value;
             const subject = document.getElementById('subject-filter').value;
@@ -2142,6 +2434,20 @@
         .chart-container {
             position: relative;
             height: 300px;
+        }
+        
+        .filter-status {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .filter-status .alert {
+            margin-bottom: 0;
+            padding: 0.5rem 1rem;
+        }
+        
+        .filter-status .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
         }
         
         @media print {
