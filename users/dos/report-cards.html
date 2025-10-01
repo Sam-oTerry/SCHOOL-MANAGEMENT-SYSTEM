@@ -599,6 +599,79 @@
             margin-top: 8px;
         }
         
+        /* PDF Loading Overlay Styles */
+        .pdf-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-spinner i {
+            font-size: 24px;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        
+        .loading-spinner br {
+            margin: 10px 0;
+        }
+        
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .notification-success {
+            background: #28a745;
+        }
+        
+        .notification-error {
+            background: #dc3545;
+        }
+        
+        .notification-info {
+            background: #17a2b8;
+        }
+        
+        .notification i {
+            margin-right: 8px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
         /* Print Styles - Single Page Layout */
         @media print {
             @page {
@@ -1300,6 +1373,9 @@
                     <button type="button" class="btn btn-success btn-lg" id="exportPdfBtn">
                         <i class="fas fa-file-pdf"></i> Generate PDF Report Card
                     </button>
+                    <button type="button" class="btn btn-warning btn-lg" onclick="exportToPDFAdvanced()">
+                        <i class="fas fa-file-pdf"></i> Generate Advanced PDF
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print
                     </button>
@@ -1737,6 +1813,143 @@
             } catch (error) {
                 console.error('Error updating report cards statistics:', error);
             }
+        }
+        
+        // jQuery event handlers for PDF generation
+        $(document).ready(function() {
+            // Standard PDF generation button
+            $('#exportPdfBtn').on('click', function(e) {
+                e.preventDefault();
+                exportToPDF();
+            });
+            
+            // Advanced PDF generation button
+            $('button[onclick*="exportToPDFAdvanced"]').on('click', function(e) {
+                e.preventDefault();
+                exportToPDFAdvanced();
+            });
+            
+            // Print button
+            $('button[onclick*="printReportCard"]').on('click', function(e) {
+                e.preventDefault();
+                printReportCard();
+            });
+            
+            // Add keyboard shortcuts for PDF generation
+            $(document).on('keydown', function(e) {
+                // Ctrl+P for print
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    if ($('#reportCardTemplate').length > 0) {
+                        printReportCard();
+                    }
+                }
+                // Ctrl+Shift+P for PDF generation
+                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                    e.preventDefault();
+                    if ($('#reportCardTemplate').length > 0) {
+                        exportToPDF();
+                    }
+                }
+            });
+        });
+        
+        // Enhanced PDF generation with progress tracking
+        function generatePDFWithProgress() {
+            const $element = $('#reportCardTemplate');
+            if ($element.length === 0) {
+                showNotification('No report card to export. Please view a report card first.', 'error');
+                return;
+            }
+            
+            // Create progress modal
+            const $progressModal = $(`
+                <div class="modal fade" id="pdfProgressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Generating PDF</h5>
+                            </div>
+                            <div class="modal-body text-center">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p>Please wait while we generate your PDF...</p>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            $('body').append($progressModal);
+            const progressModal = new bootstrap.Modal(document.getElementById('pdfProgressModal'));
+            progressModal.show();
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                $('.progress-bar').css('width', progress + '%');
+            }, 200);
+            
+            // Get student info
+            const studentName = $('#studentNameLine').text() || 'student';
+            const studentClass = $('#studentClassLine').text() || 'class';
+            const academicYear = new Date().getFullYear();
+            
+            // Configure PDF options
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
+                image: { 
+                    type: 'jpeg', 
+                    quality: 0.98,
+                    pixelRatio: 2
+                },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    letterSpacing: 0,
+                    logging: false,
+                    width: $element[0].offsetWidth,
+                    height: $element[0].offsetHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 1200,
+                    windowHeight: 1600,
+                    dpi: 300
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 2
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().set(opt).from($element[0]).save().then(() => {
+                clearInterval(progressInterval);
+                $('.progress-bar').css('width', '100%');
+                setTimeout(() => {
+                    progressModal.hide();
+                    $progressModal.remove();
+                    showNotification('PDF generated successfully!', 'success');
+                }, 500);
+            }).catch((error) => {
+                clearInterval(progressInterval);
+                progressModal.hide();
+                $progressModal.remove();
+                console.error('Error generating PDF:', error);
+                showNotification('Failed to generate PDF. Please try again.', 'error');
+            });
         }
         
         // Initialize on page load
@@ -2334,29 +2547,45 @@
             return "th";
         }
         
-        // Export to PDF using html2pdf.js - Optimized for single page
+        // Enhanced jQuery-based PDF generation with better error handling
         function exportToPDF() {
-            const element = document.getElementById('reportCardTemplate');
-            if (!element) {
+            const $element = $('#reportCardTemplate');
+            if ($element.length === 0) {
                 alert('No report card to export. Please view a report card first.');
                 return;
             }
             
-            // Configure PDF options for A4 single page with 0.5in margins
-            console.log('Generating PDF with A4 optimization...');
-            console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+            // Get student information for filename
+            const studentName = $('#studentNameLine').text() || 'student';
+            const studentClass = $('#studentClassLine').text() || 'class';
+            const academicYear = new Date().getFullYear();
+            
+            // Configure PDF options for A4 single page with optimized settings
+            console.log('Generating PDF with jQuery and html2pdf.js...');
+            console.log('Element dimensions:', $element[0].offsetWidth, 'x', $element[0].offsetHeight);
             
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5], // 0.5in margins as specified
-                filename: `report_card_${document.getElementById('studentNameLine')?.textContent || 'student'}_${new Date().getFullYear()}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
+                margin: [0.5, 0.5, 0.5, 0.5], // 0.5in margins
+                filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
+                image: { 
+                    type: 'jpeg', 
+                    quality: 0.98,
+                    pixelRatio: 2 // Higher quality for better text rendering
+                },
                 html2canvas: { 
-                    scale: 1.5, // Reduced scale to prevent distortion
+                    scale: 2, // Higher scale for better quality
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
-                    letterSpacing: 0, // Prevent text distortion
-                    logging: false
+                    letterSpacing: 0,
+                    logging: false,
+                    width: $element[0].offsetWidth,
+                    height: $element[0].offsetHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 1200,
+                    windowHeight: 1600,
+                    dpi: 300 // High DPI for print quality
                 },
                 jsPDF: { 
                     unit: 'in', 
@@ -2365,35 +2594,125 @@
                     compress: true,
                     precision: 2
                 },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { 
+                    mode: ['avoid-all', 'css', 'legacy'],
+                    before: '.page-break-before',
+                    after: '.page-break-after',
+                    avoid: '.no-break'
+                }
             };
             
-            // Add debug logging
-            console.log('PDF options:', opt);
-            
-            // Show loading state (only if called from button click)
-            let exportBtn = null;
+            // Update export button with jQuery
+            const $exportBtn = $('button[onclick*="exportToPDF"]');
             let originalText = '';
-            if (event && event.target) {
-                exportBtn = event.target;
-                originalText = exportBtn.innerHTML;
-                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-                exportBtn.disabled = true;
+            if ($exportBtn.length > 0) {
+                originalText = $exportBtn.html();
+                $exportBtn.html('<i class="fas fa-spinner fa-spin"></i> Generating PDF...').prop('disabled', true);
             }
             
-            // Generate PDF
-            html2pdf().set(opt).from(element).save().then(() => {
+            // Show loading overlay
+            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating PDF...</div></div>');
+            $('body').append($loadingOverlay);
+            
+            // Generate PDF with enhanced error handling
+            html2pdf().set(opt).from($element[0]).save().then(() => {
                 console.log('PDF generated successfully');
+                // Show success message
+                showNotification('PDF generated successfully!', 'success');
             }).catch((error) => {
                 console.error('Error generating PDF:', error);
-                alert('Failed to generate PDF. Please try again.');
+                showNotification('Failed to generate PDF. Please try again.', 'error');
             }).finally(() => {
-                // Restore button state (only if button was found)
-                if (exportBtn) {
-                    exportBtn.innerHTML = originalText;
-                    exportBtn.disabled = false;
+                // Clean up UI
+                $loadingOverlay.remove();
+                if ($exportBtn.length > 0) {
+                    $exportBtn.html(originalText).prop('disabled', false);
                 }
             });
+        }
+        
+        // Alternative PDF generation method using jsPDF directly (more control)
+        function exportToPDFAdvanced() {
+            const $element = $('#reportCardTemplate');
+            if ($element.length === 0) {
+                alert('No report card to export. Please view a report card first.');
+                return;
+            }
+            
+            // Show loading
+            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating Advanced PDF...</div></div>');
+            $('body').append($loadingOverlay);
+            
+            // Get student info
+            const studentName = $('#studentNameLine').text() || 'student';
+            const studentClass = $('#studentClassLine').text() || 'class';
+            const academicYear = new Date().getFullYear();
+            
+            // Configure advanced options
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Advanced_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
+                image: { 
+                    type: 'jpeg', 
+                    quality: 0.99,
+                    pixelRatio: 3
+                },
+                html2canvas: { 
+                    scale: 2.5,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    letterSpacing: 0,
+                    logging: false,
+                    width: $element[0].offsetWidth,
+                    height: $element[0].offsetHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 1400,
+                    windowHeight: 1800,
+                    dpi: 300,
+                    foreignObjectRendering: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 3,
+                    putOnlyUsedFonts: true,
+                    floatPrecision: 16
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().set(opt).from($element[0]).save().then(() => {
+                console.log('Advanced PDF generated successfully');
+                showNotification('Advanced PDF generated successfully!', 'success');
+            }).catch((error) => {
+                console.error('Error generating advanced PDF:', error);
+                showNotification('Failed to generate advanced PDF. Please try again.', 'error');
+            }).finally(() => {
+                $loadingOverlay.remove();
+            });
+        }
+        
+        // Notification system for user feedback
+        function showNotification(message, type = 'info') {
+            const $notification = $(`
+                <div class="notification notification-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    ${message}
+                </div>
+            `);
+            
+            $('body').append($notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                $notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
         }
         
         function generateTeacherComment(averageScore, studentName) {
