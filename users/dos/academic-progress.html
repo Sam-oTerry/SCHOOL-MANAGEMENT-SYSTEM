@@ -908,16 +908,28 @@
                 const totalSubjects = [...new Set(filteredData.map(item => item.subject))].length;
                 const totalGrades = filteredGrades.length;
                 
-                // Calculate overall statistics from filtered data
+                // Calculate overall statistics from filtered grades (not from subject averages)
                 let overallAverage = 0;
                 let overallPassRate = 0;
                 
-                if (filteredData.length > 0) {
-                    const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
-                    const totalPassRate = filteredData.reduce((sum, item) => sum + parseFloat(item.passRate), 0);
+                if (filteredGrades.length > 0) {
+                    // Calculate overall average from all individual grades
+                    let totalScore = 0;
+                    let validGrades = 0;
+                    let passingGrades = 0;
                     
-                    overallAverage = (totalScore / filteredData.length).toFixed(1);
-                    overallPassRate = (totalPassRate / filteredData.length).toFixed(1);
+                    filteredGrades.forEach(grade => {
+                        if (grade.score && !isNaN(grade.score)) {
+                            totalScore += parseFloat(grade.score);
+                            validGrades++;
+                            if (parseFloat(grade.score) >= 50) {
+                                passingGrades++;
+                            }
+                        }
+                    });
+                    
+                    overallAverage = validGrades > 0 ? (totalScore / validGrades).toFixed(1) : "0.0";
+                    overallPassRate = validGrades > 0 ? ((passingGrades / validGrades) * 100).toFixed(1) : "0.0";
                 }
                 
                 // Update statistics display
@@ -1215,12 +1227,21 @@
                 // Clear the canvas
                 ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                 
-                // Calculate overall average for trend simulation using filtered data
-                const filteredData = getFilteredProgressData();
+                // Calculate overall average for trend simulation using filtered grades
+                const filteredGrades = getFilteredGrades();
                 let overallAverage = 0;
-                if (filteredData.length > 0) {
-                    const totalScore = filteredData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
-                    overallAverage = totalScore / filteredData.length;
+                if (filteredGrades.length > 0) {
+                    let totalScore = 0;
+                    let validGrades = 0;
+                    
+                    filteredGrades.forEach(grade => {
+                        if (grade.score && !isNaN(grade.score)) {
+                            totalScore += parseFloat(grade.score);
+                            validGrades++;
+                        }
+                    });
+                    
+                    overallAverage = validGrades > 0 ? totalScore / validGrades : 0;
                 }
                 
                 // Simulate trend data (in a real system, this would come from historical data)
@@ -1886,18 +1907,29 @@
             
             console.log('📊 Generating insights and recommendations...');
             
-            // Calculate overall statistics from progressData
+            // Calculate overall statistics from grades (not from subject averages)
             let overallAverage = 0;
             let overallPassRate = 0;
             let totalStudents = students.length;
             let totalClasses = classes.length;
             
-            if (progressData.length > 0) {
-                const totalScore = progressData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
-                const totalPassRate = progressData.reduce((sum, item) => sum + parseFloat(item.passRate), 0);
+            if (grades.length > 0) {
+                let totalScore = 0;
+                let validGrades = 0;
+                let passingGrades = 0;
                 
-                overallAverage = totalScore / progressData.length;
-                overallPassRate = totalPassRate / progressData.length;
+                grades.forEach(grade => {
+                    if (grade.score && !isNaN(grade.score)) {
+                        totalScore += parseFloat(grade.score);
+                        validGrades++;
+                        if (parseFloat(grade.score) >= 50) {
+                            passingGrades++;
+                        }
+                    }
+                });
+                
+                overallAverage = validGrades > 0 ? totalScore / validGrades : 0;
+                overallPassRate = validGrades > 0 ? (passingGrades / validGrades) * 100 : 0;
             }
             
             console.log('Statistics:', { overallAverage, overallPassRate, totalStudents, totalClasses });
