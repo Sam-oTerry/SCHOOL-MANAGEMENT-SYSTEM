@@ -199,10 +199,125 @@
             border-color: #dee2e6;
         }
         
-        /* A4 Paper Optimization */
+        /* A4 Paper Optimization - Perfect Fit */
         .report-card-container {
-            max-width: 8.27in; /* A4 width */
+            max-width: 210mm; /* A4 width */
             margin: 0 auto;
+            padding: 0;
+        }
+        
+        /* Header Optimization */
+        .report-header {
+            padding: 6px 8px !important;
+            min-height: 60px;
+            max-height: 60px;
+        }
+        
+        .school-logo, .student-photo {
+            max-height: 50px !important;
+            max-width: 50px !important;
+        }
+        
+        .school-name {
+            font-size: 14px !important;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+        
+        .school-details {
+            font-size: 10px !important;
+            line-height: 1.1;
+        }
+        
+        .report-title {
+            font-size: 12px !important;
+            font-weight: bold;
+        }
+        
+        /* Student Info Optimization */
+        .student-details-section {
+            padding: 8px 12px;
+            font-size: 11px;
+        }
+        
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .student-info-item {
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+        }
+        
+        .student-info-label {
+            font-weight: bold;
+            margin-right: 4px;
+            min-width: 60px;
+        }
+        
+        .student-info-value {
+            border-bottom: 1px dotted #333;
+            flex: 1;
+            padding: 2px 4px;
+        }
+        
+        /* Table Optimization for A4 */
+        .report-table {
+            table-layout: fixed;
+            width: 100%;
+            font-size: 9px;
+            margin-bottom: 8px;
+        }
+        
+        .report-table th {
+            font-size: 8px;
+            padding: 4px 2px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .report-table td {
+            font-size: 8px;
+            padding: 3px 2px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        /* Fixed column widths for A4 */
+        .report-table th:nth-child(1), .report-table td:nth-child(1) { width: 5%; } /* S/N */
+        .report-table th:nth-child(2), .report-table td:nth-child(2) { width: 20%; } /* Subject */
+        .report-table th:nth-child(3), .report-table td:nth-child(3) { width: 10%; } /* AOI AV */
+        .report-table th:nth-child(4), .report-table td:nth-child(4) { width: 10%; } /* EOT Score */
+        .report-table th:nth-child(5), .report-table td:nth-child(5) { width: 10%; } /* Total Score */
+        .report-table th:nth-child(6), .report-table td:nth-child(6) { width: 8%; } /* Grade */
+        .report-table th:nth-child(7), .report-table td:nth-child(7) { width: 8%; } /* Position */
+        .report-table th:nth-child(8), .report-table td:nth-child(8) { width: 19%; } /* Remarks */
+        .report-table th:nth-child(9), .report-table td:nth-child(9) { width: 10%; } /* Teacher Initials */
+        
+        /* Footer/Sidebar Optimization */
+        .report-footer {
+            padding: 6px 12px;
+            font-size: 9px;
+            page-break-inside: avoid;
+        }
+        
+        .summary-section {
+            margin-bottom: 6px;
+        }
+        
+        .comments-section {
+            max-height: 40%;
+            overflow: hidden;
+        }
+        
+        .signatures-section {
+            font-size: 8px;
+            margin-top: 8px;
         }
         
         /* Print Styles */
@@ -746,13 +861,13 @@
                                             <tr>
                                                 <th>S/N</th>
                                                 <th>SUBJECT</th>
-                                                <th>AOI AV (20%)</th>
-                                                <th>EOT Score (80%)</th>
-                                                <th>Total Score (100%)</th>
-                                                <th>Grade</th>
-                                                <th>Position</th>
-                                                <th>Subject teachers remark</th>
-                                                <th>TR'S initials</th>
+                                                <th>AOI/AV (20%)</th>
+                                                <th>EOT (80%)</th>
+                                                <th>TOTAL (100%)</th>
+                                                <th>GRADE</th>
+                                                <th>POS</th>
+                                                <th>REMARKS</th>
+                                                <th>TR INIT</th>
                                             </tr>
                                         </thead>
                                         <tbody id="subjectsTableBody">
@@ -1888,26 +2003,34 @@
                 return;
             }
             
-            // Configure PDF options for single page
+            // Configure PDF options for A4 single page with 0.5in margins
+            console.log('Generating PDF with A4 optimization...');
+            console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
+            
             const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2], // Smaller margins
-                filename: `report_card_${document.getElementById('studentName')?.textContent || 'student'}_${new Date().getFullYear()}.pdf`,
-                image: { type: 'jpeg', quality: 0.85 },
+                margin: [0.5, 0.5, 0.5, 0.5], // 0.5in margins as specified
+                filename: `report_card_${document.getElementById('studentNameLine')?.textContent || 'student'}_${new Date().getFullYear()}.pdf`,
+                image: { type: 'jpeg', quality: 0.95 },
                 html2canvas: { 
-                    scale: 1.5, // Reduced scale for better fit
+                    scale: 1.5, // Reduced scale to prevent distortion
                     useCORS: true,
-                    letterRendering: true,
-                    height: window.innerHeight,
-                    width: window.innerWidth
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    letterSpacing: 0, // Prevent text distortion
+                    logging: false
                 },
                 jsPDF: { 
                     unit: 'in', 
                     format: 'a4', 
                     orientation: 'portrait',
-                    compress: true
+                    compress: true,
+                    precision: 2
                 },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
+            
+            // Add debug logging
+            console.log('PDF options:', opt);
             
             // Show loading state
             const exportBtn = event.target;
