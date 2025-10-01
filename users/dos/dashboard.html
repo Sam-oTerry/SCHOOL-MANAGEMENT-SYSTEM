@@ -517,7 +517,7 @@
                 // Load all data in parallel
                 const [studentsData, classesData, subjectsData, gradesData, announcementsData, eventsData] = await Promise.all([
                     loadStudents(),
-                    DOSUtils.loadClasses(),
+                    loadClasses(),
                     DOSUtils.loadSubjects(),
                     loadGrades(),
                     loadAnnouncements(),
@@ -546,71 +546,240 @@
             }
         }
         
-        // Load students from Firestore
-        async function loadStudents() {
+        // Load classes from Firestore (similar to student-management.html)
+        async function loadClasses() {
+            console.log('🏫 Starting to load classes from Firestore...');
             try {
-                const studentsSnapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
+                console.log('🔍 Querying classes collection...');
+                const classesSnapshot = await db.collection('classes')
+                    .orderBy('name', 'asc')
+                    .get();
+                
+                console.log('📊 Classes snapshot received:', classesSnapshot.size, 'documents');
+                
+                const classesData = [];
+                const seenClasses = new Set(); // Track unique classes
+                let duplicateCount = 0;
+                
+                classesSnapshot.forEach(doc => {
+                    const classData = doc.data();
+                    const classRecord = {
+                        id: doc.id,
+                        ...classData
+                    };
+                    
+                    // Create a unique identifier for deduplication
+                    const uniqueKey = `${classData.name || ''}_${classData.level || ''}_${classData.department || ''}`;
+                    
+                    if (seenClasses.has(uniqueKey)) {
+                        console.log('⚠️ Duplicate class detected:', {
+                            name: classData.name,
+                            level: classData.level,
+                            department: classData.department,
+                            documentId: doc.id
+                        });
+                        duplicateCount++;
+                        return; // Skip this duplicate
+                    }
+                    
+                    seenClasses.add(uniqueKey);
+                    classesData.push(classRecord);
+                });
+                
+                console.log('✅ Processed', classesData.length, 'unique classes');
+                if (duplicateCount > 0) {
+                    console.log(`⚠️ Skipped ${duplicateCount} duplicate class records`);
+                }
+                
+                console.log(`✅ Loaded ${classesData.length} classes from Firestore`);
+                return classesData;
+                
+            } catch (error) {
+                console.error('❌ Error loading classes:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                return [];
+            }
+        }
+        
+        // Load students from Firestore (enhanced similar to student-management.html)
+        async function loadStudents() {
+            console.log('👥 Starting to load students from Firestore...');
+            try {
+                console.log('🔍 Querying students collection...');
+                const studentsSnapshot = await db.collection('students')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                console.log('📊 Students snapshot received:', studentsSnapshot.size, 'documents');
+                
                 const studentsData = [];
+                const seenStudents = new Set(); // Track unique students
+                let duplicateCount = 0;
                 
                 studentsSnapshot.forEach(doc => {
                     const studentData = doc.data();
-                    studentsData.push({
+                    const studentRecord = {
                         id: doc.id,
                         ...studentData
-                    });
+                    };
+                    
+                    // Create a unique identifier for deduplication
+                    const uniqueKey = `${studentData.studentId || ''}_${studentData.admissionNumber || ''}_${studentData.firstName || ''}_${studentData.lastName || ''}`;
+                    
+                    if (seenStudents.has(uniqueKey)) {
+                        console.log('⚠️ Duplicate student detected:', {
+                            name: `${studentData.firstName} ${studentData.lastName}`,
+                            studentId: studentData.studentId,
+                            admissionNumber: studentData.admissionNumber,
+                            documentId: doc.id
+                        });
+                        duplicateCount++;
+                        return; // Skip this duplicate
+                    }
+                    
+                    seenStudents.add(uniqueKey);
+                    studentsData.push(studentRecord);
                 });
+                
+                console.log('✅ Processed', studentsData.length, 'unique students');
+                if (duplicateCount > 0) {
+                    console.log(`⚠️ Skipped ${duplicateCount} duplicate student records`);
+                }
                 
                 console.log(`✅ Loaded ${studentsData.length} students from Firestore`);
                 return studentsData;
                 
             } catch (error) {
-                console.error('Error loading students:', error);
+                console.error('❌ Error loading students:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 return [];
             }
         }
         
-        // Load grades from Firestore
+        // Load grades from Firestore (enhanced similar to student-management.html)
         async function loadGrades() {
+            console.log('📊 Starting to load grades from Firestore...');
             try {
-                const gradesSnapshot = await db.collection('grades').orderBy('createdAt', 'desc').get();
+                console.log('🔍 Querying grades collection...');
+                const gradesSnapshot = await db.collection('grades')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                console.log('📊 Grades snapshot received:', gradesSnapshot.size, 'documents');
+                
                 const gradesData = [];
+                const seenGrades = new Set(); // Track unique grades
+                let duplicateCount = 0;
                 
                 gradesSnapshot.forEach(doc => {
                     const gradeData = doc.data();
-                    gradesData.push({
+                    const gradeRecord = {
                         id: doc.id,
                         ...gradeData
-                    });
+                    };
+                    
+                    // Create a unique identifier for deduplication
+                    const uniqueKey = `${gradeData.studentId || ''}_${gradeData.subjectId || ''}_${gradeData.termId || ''}_${gradeData.examType || ''}`;
+                    
+                    if (seenGrades.has(uniqueKey)) {
+                        console.log('⚠️ Duplicate grade detected:', {
+                            studentId: gradeData.studentId,
+                            subjectId: gradeData.subjectId,
+                            termId: gradeData.termId,
+                            examType: gradeData.examType,
+                            documentId: doc.id
+                        });
+                        duplicateCount++;
+                        return; // Skip this duplicate
+                    }
+                    
+                    seenGrades.add(uniqueKey);
+                    gradesData.push(gradeRecord);
                 });
+                
+                console.log('✅ Processed', gradesData.length, 'unique grades');
+                if (duplicateCount > 0) {
+                    console.log(`⚠️ Skipped ${duplicateCount} duplicate grade records`);
+                }
                 
                 console.log(`✅ Loaded ${gradesData.length} grades from Firestore`);
                 return gradesData;
                 
             } catch (error) {
-                console.error('Error loading grades:', error);
+                console.error('❌ Error loading grades:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 return [];
             }
         }
         
-        // Load announcements from Firestore
+        // Load announcements from Firestore (enhanced similar to student-management.html)
         async function loadAnnouncements() {
+            console.log('📢 Starting to load announcements from Firestore...');
             try {
-                const announcementsSnapshot = await db.collection('announcements').orderBy('createdAt', 'desc').limit(5).get();
+                console.log('🔍 Querying announcements collection...');
+                const announcementsSnapshot = await db.collection('announcements')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                console.log('📊 Announcements snapshot received:', announcementsSnapshot.size, 'documents');
+                
                 const announcementsData = [];
+                const seenAnnouncements = new Set(); // Track unique announcements
+                let duplicateCount = 0;
                 
                 announcementsSnapshot.forEach(doc => {
                     const announcementData = doc.data();
-                    announcementsData.push({
+                    const announcementRecord = {
                         id: doc.id,
                         ...announcementData
-                    });
+                    };
+                    
+                    // Create a unique identifier for deduplication
+                    const uniqueKey = `${announcementData.title || ''}_${announcementData.createdAt?.seconds || ''}_${announcementData.authorId || ''}`;
+                    
+                    if (seenAnnouncements.has(uniqueKey)) {
+                        console.log('⚠️ Duplicate announcement detected:', {
+                            title: announcementData.title,
+                            createdAt: announcementData.createdAt,
+                            authorId: announcementData.authorId,
+                            documentId: doc.id
+                        });
+                        duplicateCount++;
+                        return; // Skip this duplicate
+                    }
+                    
+                    seenAnnouncements.add(uniqueKey);
+                    announcementsData.push(announcementRecord);
                 });
+                
+                console.log('✅ Processed', announcementsData.length, 'unique announcements');
+                if (duplicateCount > 0) {
+                    console.log(`⚠️ Skipped ${duplicateCount} duplicate announcement records`);
+                }
                 
                 console.log(`✅ Loaded ${announcementsData.length} announcements from Firestore`);
                 return announcementsData;
                 
             } catch (error) {
-                console.error('Error loading announcements:', error);
+                console.error('❌ Error loading announcements:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
                 return [];
             }
         }
