@@ -504,7 +504,15 @@
                 setupRealTimeListeners();
                 
                 // Initialize page display
-                displayReportCards();
+                testFunction(); // Test if functions are defined
+                console.log('Testing function availability:', typeof displayReportCards, typeof window.displayReportCards);
+                if (typeof displayReportCards === 'function') {
+                    displayReportCards();
+                } else if (typeof window.displayReportCards === 'function') {
+                    window.displayReportCards();
+                } else {
+                    console.error('displayReportCards function not available');
+                }
                 updateReportCardsStatistics();
                 
                 hideLoading();
@@ -910,7 +918,7 @@
             displayFilteredReportCards(filteredCards);
         }
         
-        // Display all report cards
+        // Display all report cards - Updated to fix caching issue
         function displayReportCards() {
             try {
                 console.log('📋 Displaying report cards:', reportCards.length);
@@ -919,6 +927,22 @@
                 console.error('Error displaying report cards:', error);
                 showError('Error displaying report cards');
             }
+        }
+        
+        // Alternative function definition to test
+        window.displayReportCards = function() {
+            try {
+                console.log('📋 Displaying report cards (window method):', reportCards.length);
+                displayFilteredReportCards(reportCards);
+            } catch (error) {
+                console.error('Error displaying report cards (window method):', error);
+                showError('Error displaying report cards');
+            }
+        };
+        
+        // Test function to verify function definition
+        function testFunction() {
+            console.log('✅ Test function is defined');
         }
         
         function displayFilteredReportCards(filteredCards) {
