@@ -551,6 +551,8 @@ $(document).ready(function() {
      * Create sample report card
      */
     function createSampleReportCard() {
+        console.log('Creating sample report card...');
+        
         const sampleCard = {
             id: 'report-card-001',
             studentId: 'sample-student-001',
@@ -564,16 +566,37 @@ $(document).ready(function() {
             createdAt: new Date().toISOString()
         };
         
+        // Remove any existing sample report card
+        reportCards = reportCards.filter(card => card.studentId !== 'sample-student-001');
+        
+        // Add the new sample report card
         reportCards.push(sampleCard);
+        
+        console.log('Sample report card created:', sampleCard);
+        console.log('Total report cards:', reportCards.length);
     }
     
     /**
      * View report card using jQuery
      */
     function viewReportCard(studentId) {
+        console.log('Looking for report card for student:', studentId);
+        console.log('Available report cards:', reportCards);
+        
         const card = reportCards.find(c => c.studentId === studentId);
         if (!card) {
-            showAlert('Report card not found', 'error');
+            console.log('Report card not found, creating sample data...');
+            // Create sample report card if none exists
+            createSampleReportCard();
+            const sampleCard = reportCards.find(c => c.studentId === studentId);
+            if (sampleCard) {
+                populateReportCardTemplate(sampleCard);
+                setTimeout(function() {
+                    exportToPDF();
+                }, 500);
+            } else {
+                showAlert('Unable to create report card', 'error');
+            }
             return;
         }
         
@@ -800,14 +823,13 @@ $(document).ready(function() {
     function testReportCard() {
         console.log('Testing jQuery report card generation...');
         
-        // Load sample data if not already loaded
-        if (reportCards.length === 0) {
-            loadSampleData();
-        }
+        // Always load sample data first
+        loadSampleData();
         
         // Find the sample report card
         const sampleCard = reportCards.find(card => card.studentId === 'sample-student-001');
         if (sampleCard) {
+            console.log('Sample report card found:', sampleCard);
             populateReportCardTemplate(sampleCard);
             
             // Generate PDF directly
@@ -817,7 +839,16 @@ $(document).ready(function() {
             
             console.log('Sample report card PDF generated');
         } else {
-            console.error('Sample report card not found');
+            console.error('Sample report card not found, creating new one...');
+            // Create sample report card
+            createSampleReportCard();
+            const newCard = reportCards.find(card => card.studentId === 'sample-student-001');
+            if (newCard) {
+                populateReportCardTemplate(newCard);
+                setTimeout(function() {
+                    exportToPDF();
+                }, 500);
+            }
         }
     }
     
@@ -1122,6 +1153,30 @@ $(document).ready(function() {
     window.generateAllReportCards = generateAllReportCards;
     window.exportReportCards = exportReportCards;
     window.loadSampleData = loadSampleData;
+    window.createSampleReportCard = createSampleReportCard;
+    
+    // Simple test function for debugging
+    window.debugReportCard = function() {
+        console.log('=== DEBUG REPORT CARD ===');
+        console.log('Students:', students);
+        console.log('Grades:', grades);
+        console.log('Report Cards:', reportCards);
+        
+        if (reportCards.length === 0) {
+            console.log('No report cards found, creating sample...');
+            loadSampleData();
+            createSampleReportCard();
+        }
+        
+        console.log('Final report cards:', reportCards);
+        
+        // Test the first report card
+        if (reportCards.length > 0) {
+            const firstCard = reportCards[0];
+            console.log('Testing with card:', firstCard);
+            populateReportCardTemplate(firstCard);
+        }
+    };
     
     console.log('jQuery Report Card System ready!');
     console.log('Available functions:');
@@ -1131,4 +1186,5 @@ $(document).ready(function() {
     console.log('- generateAllReportCards() - Generate all report cards');
     console.log('- exportReportCards() - Export to Excel');
     console.log('- loadSampleData() - Load sample data for testing');
+    console.log('- debugReportCard() - Debug report card system');
 });
