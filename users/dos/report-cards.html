@@ -1414,6 +1414,7 @@
                 const rowNumber = subjectCount;
                 const subjectPosition = calculateSubjectPosition(card.studentId, grade.subjectId, card.termId);
                 const teacherInitials = getTeacherInitials(subjectName, card.class);
+                const subjectRemark = generateSubjectRemark(letterGrade, total, subjectName);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${rowNumber}</td>
@@ -1423,7 +1424,7 @@
                     <td>${total.toFixed(1)}</td>
                     <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
                     <td>${subjectPosition}</td>
-                    <td>${getGradeRemark(letterGrade)}</td>
+                    <td>${subjectRemark}</td>
                     <td>${teacherInitials}</td>
                 `;
                 subjectsTableBody.appendChild(row);
@@ -1435,6 +1436,7 @@
             
             for (let i = 0; i < blankRowsNeeded; i++) {
                 const blankRowNumber = filledSubjects + i + 1;
+                const blankRemark = generateBlankSubjectRemark();
                 const blankRow = document.createElement('tr');
                 blankRow.innerHTML = `
                     <td class="text-muted">${blankRowNumber}</td>
@@ -1444,7 +1446,7 @@
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
-                    <td class="text-muted">-</td>
+                    <td class="text-muted">${blankRemark}</td>
                     <td class="text-muted">-</td>
                 `;
                 subjectsTableBody.appendChild(blankRow);
@@ -1463,9 +1465,9 @@
             document.getElementById('rankingOutOf').textContent = students.filter(s => s.class === card.class).length;
             document.getElementById('academicStatus').textContent = card.status;
             
-            // Populate teacher comments
-            const comments = generateTeacherComment(parseFloat(overallAverage), studentName);
-            document.getElementById('teacherComments').textContent = comments;
+            // Populate teacher comments with automatic generation
+            const automaticComments = generateClassTeacherComments(card);
+            document.getElementById('teacherComments').textContent = automaticComments;
             
             // Populate dates
             document.getElementById('teacherDate').textContent = currentDate;
@@ -1505,6 +1507,220 @@
                 case 'E': return 'Poor';
                 default: return 'N/A';
             }
+        }
+        
+        // Helper function to generate automatic remarks based on performance
+        function generateAutomaticRemarks(card) {
+            const grades = card.grades || [];
+            const totalSubjects = grades.length;
+            
+            if (totalSubjects === 0) {
+                return "No grades available for this term.";
+            }
+            
+            // Calculate grade distribution
+            const gradeCounts = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+            let totalScore = 0;
+            let subjectCount = 0;
+            
+            grades.forEach(grade => {
+                const letterGrade = grade.finalGrade?.letterGrade;
+                if (letterGrade && gradeCounts.hasOwnProperty(letterGrade)) {
+                    gradeCounts[letterGrade]++;
+                }
+                
+                const percentage = grade.finalGrade?.percentage;
+                if (percentage) {
+                    totalScore += percentage;
+                    subjectCount++;
+                }
+            });
+            
+            const averageScore = subjectCount > 0 ? totalScore / subjectCount : 0;
+            const overallGrade = calculateOverallGrade(averageScore);
+            
+            // Generate remarks based on performance
+            let remarks = [];
+            
+            // Overall performance remark
+            if (overallGrade === 'A') {
+                remarks.push("Outstanding performance across all subjects. Demonstrates exceptional mastery and consistent excellence.");
+            } else if (overallGrade === 'B') {
+                remarks.push("Very good performance with strong understanding in most subjects. Shows consistent effort and dedication.");
+            } else if (overallGrade === 'C') {
+                remarks.push("Good performance with satisfactory understanding. Shows potential for improvement with continued effort.");
+            } else if (overallGrade === 'D') {
+                remarks.push("Fair performance with some areas needing attention. Requires more focused study and consistent effort.");
+            } else if (overallGrade === 'E') {
+                remarks.push("Performance below expectations. Immediate intervention and additional support required.");
+            }
+            
+            // Subject-specific remarks
+            if (gradeCounts.A > 0) {
+                remarks.push(`Excellent work in ${gradeCounts.A} subject${gradeCounts.A > 1 ? 's' : ''}.`);
+            }
+            
+            if (gradeCounts.E > 0) {
+                remarks.push(`${gradeCounts.E} subject${gradeCounts.E > 1 ? 's' : ''} require${gradeCounts.E === 1 ? 's' : ''} immediate attention and remedial support.`);
+            }
+            
+            // Improvement suggestions
+            if (averageScore < 50) {
+                remarks.push("Recommend additional tutoring and regular study schedule to improve performance.");
+            } else if (averageScore < 65) {
+                remarks.push("Continue working hard and seek help in challenging subjects to reach full potential.");
+            } else if (averageScore >= 80) {
+                remarks.push("Maintain this excellent standard and consider taking on additional challenges.");
+            }
+            
+            // Attendance and behavior (if available)
+            if (card.attendance && card.attendance < 80) {
+                remarks.push("Regular attendance is crucial for academic success. Please ensure consistent school attendance.");
+            }
+            
+            return remarks.join(' ');
+        }
+        
+        // Helper function to calculate overall grade from average
+        function calculateOverallGrade(average) {
+            if (average >= 80) return 'A';
+            if (average >= 65) return 'B';
+            if (average >= 50) return 'C';
+            if (average >= 40) return 'D';
+            return 'E';
+        }
+        
+        // Helper function to generate remarks for blank subjects
+        function generateBlankSubjectRemark() {
+            const blankRemarks = [
+                'Not assessed this term',
+                'Subject not offered',
+                'Assessment pending',
+                'No data available',
+                'To be determined',
+                'Not evaluated',
+                'Assessment incomplete',
+                'Subject not taken'
+            ];
+            
+            return blankRemarks[Math.floor(Math.random() * blankRemarks.length)];
+        }
+        
+        // Helper function to generate subject-specific remarks
+        function generateSubjectRemark(grade, score, subjectName) {
+            const remarks = {
+                'A': [
+                    'Outstanding performance! Excellent understanding and application.',
+                    'Exceptional work! Demonstrates mastery of concepts.',
+                    'Excellent! Shows deep understanding and critical thinking.',
+                    'Outstanding! Consistent excellence in this subject.'
+                ],
+                'B': [
+                    'Very good work! Strong understanding demonstrated.',
+                    'Good performance! Shows solid grasp of concepts.',
+                    'Well done! Consistent effort and understanding.',
+                    'Very good! Continue this excellent progress.'
+                ],
+                'C': [
+                    'Good work! Shows understanding with room for improvement.',
+                    'Satisfactory performance! Keep working hard.',
+                    'Good effort! Focus on challenging areas.',
+                    'Decent work! Continue practicing regularly.'
+                ],
+                'D': [
+                    'Needs improvement. Focus on understanding basic concepts.',
+                    'Below average. Requires more study time and effort.',
+                    'Needs attention. Seek help from teacher or peers.',
+                    'Requires improvement. Practice more regularly.'
+                ],
+                'E': [
+                    'Poor performance. Immediate remedial support needed.',
+                    'Below expectations. Intensive study required.',
+                    'Needs urgent attention. Consider extra tutoring.',
+                    'Requires immediate intervention and support.'
+                ]
+            };
+            
+            // Get random remark for the grade
+            const gradeRemarks = remarks[grade] || ['N/A'];
+            const randomRemark = gradeRemarks[Math.floor(Math.random() * gradeRemarks.length)];
+            
+            // Add subject-specific context
+            if (grade === 'A' || grade === 'B') {
+                return `${randomRemark} Strong foundation in ${subjectName}.`;
+            } else if (grade === 'C') {
+                return `${randomRemark} Focus on ${subjectName} fundamentals.`;
+            } else {
+                return `${randomRemark} Priority subject: ${subjectName}.`;
+            }
+        }
+        
+        // Helper function to generate class teacher comments
+        function generateClassTeacherComments(card) {
+            const grades = card.grades || [];
+            const totalSubjects = grades.length;
+            
+            if (totalSubjects === 0) {
+                return "Student needs to engage more actively in academic activities.";
+            }
+            
+            // Calculate performance metrics
+            let totalScore = 0;
+            let subjectCount = 0;
+            let excellentSubjects = 0;
+            let poorSubjects = 0;
+            
+            grades.forEach(grade => {
+                const percentage = grade.finalGrade?.percentage;
+                if (percentage) {
+                    totalScore += percentage;
+                    subjectCount++;
+                    
+                    if (percentage >= 80) excellentSubjects++;
+                    if (percentage < 40) poorSubjects++;
+                }
+            });
+            
+            const averageScore = subjectCount > 0 ? totalScore / subjectCount : 0;
+            
+            // Generate contextual comments
+            let comments = [];
+            
+            if (averageScore >= 80) {
+                comments.push(`${card.studentName || 'This student'} has demonstrated exceptional academic performance this term.`);
+                comments.push("The student shows strong leadership qualities and is a positive influence on peers.");
+                comments.push("Continue to maintain this high standard and consider mentoring other students.");
+            } else if (averageScore >= 65) {
+                comments.push(`${card.studentName || 'This student'} has shown consistent improvement and dedication to studies.`);
+                comments.push("The student participates actively in class and shows good understanding of concepts.");
+                comments.push("With continued effort, the student can achieve even better results.");
+            } else if (averageScore >= 50) {
+                comments.push(`${card.studentName || 'This student'} has made satisfactory progress this term.`);
+                comments.push("The student shows potential but needs to focus more on challenging subjects.");
+                comments.push("Regular study habits and seeking help when needed will improve performance.");
+            } else if (averageScore >= 40) {
+                comments.push(`${card.studentName || 'This student'} needs to improve academic performance significantly.`);
+                comments.push("The student requires additional support and more focused study time.");
+                comments.push("Parents/guardians should be involved in monitoring study habits at home.");
+            } else {
+                comments.push(`${card.studentName || 'This student'} requires immediate academic intervention.`);
+                comments.push("The student needs intensive remedial support and regular monitoring.");
+                comments.push("A meeting with parents/guardians is recommended to discuss improvement strategies.");
+            }
+            
+            // Add specific subject comments
+            if (excellentSubjects > 0) {
+                comments.push(`Particularly strong performance in ${excellentSubjects} subject${excellentSubjects > 1 ? 's' : ''}.`);
+            }
+            
+            if (poorSubjects > 0) {
+                comments.push(`${poorSubjects} subject${poorSubjects > 1 ? 's' : ''} need${poorSubjects === 1 ? 's' : ''} immediate attention and remedial support.`);
+            }
+            
+            // Add behavioral comments
+            comments.push("The student is encouraged to maintain good conduct and participate actively in school activities.");
+            
+            return comments.join(' ');
         }
         
         // Helper function to get teacher initials from actual teacher name
