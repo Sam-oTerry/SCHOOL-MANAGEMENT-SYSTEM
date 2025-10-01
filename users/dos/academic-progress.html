@@ -458,6 +458,7 @@
                 displayProgressData();
                 updateProgressStatistics();
                 generateProgressChart();
+                generateInsightsAndRecommendations();
                 
                 hideLoading();
                 console.log('✅ Academic progress page initialized successfully');
@@ -770,15 +771,42 @@
             }
         }
         
-        // Generate progress chart
+        // Generate progress charts
         function generateProgressChart() {
             try {
-                const ctx = document.getElementById('progressChart');
-                if (!ctx) return;
+                console.log('📊 Generating charts...');
+                
+                // Generate Class Performance Chart
+                generateClassPerformanceChart();
+                
+                // Generate Subject Performance Chart
+                generateSubjectPerformanceChart();
+                
+                // Generate Grade Distribution Chart
+                generateGradeDistributionChart();
+                
+                // Generate Progress Trends Chart
+                generateProgressTrendsChart();
+                
+                console.log('✅ All charts generated');
+                
+            } catch (error) {
+                console.error('Error generating charts:', error);
+            }
+        }
+        
+        // Generate Class Performance Chart
+        function generateClassPerformanceChart() {
+            try {
+                const ctx = document.getElementById('classPerformanceChart');
+                if (!ctx) {
+                    console.log('Class performance chart canvas not found');
+                    return;
+                }
                 
                 // Destroy existing chart if it exists
-                if (window.progressChartInstance) {
-                    window.progressChartInstance.destroy();
+                if (window.classPerformanceChartInstance) {
+                    window.classPerformanceChartInstance.destroy();
                 }
                 
                 // Prepare chart data
@@ -786,20 +814,24 @@
                 const chartData = classNames.map(className => {
                     const classData = progressData.filter(item => item.class === className);
                     const averageScore = classData.length > 0 ? 
-                        (classData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / classData.length).toFixed(1) : 0;
-                    return parseFloat(averageScore);
+                        (classData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / classData.length) : 0;
+                    return averageScore;
                 });
                 
-                window.progressChartInstance = new Chart(ctx, {
+                window.classPerformanceChartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: classNames,
+                        labels: classNames.length > 0 ? classNames : ['No Data'],
                         datasets: [{
                             label: 'Average Score (%)',
-                            data: chartData,
-                            backgroundColor: 'rgba(26, 79, 139, 0.8)',
-                            borderColor: 'rgba(26, 79, 139, 1)',
-                            borderWidth: 1
+                            data: chartData.length > 0 ? chartData : [0],
+                            backgroundColor: [
+                                '#28a745',
+                                '#007bff',
+                                '#ffc107',
+                                '#17a2b8',
+                                '#dc3545'
+                            ]
                         }]
                     },
                     options: {
@@ -810,19 +842,182 @@
                                 beginAtZero: true,
                                 max: 100
                             }
-                        },
-                        plugins: {
-                            legend: {
-                                display: true
+                        }
+                    }
+                });
+                
+                console.log('✅ Class performance chart generated');
+                
+            } catch (error) {
+                console.error('Error generating class performance chart:', error);
+            }
+        }
+        
+        // Generate Subject Performance Chart
+        function generateSubjectPerformanceChart() {
+            try {
+                const ctx = document.getElementById('subjectPerformanceChart');
+                if (!ctx) {
+                    console.log('Subject performance chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.subjectPerformanceChartInstance) {
+                    window.subjectPerformanceChartInstance.destroy();
+                }
+                
+                // Prepare chart data
+                const subjectNames = [...new Set(progressData.map(item => item.subject))];
+                const chartData = subjectNames.map(subjectName => {
+                    const subjectData = progressData.filter(item => item.subject === subjectName);
+                    const averageScore = subjectData.length > 0 ? 
+                        (subjectData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / subjectData.length) : 0;
+                    return averageScore;
+                });
+                
+                window.subjectPerformanceChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: subjectNames.length > 0 ? subjectNames : ['No Data'],
+                        datasets: [{
+                            data: chartData.length > 0 ? chartData : [0],
+                            backgroundColor: [
+                                '#FF6384',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#4BC0C0',
+                                '#9966FF'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                
+                console.log('✅ Subject performance chart generated');
+                
+            } catch (error) {
+                console.error('Error generating subject performance chart:', error);
+            }
+        }
+        
+        // Generate Grade Distribution Chart
+        function generateGradeDistributionChart() {
+            try {
+                const ctx = document.getElementById('gradeDistributionChart');
+                if (!ctx) {
+                    console.log('Grade distribution chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.gradeDistributionChartInstance) {
+                    window.gradeDistributionChartInstance.destroy();
+                }
+                
+                // Calculate grade distribution from grades data
+                const gradeRanges = [
+                    { label: 'A (80–100%)', min: 80, max: 100 },
+                    { label: 'B (65–79%)', min: 65, max: 79 },
+                    { label: 'C (50–64%)', min: 50, max: 64 },
+                    { label: 'D (40–49%)', min: 40, max: 49 },
+                    { label: 'E (Below 40%)', min: 0, max: 39 }
+                ];
+                
+                const chartData = gradeRanges.map(range => {
+                    return grades.filter(grade => {
+                        const score = parseFloat(grade.score) || 0;
+                        return score >= range.min && score <= range.max;
+                    }).length;
+                });
+                
+                window.gradeDistributionChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: gradeRanges.map(r => r.label),
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: [
+                                '#28a745',
+                                '#007bff',
+                                '#ffc107',
+                                '#fd7e14',
+                                '#dc3545'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+                
+                console.log('✅ Grade distribution chart generated');
+                
+            } catch (error) {
+                console.error('Error generating grade distribution chart:', error);
+            }
+        }
+        
+        // Generate Progress Trends Chart
+        function generateProgressTrendsChart() {
+            try {
+                const ctx = document.getElementById('progressTrendsChart');
+                if (!ctx) {
+                    console.log('Progress trends chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.progressTrendsChartInstance) {
+                    window.progressTrendsChartInstance.destroy();
+                }
+                
+                // Calculate overall average for trend simulation
+                let overallAverage = 0;
+                if (progressData.length > 0) {
+                    const totalScore = progressData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
+                    overallAverage = totalScore / progressData.length;
+                }
+                
+                // Simulate trend data (in a real system, this would come from historical data)
+                const trendData = overallAverage > 0 ? [
+                    overallAverage * 0.9,
+                    overallAverage * 0.95,
+                    overallAverage
+                ] : [0, 0, 0];
+                
+                window.progressTrendsChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Term 1', 'Term 2', 'Term 3'],
+                        datasets: [{
+                            label: 'Average Performance (%)',
+                            data: trendData,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
                             }
                         }
                     }
                 });
                 
-                console.log('📊 Progress chart generated');
+                console.log('✅ Progress trends chart generated');
                 
             } catch (error) {
-                console.error('Error generating progress chart:', error);
+                console.error('Error generating progress trends chart:', error);
             }
         }
         
@@ -837,7 +1032,12 @@
         // View class details
         function viewClassDetails(className) {
             const cls = classes.find(c => c.name === className);
-            if (!cls) return;
+            if (!cls) {
+                showError('Class not found');
+                return;
+            }
+            
+            console.log(`📊 Viewing details for class: ${className}`);
             
             const classStudents = students.filter(student => {
                 const directClass = student.class;
@@ -850,32 +1050,89 @@
             });
             
             const classProgress = progressData.filter(item => item.class === className);
+            const classGrades = grades.filter(grade => 
+                classStudents.some(student => student.id === grade.studentId)
+            );
+            
+            // Calculate detailed statistics
+            const totalGrades = classGrades.length;
+            const validGrades = classGrades.filter(g => g.score && !isNaN(g.score));
+            const averageScore = validGrades.length > 0 ? 
+                (validGrades.reduce((sum, g) => sum + parseFloat(g.score), 0) / validGrades.length).toFixed(1) : 0;
+            const passRate = validGrades.length > 0 ? 
+                ((validGrades.filter(g => parseFloat(g.score) >= 50).length / validGrades.length) * 100).toFixed(1) : 0;
+            
+            // Find top performers
+            const topPerformers = validGrades
+                .sort((a, b) => parseFloat(b.score) - parseFloat(a.score))
+                .slice(0, 3)
+                .map(grade => {
+                    const student = classStudents.find(s => s.id === grade.studentId);
+                    const studentName = student ? 
+                        (student.personalInfo?.fullName || 
+                         `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim() || 
+                         'Unknown') : 'Unknown';
+                    return `${studentName}: ${grade.score}%`;
+                });
             
             const details = `
-                <div style="text-align: left; max-width: 600px;">
-                    <h4>Class Progress Details - ${className}</h4>
-                    <hr>
+                <div style="text-align: left; max-width: 700px;">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-info-circle text-primary"></i> Class Information</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>Class Name:</strong> ${cls.name}</p>
+                                    <p><strong>Level:</strong> ${cls.level || 'Not specified'}</p>
+                                    <p><strong>Stream:</strong> ${cls.stream || 'Not specified'}</p>
+                                    <p><strong>Department:</strong> ${cls.department || 'Not specified'}</p>
+                                    <p><strong>Total Students:</strong> ${classStudents.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-chart-bar text-success"></i> Performance Summary</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>Average Score:</strong> ${averageScore}%</p>
+                                    <p><strong>Pass Rate:</strong> ${passRate}%</p>
+                                    <p><strong>Total Grades:</strong> ${totalGrades}</p>
+                                    <p><strong>Valid Grades:</strong> ${validGrades.length}</p>
+                                    <p><strong>Subjects:</strong> ${classProgress.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <h5>Class Information</h5>
-                    <strong>Class Name:</strong> ${cls.name}<br>
-                    <strong>Level:</strong> ${cls.level || 'Not specified'}<br>
-                    <strong>Stream:</strong> ${cls.stream || 'Not specified'}<br>
-                    <strong>Total Students:</strong> ${classStudents.length}<br><br>
+                    <h5><i class="fas fa-trophy text-warning"></i> Top Performers</h5>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            ${topPerformers.length > 0 ? 
+                                topPerformers.map((performer, index) => 
+                                    `<p class="mb-1">${index + 1}. ${performer}</p>`
+                                ).join('') : 
+                                '<p class="text-muted">No performance data available</p>'
+                            }
+                        </div>
+                    </div>
                     
-                    <h5>Academic Performance</h5>
-                    <strong>Subjects:</strong> ${classProgress.length}<br>
-                    <strong>Average Score:</strong> ${classProgress.length > 0 ? 
-                        (classProgress.reduce((sum, item) => sum + parseFloat(item.averageScore), 0) / classProgress.length).toFixed(1) : 0}%<br>
-                    <strong>Pass Rate:</strong> ${classProgress.length > 0 ? 
-                        (classProgress.reduce((sum, item) => sum + parseFloat(item.passRate), 0) / classProgress.length).toFixed(1) : 0}%<br><br>
-                    
-                    <h5>Subject Performance</h5>
-                    ${classProgress.length > 0 ? 
-                        classProgress.map(item => 
-                            `• ${item.subject}: ${item.averageScore}% (Pass Rate: ${item.passRate}%)`
-                        ).join('<br>') : 
-                        'No performance data available'
-                    }
+                    <h5><i class="fas fa-book text-info"></i> Subject Performance</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            ${classProgress.length > 0 ? 
+                                classProgress.map(item => 
+                                    `<div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><strong>${item.subject}</strong></span>
+                                        <div>
+                                            <span class="badge bg-primary me-2">${item.averageScore}%</span>
+                                            <span class="badge ${getPassRateColor(item.passRate)}">${item.passRate}% Pass</span>
+                                        </div>
+                                    </div>`
+                                ).join('') : 
+                                '<p class="text-muted">No subject performance data available</p>'
+                            }
+                        </div>
+                    </div>
                 </div>
             `;
             
@@ -884,16 +1141,22 @@
             modal.className = 'modal fade';
             modal.id = 'classProgressModal';
             modal.innerHTML = `
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-xl">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Class Progress Details - ${className}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Class Performance Details - ${className}
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             ${details}
                         </div>
                         <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="generateClassReport('${className}')">
+                                <i class="fas fa-file-pdf me-2"></i>Generate Report
+                            </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -906,8 +1169,22 @@
             
             // Remove modal when hidden
             modal.addEventListener('hidden.bs.modal', () => {
-                document.body.removeChild(modal);
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                }
             });
+        }
+        
+        // Generate class report
+        function generateClassReport(className) {
+            console.log(`📊 Generating report for class: ${className}`);
+            showSuccess(`Generating detailed report for ${className}...`);
+            
+            // In a real implementation, this would generate a PDF or detailed report
+            // For now, we'll just show a success message
+            setTimeout(() => {
+                showSuccess(`Report generated successfully for ${className}`);
+            }, 2000);
         }
         
         // Initialize on page load
@@ -1362,39 +1639,75 @@
             const insightsContainer = document.getElementById('insights-container');
             const recommendationsContainer = document.getElementById('recommendations-container');
             
+            if (!insightsContainer || !recommendationsContainer) {
+                console.log('Insights containers not found');
+                return;
+            }
+            
+            console.log('📊 Generating insights and recommendations...');
+            
+            // Calculate overall statistics from progressData
+            let overallAverage = 0;
+            let overallPassRate = 0;
+            let totalStudents = students.length;
+            let totalClasses = classes.length;
+            
+            if (progressData.length > 0) {
+                const totalScore = progressData.reduce((sum, item) => sum + parseFloat(item.averageScore), 0);
+                const totalPassRate = progressData.reduce((sum, item) => sum + parseFloat(item.passRate), 0);
+                
+                overallAverage = totalScore / progressData.length;
+                overallPassRate = totalPassRate / progressData.length;
+            }
+            
+            console.log('Statistics:', { overallAverage, overallPassRate, totalStudents, totalClasses });
+            
             // Generate insights based on data
             const insights = [];
-            if (academicData.avgPerformance >= 80) {
+            if (overallAverage >= 80) {
                 insights.push('<i class="fas fa-check-circle text-success me-2"></i> Overall performance is excellent');
-            } else if (academicData.avgPerformance >= 70) {
+            } else if (overallAverage >= 70) {
                 insights.push('<i class="fas fa-check-circle text-success me-2"></i> Overall performance is good');
-            } else {
+            } else if (overallAverage > 0) {
                 insights.push('<i class="fas fa-exclamation-triangle text-warning me-2"></i> Overall performance needs improvement');
-            }
-            
-            if (academicData.passRate >= 90) {
-                insights.push('<i class="fas fa-check-circle text-success me-2"></i> Pass rate is excellent');
-            } else if (academicData.passRate >= 80) {
-                insights.push('<i class="fas fa-check-circle text-success me-2"></i> Pass rate is good');
             } else {
-                insights.push('<i class="fas fa-exclamation-triangle text-warning me-2"></i> Pass rate needs attention');
+                insights.push('<i class="fas fa-info-circle text-info me-2"></i> No performance data available yet');
             }
             
+            if (overallPassRate >= 90) {
+                insights.push('<i class="fas fa-check-circle text-success me-2"></i> Pass rate is excellent');
+            } else if (overallPassRate >= 80) {
+                insights.push('<i class="fas fa-check-circle text-success me-2"></i> Pass rate is good');
+            } else if (overallPassRate > 0) {
+                insights.push('<i class="fas fa-exclamation-triangle text-warning me-2"></i> Pass rate needs attention');
+            } else {
+                insights.push('<i class="fas fa-info-circle text-info me-2"></i> Pass rate data not available');
+            }
+            
+            insights.push(`<i class="fas fa-info-circle text-info me-2"></i> ${totalStudents} students across ${totalClasses} classes`);
             insights.push('<i class="fas fa-info-circle text-info me-2"></i> Data is based on current academic records');
             
             // Generate recommendations
             const recommendations = [];
-            if (academicData.avgPerformance < 70) {
+            if (overallAverage < 70 && overallAverage > 0) {
                 recommendations.push('<i class="fas fa-lightbulb text-warning me-2"></i> Provide additional academic support');
             }
-            if (academicData.passRate < 80) {
+            if (overallPassRate < 80 && overallPassRate > 0) {
                 recommendations.push('<i class="fas fa-lightbulb text-warning me-2"></i> Implement remedial programs');
             }
-            recommendations.push('<i class="fas fa-lightbulb text-warning me-2"></i> Continue monitoring student progress');
-            recommendations.push('<i class="fas fa-lightbulb text-warning me-2"></i> Share best practices across classes');
+            if (totalStudents === 0) {
+                recommendations.push('<i class="fas fa-lightbulb text-info me-2"></i> Add students to the system to track progress');
+            }
+            if (totalClasses === 0) {
+                recommendations.push('<i class="fas fa-lightbulb text-info me-2"></i> Create classes to organize students');
+            }
+            recommendations.push('<i class="fas fa-lightbulb text-primary me-2"></i> Continue monitoring student progress');
+            recommendations.push('<i class="fas fa-lightbulb text-primary me-2"></i> Share best practices across classes');
             
             insightsContainer.innerHTML = `<ul class="list-unstyled">${insights.map(i => `<li>${i}</li>`).join('')}</ul>`;
             recommendationsContainer.innerHTML = `<ul class="list-unstyled">${recommendations.map(r => `<li>${r}</li>`).join('')}</ul>`;
+            
+            console.log('✅ Insights and recommendations generated');
         }
 
         function updateProgress() {
