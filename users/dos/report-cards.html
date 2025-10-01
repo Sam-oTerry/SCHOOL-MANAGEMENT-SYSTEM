@@ -2036,11 +2036,15 @@
             // Add debug logging
             console.log('PDF options:', opt);
             
-            // Show loading state
-            const exportBtn = event.target;
-            const originalText = exportBtn.innerHTML;
-            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-            exportBtn.disabled = true;
+            // Show loading state (only if called from button click)
+            let exportBtn = null;
+            let originalText = '';
+            if (event && event.target) {
+                exportBtn = event.target;
+                originalText = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                exportBtn.disabled = true;
+            }
             
             // Generate PDF
             html2pdf().set(opt).from(element).save().then(() => {
@@ -2049,9 +2053,11 @@
                 console.error('Error generating PDF:', error);
                 alert('Failed to generate PDF. Please try again.');
             }).finally(() => {
-                // Restore button state
-                exportBtn.innerHTML = originalText;
-                exportBtn.disabled = false;
+                // Restore button state (only if button was found)
+                if (exportBtn) {
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                }
             });
         }
         

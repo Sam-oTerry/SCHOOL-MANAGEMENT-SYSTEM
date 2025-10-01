@@ -105,6 +105,7 @@ The test script generates a sample report card with:
 2. **Console Errors**: Check if all scripts are loaded properly
 3. **Layout Overflow**: Verify CSS optimizations are applied
 4. **PDF Generation Fails**: Check html2pdf.js library loading
+5. **"event is undefined" Error**: Fixed - exportToPDF now handles missing event parameter
 
 ### Debug Commands
 ```javascript
