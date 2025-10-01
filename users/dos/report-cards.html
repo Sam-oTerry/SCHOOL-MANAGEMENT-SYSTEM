@@ -1105,7 +1105,63 @@
             margin-right: 8px;
         }
         
-        /* PDF Button Debug Styles */
+        /* PDF Generation Optimizations */
+        .report-card-container {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        .main-table {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        .main-table tbody {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        .main-table tfoot {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        .bottom-section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        .remarks-section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        
+        /* Ensure proper spacing for PDF */
+        @media print {
+            .report-card-container {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                box-shadow: none !important;
+                page-break-inside: avoid !important;
+            }
+            
+            .main-table {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            .main-table tbody {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            .main-table tfoot {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
         #generatePdfBtn {
             cursor: pointer !important;
             pointer-events: auto !important;
@@ -1542,6 +1598,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-warning" onclick="populateSampleData()">
+                        <i class="fas fa-flask"></i> Load Sample Data
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print Report Card
                     </button>
@@ -2034,6 +2093,70 @@
             }, 1000);
         });
         
+        // Sample data population for testing
+        function populateSampleData() {
+            console.log('Populating sample data for testing...');
+            
+            // Sample student data
+            const sampleStudent = {
+                id: 'sample-student-001',
+                personalInfo: {
+                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe'
+                },
+                sex: 'M',
+                admissionNumber: 'ADM256174',
+                paymentCode: 'PC1003'
+            };
+            
+            // Sample grades data
+            const sampleGrades = [
+                { subjectId: 'math', scores: { midterm: 39, endterm: 10 }, finalGrade: { percentage: 70, letterGrade: 'C' } },
+                { subjectId: 'english', scores: { midterm: 39, endterm: 9 }, finalGrade: { percentage: 78, letterGrade: 'B' } },
+                { subjectId: 'lit', scores: { midterm: 40, endterm: 10 }, finalGrade: { percentage: 70, letterGrade: 'C' } },
+                { subjectId: 'cre', scores: { midterm: 38, endterm: 8 }, finalGrade: { percentage: 65, letterGrade: 'B' } }
+            ];
+            
+            // Sample subjects data
+            const sampleSubjects = [
+                { id: 'math', name: 'MATHS' },
+                { id: 'english', name: 'ENGLISH' },
+                { id: 'lit', name: 'LIT IN ENGLISH' },
+                { id: 'cre', name: 'CRE' }
+            ];
+            
+            // Sample report card
+            const sampleCard = {
+                studentId: 'sample-student-001',
+                studentName: 'John Doe',
+                class: 'S.4',
+                term: 'Term 3',
+                termId: 'term-3',
+                averageGrade: 'B',
+                position: '5th'
+            };
+            
+            // Temporarily replace data arrays
+            const originalStudents = students;
+            const originalGrades = grades;
+            const originalSubjects = subjects;
+            
+            students = [sampleStudent];
+            grades = sampleGrades;
+            subjects = sampleSubjects;
+            
+            // Populate the template
+            populateReportCardTemplate(sampleCard);
+            
+            // Restore original data
+            students = originalStudents;
+            grades = originalGrades;
+            subjects = originalSubjects;
+            
+            console.log('Sample data populated successfully');
+        }
+        
         // PDF Generation Functions
         function showPdfLoading() {
             $('#pdfLoadingOverlay').css('display', 'flex');
@@ -2073,19 +2196,22 @@
             showPdfLoading();
             
             const opt = {
-                margin: 0.5,
+                margin: [0.3, 0.3, 0.3, 0.3], // Top, Right, Bottom, Left margins
                 filename: 'report-card.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.5,
                     useCORS: true,
-                    letterRendering: true
+                    letterRendering: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
                 },
                 jsPDF: { 
                     unit: 'in', 
                     format: 'a4', 
                     orientation: 'portrait'
-                }
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
@@ -2105,6 +2231,7 @@
         window.viewReportCard = viewReportCard;
         window.printReportCard = printReportCard;
         window.generatePDF = generatePDF;
+        window.populateSampleData = populateSampleData;
         window.distributeReportCard = distributeReportCard;
         window.logout = DOSUtils.logout;
         
@@ -2262,36 +2389,41 @@
                 subjectsTableBody.appendChild(blankRow);
             }
             
-            // Add summary rows
+            // Add summary rows to tfoot (not tbody)
             const totalMarks = totalScore.toFixed(1);
             const averageScore = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : '0.0';
             
-            const totalRow = document.createElement('tr');
-            totalRow.className = 'summary-row';
-            totalRow.innerHTML = `
-                <td colspan="2" class="subject-col">TOTAL MARKS:</td>
-                <td></td>
-                <td></td>
-                <td>${totalMarks}</td>
-                <td></td>
-                <td></td>
-                <td colspan="2">OVERALL PERFORMANCE</td>
-            `;
-            subjectsTableBody.appendChild(totalRow);
-            
-            const averageRow = document.createElement('tr');
-            averageRow.className = 'summary-row';
-            averageRow.innerHTML = `
-                <td colspan="2" class="subject-col">AVERAGE SCORE:</td>
-                <td></td>
-                <td></td>
-                <td>${averageScore}</td>
-                <td></td>
-                <td></td>
-                <td class="remark-col"></td>
-                <td></td>
-            `;
-            subjectsTableBody.appendChild(averageRow);
+            // Update the existing tfoot rows instead of adding to tbody
+            const tfoot = document.querySelector('#subjectsTableBody').parentNode.querySelector('tfoot');
+            if (tfoot) {
+                const totalRow = tfoot.querySelector('tr:first-child');
+                const averageRow = tfoot.querySelector('tr:last-child');
+                
+                if (totalRow) {
+                    totalRow.innerHTML = `
+                        <td colspan="2" class="subject-col">TOTAL MARKS:</td>
+                        <td></td>
+                        <td></td>
+                        <td>${totalMarks}</td>
+                        <td></td>
+                        <td></td>
+                        <td colspan="2">OVERALL PERFORMANCE</td>
+                    `;
+                }
+                
+                if (averageRow) {
+                    averageRow.innerHTML = `
+                        <td colspan="2" class="subject-col">AVERAGE SCORE:</td>
+                        <td></td>
+                        <td></td>
+                        <td>${averageScore}</td>
+                        <td></td>
+                        <td></td>
+                        <td class="remark-col"></td>
+                        <td></td>
+                    `;
+                }
+            }
             
             console.log('Report card template populated successfully');
         }
