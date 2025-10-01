@@ -1105,15 +1105,28 @@
             margin-right: 8px;
         }
         
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        /* PDF Button Debug Styles */
+        #generatePdfBtn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            z-index: 1000 !important;
+            position: relative !important;
+        }
+        
+        #generatePdfBtn:hover {
+            background-color: #28a745 !important;
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-footer {
+            z-index: 1050 !important;
+            position: relative !important;
+        }
+        
+        .modal-footer .btn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
         }
     </style>
 </head>
@@ -1368,7 +1381,7 @@
                                 <!-- Student Photo Placeholder -->
                                 <div class="student-photo">
                                     <div class="photo-placeholder">👤</div>
-                                </div>
+                                        </div>
 
                                 <!-- School Information -->
                                 <div class="header-content">
@@ -1532,7 +1545,7 @@
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print Report Card
                     </button>
-                    <button type="button" class="btn btn-success" id="generatePdfBtn">
+                    <button type="button" class="btn btn-success" id="generatePdfBtn" onclick="generatePDF()">
                         <i class="fas fa-file-pdf"></i> Generate PDF
                     </button>
                     <button type="button" class="btn btn-info" onclick="distributeReportCard()">
@@ -1967,21 +1980,45 @@
             }
         }
         
-        // jQuery event handlers for print functionality
+        // jQuery event handlers
         $(document).ready(function() {
+            console.log('Document ready - setting up event handlers');
+            
             // Print button
             $('button[onclick*="printReportCard"]').on('click', function(e) {
                 e.preventDefault();
                 printReportCard();
             });
             
-            // Add keyboard shortcuts for print
+            // PDF generation button (using event delegation for dynamic content)
+            $(document).on('click', '#generatePdfBtn', function(e) {
+                console.log('PDF button clicked via delegation!');
+                e.preventDefault();
+                generatePDF();
+            });
+            
+            // Check if PDF button exists
+            if ($('#generatePdfBtn').length > 0) {
+                console.log('PDF button found in DOM');
+            } else {
+                console.log('PDF button NOT found in DOM');
+            }
+            
+            // Add keyboard shortcuts
             $(document).on('keydown', function(e) {
                 // Ctrl+P for print
                 if (e.ctrlKey && e.key === 'p') {
                     e.preventDefault();
                     if ($('#reportCardTemplate').length > 0) {
                         printReportCard();
+                    }
+                }
+                
+                // Ctrl+Shift+P for PDF generation
+                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                    e.preventDefault();
+                    if ($('#reportCardTemplate').length > 0) {
+                        generatePDF();
                     }
                 }
             });
@@ -2062,23 +2099,6 @@
         }
         
         // jQuery event handlers
-        $(document).ready(function() {
-            // PDF generation button
-            $('#generatePdfBtn').on('click', function(e) {
-                e.preventDefault();
-                generatePDF();
-            });
-            
-            // Keyboard shortcut for PDF generation (Ctrl+Shift+P)
-            $(document).on('keydown', function(e) {
-                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-                    e.preventDefault();
-                    if ($('#reportCardTemplate').length > 0) {
-                        generatePDF();
-                    }
-                }
-            });
-        });
         
         // Make functions globally available
         window.initializeReportCards = initializeReportCards;
