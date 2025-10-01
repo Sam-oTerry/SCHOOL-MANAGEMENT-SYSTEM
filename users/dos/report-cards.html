@@ -1038,9 +1038,97 @@
                 font-size: 1.2rem;
             }
         }
+        
+        /* PDF Loading Overlay Styles */
+        .pdf-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #1a4f8b;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-spinner br {
+            margin: 10px 0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .notification-success {
+            background-color: #28a745;
+        }
+        
+        .notification-error {
+            background-color: #dc3545;
+        }
+        
+        .notification-info {
+            background-color: #17a2b8;
+        }
+        
+        .notification i {
+            margin-right: 8px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- PDF Loading Overlay -->
+    <div class="pdf-loading-overlay" id="pdfLoadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <br>
+            <strong>Generating PDF...</strong>
+            <br>
+            <small>Please wait while we create your report card</small>
+        </div>
+    </div>
+    
     <!-- Mobile Menu Toggle Button -->
     <button class="mobile-menu-toggle" id="mobileMenuToggle">
         <i class="fas fa-bars"></i>
@@ -1444,7 +1532,10 @@
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print Report Card
                     </button>
-                    <button type="button" class="btn btn-success" onclick="distributeReportCard()">
+                    <button type="button" class="btn btn-success" id="generatePdfBtn">
+                        <i class="fas fa-file-pdf"></i> Generate PDF
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="distributeReportCard()">
                         <i class="fas fa-share"></i> Distribute
                     </button>
                 </div>
@@ -1455,6 +1546,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- SheetJS for Excel export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -1904,10 +1997,94 @@
             }, 1000);
         });
         
+        // PDF Generation Functions
+        function showPdfLoading() {
+            $('#pdfLoadingOverlay').css('display', 'flex');
+        }
+        
+        function hidePdfLoading() {
+            $('#pdfLoadingOverlay').css('display', 'none');
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            $('.notification').remove();
+            
+            // Create new notification
+            const notification = $(`
+                <div class="notification notification-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+                    ${message}
+                </div>
+            `);
+            
+            $('body').append(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.fadeOut(() => notification.remove());
+            }, 5000);
+        }
+        
+        function generatePDF() {
+            const element = document.getElementById('reportCardTemplate');
+            if (!element) {
+                showNotification('No report card to export. Please view a report card first.', 'error');
+                return;
+            }
+            
+            showPdfLoading();
+            
+            const opt = {
+                margin: 0.5,
+                filename: 'report-card.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait'
+                }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                hidePdfLoading();
+                showNotification('PDF generated successfully!', 'success');
+            }).catch((error) => {
+                hidePdfLoading();
+                console.error('PDF generation error:', error);
+                showNotification('Failed to generate PDF. Please try again.', 'error');
+            });
+        }
+        
+        // jQuery event handlers
+        $(document).ready(function() {
+            // PDF generation button
+            $('#generatePdfBtn').on('click', function(e) {
+                e.preventDefault();
+                generatePDF();
+            });
+            
+            // Keyboard shortcut for PDF generation (Ctrl+Shift+P)
+            $(document).on('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                    e.preventDefault();
+                    if ($('#reportCardTemplate').length > 0) {
+                        generatePDF();
+                    }
+                }
+            });
+        });
+        
         // Make functions globally available
         window.initializeReportCards = initializeReportCards;
         window.viewReportCard = viewReportCard;
         window.printReportCard = printReportCard;
+        window.generatePDF = generatePDF;
         window.distributeReportCard = distributeReportCard;
         window.logout = DOSUtils.logout;
         
