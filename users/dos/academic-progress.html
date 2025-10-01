@@ -212,25 +212,31 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">Class Level</label>
                                 <select class="form-select" id="class-level" onchange="updateProgress()">
                                     <option value="">All Levels</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <label class="form-label">Class</label>
+                                <select class="form-select" id="class-filter" onchange="updateProgress()">
+                                    <option value="">All Classes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <label class="form-label">Subject</label>
                                 <select class="form-select" id="subject-filter" onchange="updateProgress()">
                                     <option value="">All Subjects</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">Term</label>
                                 <select class="form-select" id="term-filter" onchange="updateProgress()">
                                     <option value="">All Terms</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Actions</label>
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-primary btn-sm" onclick="generateProgressReport()">
@@ -566,6 +572,9 @@
                 // Populate class level filter
                 populateClassLevelFilter();
                 
+                // Populate class filter
+                populateClassFilter();
+                
                 // Populate subject filter
                 populateSubjectFilter();
                 
@@ -599,6 +608,27 @@
             });
             
             console.log(`📚 Populated class level filter with ${classLevels.length} levels`);
+        }
+        
+        // Populate class filter
+        function populateClassFilter() {
+            const classSelect = document.getElementById('class-filter');
+            if (!classSelect) return;
+            
+            // Clear existing options except "All Classes"
+            classSelect.innerHTML = '<option value="">All Classes</option>';
+            
+            // Add class options sorted by name
+            const sortedClasses = [...classes].sort((a, b) => a.name.localeCompare(b.name));
+            
+            sortedClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.name;
+                option.textContent = `${cls.name} (${cls.level || 'Unknown Level'})`;
+                classSelect.appendChild(option);
+            });
+            
+            console.log(`🏫 Populated class filter with ${sortedClasses.length} classes`);
         }
         
         // Populate subject filter
@@ -651,10 +681,11 @@
         // Get filtered progress data based on current filter selections
         function getFilteredProgressData() {
             const classLevel = document.getElementById('class-level')?.value || '';
+            const className = document.getElementById('class-filter')?.value || '';
             const subjectId = document.getElementById('subject-filter')?.value || '';
             const termId = document.getElementById('term-filter')?.value || '';
             
-            console.log('🔍 Applying filters:', { classLevel, subjectId, termId });
+            console.log('🔍 Applying filters:', { classLevel, className, subjectId, termId });
             
             let filteredData = [...progressData];
             
@@ -665,6 +696,12 @@
                     return cls && cls.level && cls.level.toLowerCase() === classLevel;
                 });
                 console.log(`📚 After class level filter (${classLevel}): ${filteredData.length} items`);
+            }
+            
+            // Filter by specific class
+            if (className) {
+                filteredData = filteredData.filter(item => item.class === className);
+                console.log(`🏫 After class filter (${className}): ${filteredData.length} items`);
             }
             
             // Filter by subject
@@ -1168,10 +1205,11 @@
         // Get filtered grades based on current filter selections
         function getFilteredGrades() {
             const classLevel = document.getElementById('class-level')?.value || '';
+            const className = document.getElementById('class-filter')?.value || '';
             const subjectId = document.getElementById('subject-filter')?.value || '';
             const termId = document.getElementById('term-filter')?.value || '';
             
-            console.log('🔍 Filtering grades with:', { classLevel, subjectId, termId });
+            console.log('🔍 Filtering grades with:', { classLevel, className, subjectId, termId });
             
             let filteredGrades = [...grades];
             
@@ -1191,6 +1229,15 @@
                     return filteredClassNames.includes(student.class);
                 });
                 console.log(`📚 After class level filter: ${filteredGrades.length} grades`);
+            }
+            
+            // Filter by specific class
+            if (className) {
+                filteredGrades = filteredGrades.filter(grade => {
+                    const student = students.find(s => s.id === grade.studentId);
+                    return student && student.class === className;
+                });
+                console.log(`🏫 After class filter: ${filteredGrades.length} grades`);
             }
             
             // Filter by subject
@@ -2360,6 +2407,7 @@
         function updateFilterStatus() {
             try {
                 const classLevel = document.getElementById('class-level')?.value || '';
+                const className = document.getElementById('class-filter')?.value || '';
                 const subjectId = document.getElementById('subject-filter')?.value || '';
                 const termId = document.getElementById('term-filter')?.value || '';
                 
@@ -2373,6 +2421,11 @@
                 if (classLevel) {
                     const classLevelText = document.querySelector(`#class-level option[value="${classLevel}"]`)?.textContent || classLevel;
                     activeFilters.push(`Class Level: ${classLevelText}`);
+                }
+                
+                if (className) {
+                    const classText = document.querySelector(`#class-filter option[value="${className}"]`)?.textContent || className;
+                    activeFilters.push(`Class: ${classText}`);
                 }
                 
                 if (subjectId) {
@@ -2404,10 +2457,12 @@
                 
                 // Reset all filter dropdowns to "All" options
                 const classLevelSelect = document.getElementById('class-level');
+                const classSelect = document.getElementById('class-filter');
                 const subjectSelect = document.getElementById('subject-filter');
                 const termSelect = document.getElementById('term-filter');
                 
                 if (classLevelSelect) classLevelSelect.value = '';
+                if (classSelect) classSelect.value = '';
                 if (subjectSelect) subjectSelect.value = '';
                 if (termSelect) termSelect.value = '';
                 
