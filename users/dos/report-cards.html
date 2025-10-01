@@ -42,8 +42,101 @@
             width: 120px;
             height: 150px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 50%;
             border: 3px solid white;
+        }
+        
+        /* Circular Logo Styling */
+        .school-logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .circular-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: linear-gradient(135deg, #1a4f8b 0%, #3a7cbd 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .logo-text-outer {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+        }
+        
+        .logo-text-top {
+            font-size: 8px;
+            text-align: center;
+            transform: rotate(180deg);
+        }
+        
+        .logo-text-bottom {
+            font-size: 8px;
+            text-align: center;
+        }
+        
+        .logo-inner {
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .book-sun-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .logo-code {
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .student-photo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Student Information Styling */
+        .student-details-section {
+            margin: 20px 0;
+        }
+        
+        .student-info-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .student-info-line .fw-bold {
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+        
+        .dotted-line {
+            border-bottom: 1px dotted #000;
+            flex: 1;
+            margin: 0 10px;
+            height: 20px;
+            display: inline-block;
         }
         
         .report-table {
@@ -595,37 +688,51 @@
                             <div class="report-header">
                                 <div class="row align-items-center">
                                     <div class="col-md-3 text-center">
-                                        <img src="../../assets/images/logo.png" alt="School Logo" class="school-logo" id="schoolLogo">
+                                        <div class="school-logo-container">
+                                            <div class="circular-logo">
+                                                <div class="logo-text-outer">
+                                                    <div class="logo-text-top">ADILANG INSTITUTION</div>
+                                                    <div class="logo-text-bottom">WE OF HEBE</div>
+                                                </div>
+                                                <div class="logo-inner">
+                                                    <div class="book-sun-icon">📚☀️⭐</div>
+                                                    <div class="logo-code">E2ID:3000</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6 text-center">
-                                        <h2 class="mb-1" id="schoolName">ST. MARY'S SECONDARY SCHOOL</h2>
-                                        <h4 class="mb-1" id="reportTitle">ACADEMIC REPORT CARD</h4>
-                                        <p class="mb-0" id="termYear">Term - Academic Year</p>
+                                        <h2 class="mb-1" id="schoolName">ADILANG SECONDARY SCHOOL</h2>
+                                        <p class="mb-1" id="schoolAddress">P.O.BOX 13, PADER-AGAGO DISTRICT</p>
+                                        <p class="mb-1" id="schoolPhone">TEL: 0773221580/0782634466/0782446279/0770685882</p>
+                                        <h4 class="mb-1" id="reportTitle">END OF TERM THREE ASSESSMENT REPORT CARD 2025</h4>
                                     </div>
                                     <div class="col-md-3 text-center">
-                                        <img src="https://via.placeholder.com/120x150/cccccc/666666?text=Photo" alt="Student Photo" class="student-photo" id="studentPhoto">
+                                        <div class="student-photo-container">
+                                            <img src="https://via.placeholder.com/120x150/cccccc/666666?text=Photo" alt="Student Photo" class="student-photo" id="studentPhoto">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Student Information -->
                             <div class="p-4">
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <table class="table table-sm table-borderless">
-                                            <tr><td class="fw-bold">Student Name:</td><td id="studentName">-</td></tr>
-                                            <tr><td class="fw-bold">Student ID:</td><td id="studentId">-</td></tr>
-                                            <tr><td class="fw-bold">Class:</td><td id="studentClass">-</td></tr>
-                                            <tr><td class="fw-bold">Date of Birth:</td><td id="studentDOB">-</td></tr>
-                                        </table>
+                                <div class="student-details-section mb-4">
+                                    <div class="student-info-line">
+                                        <span class="fw-bold">STUDENT'S NAME:</span>
+                                        <span class="dotted-line" id="studentNameLine">................................................</span>
+                                        <span class="fw-bold">SEX:</span>
+                                        <span class="dotted-line" id="studentSexLine">................................</span>
+                                        <span class="fw-bold">CLASS:</span>
+                                        <span class="dotted-line" id="studentClassLine">................................</span>
                                     </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-sm table-borderless">
-                                            <tr><td class="fw-bold">Term:</td><td id="currentTerm">-</td></tr>
-                                            <tr><td class="fw-bold">Academic Year:</td><td id="academicYear">-</td></tr>
-                                            <tr><td class="fw-bold">Class Position:</td><td id="classPosition">-</td></tr>
-                                            <tr><td class="fw-bold">Total Students:</td><td id="totalStudents">-</td></tr>
-                                        </table>
+                                    <div class="student-info-line">
+                                        <span class="fw-bold">STREAM:</span>
+                                        <span class="dotted-line" id="studentStreamLine">................................</span>
+                                        <span class="fw-bold">LIN:</span>
+                                        <span class="dotted-line" id="studentLinLine">................................</span>
+                                        <span class="fw-bold">PAYMENT CODE:</span>
+                                        <span class="dotted-line" id="paymentCodeLine">................................</span>
                                     </div>
                                 </div>
                                 
@@ -634,13 +741,15 @@
                                     <table class="table table-bordered report-table" id="academicTable">
                                         <thead>
                                             <tr>
-                                                <th>Subject</th>
-                                                <th>Mid-term (20%)</th>
-                                                <th>End-term (80%)</th>
-                                                <th>Total Score</th>
+                                                <th>S/N</th>
+                                                <th>SUBJECT</th>
+                                                <th>AOI AV (20%)</th>
+                                                <th>EOT Score (80%)</th>
+                                                <th>Total Score (100%)</th>
                                                 <th>Grade</th>
                                                 <th>Position</th>
-                                                <th>Remark</th>
+                                                <th>Subject teachers remark</th>
+                                                <th>TR'S initials</th>
                                             </tr>
                                         </thead>
                                         <tbody id="subjectsTableBody">
@@ -1250,32 +1359,34 @@
             });
             
             // Populate header information
-            document.getElementById('schoolName').textContent = 'ST. MARY\'S SECONDARY SCHOOL';
-            document.getElementById('reportTitle').textContent = 'ACADEMIC REPORT CARD';
-            document.getElementById('termYear').textContent = `${card.term} - ${new Date().getFullYear()}`;
+            document.getElementById('schoolName').textContent = 'ADILANG SECONDARY SCHOOL';
+            document.getElementById('schoolAddress').textContent = 'P.O.BOX 13, PADER-AGAGO DISTRICT';
+            document.getElementById('schoolPhone').textContent = 'TEL: 0773221580/0782634466/0782446279/0770685882';
+            document.getElementById('reportTitle').textContent = 'END OF TERM THREE ASSESSMENT REPORT CARD 2025';
             
-            // Populate student information - improved name loading
+            // Populate student information - improved name loading with debugging
+            console.log('Student data:', student);
+            console.log('Card data:', card);
+            
             const studentName = student?.personalInfo?.fullName || 
                                `${student?.personalInfo?.firstName || ''} ${student?.personalInfo?.lastName || ''}`.trim() ||
                                student?.name ||
                                card.studentName ||
                                'Unknown Student';
             
-            document.getElementById('studentName').textContent = studentName;
-            document.getElementById('studentId').textContent = student?.admissionNumber || student?.studentId || card.studentId;
-            document.getElementById('studentClass').textContent = card.class;
-            document.getElementById('studentDOB').textContent = student?.dateOfBirth ? 
-                new Date(student.dateOfBirth.seconds * 1000).toLocaleDateString() : 'N/A';
+            console.log('Resolved student name:', studentName);
+            
+            // Populate student information in dotted line format
+            document.getElementById('studentNameLine').textContent = studentName;
+            document.getElementById('studentSexLine').textContent = student?.sex || student?.gender || 'M';
+            document.getElementById('studentClassLine').textContent = card.class;
+            document.getElementById('studentStreamLine').textContent = card.class; // Using class as stream
+            document.getElementById('studentLinLine').textContent = student?.admissionNumber || student?.studentId || card.studentId;
+            document.getElementById('paymentCodeLine').textContent = student?.paymentCode || 'PC001';
             
             // Calculate and populate fees balance (sample calculation)
             const feesBalance = student?.feesBalance || Math.floor(Math.random() * 500000) + 100000; // Random amount between 100,000-600,000
             document.getElementById('feesBalance').textContent = `UGX ${feesBalance.toLocaleString()}`;
-            
-            // Populate academic information
-            document.getElementById('currentTerm').textContent = card.term;
-            document.getElementById('academicYear').textContent = new Date().getFullYear();
-            document.getElementById('classPosition').textContent = card.position;
-            document.getElementById('totalStudents').textContent = students.filter(s => s.class === card.class).length;
             
             // Populate subjects table with 14 rows (filled + blank)
             const subjectsTableBody = document.getElementById('subjectsTableBody');
@@ -1299,16 +1410,18 @@
                 totalScore += total;
                 subjectCount++;
                 
-                // Create table row
+                // Create table row with S/N
+                const rowNumber = subjectCount;
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${rowNumber}</td>
                     <td class="fw-bold">${subjectName}</td>
                     <td>${midTerm}</td>
                     <td>${endTerm}</td>
                     <td>${total.toFixed(1)}</td>
                     <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
-                    <td>${Math.floor(Math.random() * 10) + 1}${getOrdinalSuffix(Math.floor(Math.random() * 10) + 1)}</td>
                     <td>${getGradeRemark(letterGrade)}</td>
+                    <td>${getTeacherInitials(subjectName)}</td>
                 `;
                 subjectsTableBody.appendChild(row);
             });
@@ -1318,8 +1431,10 @@
             const blankRowsNeeded = Math.max(0, 14 - filledSubjects);
             
             for (let i = 0; i < blankRowsNeeded; i++) {
+                const blankRowNumber = filledSubjects + i + 1;
                 const blankRow = document.createElement('tr');
                 blankRow.innerHTML = `
+                    <td class="text-muted">${blankRowNumber}</td>
                     <td class="fw-bold text-muted">-</td>
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
@@ -1388,7 +1503,85 @@
             }
         }
         
-        // Export to PDF using html2pdf.js
+        // Helper function to get teacher initials
+        function getTeacherInitials(subjectName) {
+            // Sample teacher initials based on subject
+            const teacherMap = {
+                'Mathematics': 'JM',
+                'English Language': 'BK',
+                'Integrated Science': 'AS',
+                'History': 'MN',
+                'Geography': 'LP',
+                'Art & Design': 'RT',
+                'Physics': 'OS',
+                'Chemistry': 'MW',
+                'Biology': 'FK',
+                'Economics': 'DN',
+                'Literature': 'GT',
+                'Computer Studies': 'HC',
+                'Agriculture': 'VM',
+                'Business Studies': 'QZ'
+            };
+            return teacherMap[subjectName] || 'XX';
+        }
+        
+        // Helper function to calculate student position in a subject
+        function calculateSubjectPosition(studentId, subjectId, termId) {
+            // Get all students in the same class
+            const student = students.find(s => s.id === studentId);
+            if (!student) return 'N/A';
+            
+            const classStudents = students.filter(s => s.class === student.class);
+            
+            // Get grades for this subject and term for all students in the class
+            const subjectGrades = [];
+            
+            classStudents.forEach(classStudent => {
+                const studentGrades = grades.filter(grade => 
+                    grade.studentId === classStudent.id && 
+                    grade.subjectId === subjectId &&
+                    (grade.term === termId || grade.termId === termId || (!grade.term && !grade.termId && termId === 'current'))
+                );
+                
+                if (studentGrades.length > 0) {
+                    const grade = studentGrades[0];
+                    const total = grade?.finalGrade?.percentage || ((grade?.scores?.midterm || 0) * 0.2) + ((grade?.scores?.endterm || 0) * 0.8);
+                    subjectGrades.push({
+                        studentId: classStudent.id,
+                        total: total
+                    });
+                }
+            });
+            
+            // Sort by total score (descending)
+            subjectGrades.sort((a, b) => b.total - a.total);
+            
+            // Find the position of the current student
+            const position = subjectGrades.findIndex(grade => grade.studentId === studentId) + 1;
+            
+            if (position === 0) return 'N/A';
+            
+            // Return position with ordinal suffix
+            return `${position}${getOrdinalSuffix(position)}`;
+        }
+        
+        // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j == 1 && k != 11) {
+                return "st";
+            }
+            if (j == 2 && k != 12) {
+                return "nd";
+            }
+            if (j == 3 && k != 13) {
+                return "rd";
+            }
+            return "th";
+        }
+        
+        // Export to PDF using html2pdf.js - Optimized for single page
         function exportToPDF() {
             const element = document.getElementById('reportCardTemplate');
             if (!element) {
@@ -1396,21 +1589,25 @@
                 return;
             }
             
-            // Configure PDF options
+            // Configure PDF options for single page
             const opt = {
-                margin: 0.5,
+                margin: [0.2, 0.2, 0.2, 0.2], // Smaller margins
                 filename: `report_card_${document.getElementById('studentName')?.textContent || 'student'}_${new Date().getFullYear()}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'jpeg', quality: 0.85 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.5, // Reduced scale for better fit
                     useCORS: true,
-                    letterRendering: true
+                    letterRendering: true,
+                    height: window.innerHeight,
+                    width: window.innerWidth
                 },
                 jsPDF: { 
                     unit: 'in', 
                     format: 'a4', 
-                    orientation: 'portrait' 
-                }
+                    orientation: 'portrait',
+                    compress: true
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
             
             // Show loading state
@@ -1663,9 +1860,11 @@
                 },
                 admissionNumber: 'ADM001',
                 class: 'S1',
+                sex: 'M',
                 dateOfBirth: { seconds: 946684800 }, // Jan 1, 2000
                 photoUrl: 'https://via.placeholder.com/120x150/4a90e2/ffffff?text=JD',
-                feesBalance: 250000 // Sample fees balance
+                feesBalance: 250000, // Sample fees balance
+                paymentCode: 'PC001'
             };
             
             // Sample grades data
