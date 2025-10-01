@@ -664,6 +664,7 @@
                     const cls = classes.find(c => c.name === item.class);
                     return cls && cls.level && cls.level.toLowerCase() === classLevel;
                 });
+                console.log(`📚 After class level filter (${classLevel}): ${filteredData.length} items`);
             }
             
             // Filter by subject
@@ -672,10 +673,10 @@
                     const subject = subjects.find(s => s.id === subjectId);
                     return subject && item.subject === subject.name;
                 });
+                console.log(`📖 After subject filter (${subjectId}): ${filteredData.length} items`);
             }
             
-            // Filter by term (this would require term information in progressData)
-            // For now, we'll filter grades by term and then filter progress data accordingly
+            // Filter by term
             if (termId) {
                 const termGrades = grades.filter(grade => grade.termId === termId);
                 const termStudentIds = [...new Set(termGrades.map(grade => grade.studentId))];
@@ -684,14 +685,16 @@
                     // Check if any students in this class have grades for this term
                     const classStudents = students.filter(student => {
                         const directClass = student.class;
-                        return directClass === item.class || directClass === item.class;
+                        return directClass === item.class;
                     });
                     
                     return classStudents.some(student => termStudentIds.includes(student.id));
                 });
+                console.log(`📅 After term filter (${termId}): ${filteredData.length} items`);
             }
             
-            console.log(`📊 Filtered data: ${filteredData.length} items (from ${progressData.length} total)`);
+            console.log(`📊 Final filtered data: ${filteredData.length} items (from ${progressData.length} total)`);
+            console.log('📊 Filtered data sample:', filteredData.slice(0, 3));
             return filteredData;
         }
         
@@ -772,6 +775,8 @@
                         const averageScore = validGrades > 0 ? (totalScore / validGrades).toFixed(1) : 0;
                         const passRate = validGrades > 0 ? ((passingGrades / validGrades) * 100).toFixed(1) : 0;
                         
+                        console.log(`📊 ${cls.name} - ${subject.name}: avg=${averageScore}, passRate=${passRate}, validGrades=${validGrades}, totalScore=${totalScore}`);
+                        
                         // Find top performer
                         const topGrade = subjectGrades.reduce((max, grade) => {
                             const score = parseFloat(grade.score) || 0;
@@ -802,6 +807,8 @@
                 });
             });
             
+            console.log(`✅ Processed ${progressData.length} progress entries`);
+            console.log('📊 Sample progress data:', progressData.slice(0, 3));
         }
         
         // Setup real-time listeners for dynamic updates
@@ -974,7 +981,11 @@
                 // Destroy existing chart if it exists
                 if (window.classPerformanceChartInstance) {
                     window.classPerformanceChartInstance.destroy();
+                    window.classPerformanceChartInstance = null;
                 }
+                
+                // Clear the canvas
+                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                 
                 // Prepare chart data using filtered data
                 const filteredData = getFilteredProgressData();
@@ -1033,7 +1044,11 @@
                 // Destroy existing chart if it exists
                 if (window.subjectPerformanceChartInstance) {
                     window.subjectPerformanceChartInstance.destroy();
+                    window.subjectPerformanceChartInstance = null;
                 }
+                
+                // Clear the canvas
+                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                 
                 // Prepare chart data using filtered data
                 const filteredData = getFilteredProgressData();
@@ -1085,7 +1100,11 @@
                 // Destroy existing chart if it exists
                 if (window.gradeDistributionChartInstance) {
                     window.gradeDistributionChartInstance.destroy();
+                    window.gradeDistributionChartInstance = null;
                 }
+                
+                // Clear the canvas
+                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                 
                 // Calculate grade distribution from filtered grades data
                 const gradeRanges = [
@@ -1140,6 +1159,8 @@
             const subjectId = document.getElementById('subject-filter')?.value || '';
             const termId = document.getElementById('term-filter')?.value || '';
             
+            console.log('🔍 Filtering grades with:', { classLevel, subjectId, termId });
+            
             let filteredGrades = [...grades];
             
             // Filter by class level
@@ -1157,18 +1178,22 @@
                     // Check if student's class matches filtered classes
                     return filteredClassNames.includes(student.class);
                 });
+                console.log(`📚 After class level filter: ${filteredGrades.length} grades`);
             }
             
             // Filter by subject
             if (subjectId) {
                 filteredGrades = filteredGrades.filter(grade => grade.subjectId === subjectId);
+                console.log(`📖 After subject filter: ${filteredGrades.length} grades`);
             }
             
             // Filter by term
             if (termId) {
                 filteredGrades = filteredGrades.filter(grade => grade.termId === termId);
+                console.log(`📅 After term filter: ${filteredGrades.length} grades`);
             }
             
+            console.log(`📊 Final filtered grades: ${filteredGrades.length} (from ${grades.length} total)`);
             return filteredGrades;
         }
         
@@ -1184,7 +1209,11 @@
                 // Destroy existing chart if it exists
                 if (window.progressTrendsChartInstance) {
                     window.progressTrendsChartInstance.destroy();
+                    window.progressTrendsChartInstance = null;
                 }
+                
+                // Clear the canvas
+                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
                 
                 // Calculate overall average for trend simulation using filtered data
                 const filteredData = getFilteredProgressData();
