@@ -18,6 +18,152 @@
             --dark: #2c3e50;
         }
         
+        /* Report Card Specific Styles */
+        .report-card-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .report-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .school-logo {
+            width: 150px;
+            height: 80px;
+            object-fit: contain;
+        }
+        
+        .student-photo {
+            width: 120px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 3px solid white;
+        }
+        
+        .report-table {
+            margin: 0;
+        }
+        
+        .report-table th {
+            background-color: var(--dark) !important;
+            color: white !important;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .report-table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px 8px;
+        }
+        
+        /* Grade Color Classes */
+        .grade-excellent {
+            background-color: #d4edda !important;
+            color: #155724;
+            font-weight: bold;
+        }
+        
+        .grade-very-good {
+            background-color: #cce5ff !important;
+            color: #004085;
+            font-weight: bold;
+        }
+        
+        .grade-good {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-weight: bold;
+        }
+        
+        .grade-fair {
+            background-color: #f8d7da !important;
+            color: #721c24;
+            font-weight: bold;
+        }
+        
+        .grade-poor {
+            background-color: #f5c6cb !important;
+            color: #721c24;
+            font-weight: bold;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+            
+            .sidebar, .mobile-menu-toggle, .btn, .card-header {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .report-card-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .report-header {
+                background: var(--primary) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .report-table th {
+                background-color: var(--dark) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .grade-excellent, .grade-very-good, .grade-good, .grade-fair, .grade-poor {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            @page {
+                size: A4 portrait;
+                margin: 0.5in;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .report-header .row {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .school-logo, .student-photo {
+                margin: 10px auto;
+            }
+            
+            .report-table {
+                font-size: 0.9rem;
+            }
+            
+            .report-table th,
+            .report-table td {
+                padding: 8px 4px;
+            }
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
@@ -343,11 +489,121 @@
                 </div>
                 <div class="modal-body">
                     <div class="report-card-preview" id="reportCardPreview">
-                        <!-- Report Card Template will be populated here -->
+                        <!-- Professional Report Card Template -->
+                        <div class="report-card-container" id="reportCardTemplate">
+                            <!-- Header Section -->
+                            <div class="report-header">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 text-center">
+                                        <img src="../../assets/images/logo.png" alt="School Logo" class="school-logo" id="schoolLogo">
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <h2 class="mb-1" id="schoolName">ST. MARY'S SECONDARY SCHOOL</h2>
+                                        <h4 class="mb-1" id="reportTitle">ACADEMIC REPORT CARD</h4>
+                                        <p class="mb-0" id="termYear">Term - Academic Year</p>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <img src="https://via.placeholder.com/120x150/cccccc/666666?text=Photo" alt="Student Photo" class="student-photo" id="studentPhoto">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Student Information -->
+                            <div class="p-4">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <table class="table table-sm table-borderless">
+                                            <tr><td class="fw-bold">Student Name:</td><td id="studentName">-</td></tr>
+                                            <tr><td class="fw-bold">Student ID:</td><td id="studentId">-</td></tr>
+                                            <tr><td class="fw-bold">Class:</td><td id="studentClass">-</td></tr>
+                                            <tr><td class="fw-bold">Date of Birth:</td><td id="studentDOB">-</td></tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <table class="table table-sm table-borderless">
+                                            <tr><td class="fw-bold">Term:</td><td id="currentTerm">-</td></tr>
+                                            <tr><td class="fw-bold">Academic Year:</td><td id="academicYear">-</td></tr>
+                                            <tr><td class="fw-bold">Class Position:</td><td id="classPosition">-</td></tr>
+                                            <tr><td class="fw-bold">Total Students:</td><td id="totalStudents">-</td></tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Academic Performance Table -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered report-table" id="academicTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Mid-term (20%)</th>
+                                                <th>End-term (80%)</th>
+                                                <th>Total Score</th>
+                                                <th>Grade</th>
+                                                <th>Position</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="subjectsTableBody">
+                                            <!-- Subjects will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Summary Section -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">PERFORMANCE SUMMARY</h6>
+                                        <table class="table table-sm table-borderless">
+                                            <tr><td class="fw-bold">Overall Average:</td><td id="overallAverage">-</td></tr>
+                                            <tr><td class="fw-bold">Overall Grade:</td><td id="overallGrade">-</td></tr>
+                                            <tr><td class="fw-bold">Total Subjects:</td><td id="totalSubjects">-</td></tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">CLASS RANKING</h6>
+                                        <table class="table table-sm table-borderless">
+                                            <tr><td class="fw-bold">Position:</td><td id="rankingPosition">-</td></tr>
+                                            <tr><td class="fw-bold">Out of:</td><td id="rankingOutOf">-</td></tr>
+                                            <tr><td class="fw-bold">Status:</td><td id="academicStatus">-</td></tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Comments Section -->
+                                <div class="mt-4">
+                                    <h6 class="fw-bold">TEACHER'S COMMENTS</h6>
+                                    <div class="border rounded p-3" id="teacherComments">
+                                        <!-- Comments will be populated here -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Signatures Section -->
+                                <div class="row mt-4">
+                                    <div class="col-md-4 text-center">
+                                        <p class="fw-bold mb-1">Class Teacher</p>
+                                        <div class="border-bottom mb-2" style="height: 40px;"></div>
+                                        <p class="small mb-0">Date: <span id="teacherDate">-</span></p>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <p class="fw-bold mb-1">Head Teacher</p>
+                                        <div class="border-bottom mb-2" style="height: 40px;"></div>
+                                        <p class="small mb-0">Date: <span id="headTeacherDate">-</span></p>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <p class="fw-bold mb-1">Parent/Guardian</p>
+                                        <div class="border-bottom mb-2" style="height: 40px;"></div>
+                                        <p class="small mb-0">Date: _______________</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="exportToPDF()">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print
                     </button>
@@ -360,6 +616,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -460,11 +720,15 @@
         // Load students from Firestore
         async function loadStudents() {
             try {
+                console.log('👥 Loading students from Firestore...');
                 const studentsSnapshot = await db.collection('students').orderBy('createdAt', 'desc').get();
                 const studentsData = [];
                 
+                console.log('👥 Students snapshot size:', studentsSnapshot.size);
+                
                 studentsSnapshot.forEach(doc => {
                     const studentData = doc.data();
+                    console.log('👥 Student document:', doc.id, studentData);
                     studentsData.push({
                         id: doc.id,
                         ...studentData
@@ -483,11 +747,15 @@
         // Load grades from Firestore
         async function loadGrades() {
             try {
+                console.log('📊 Loading grades from Firestore...');
                 const gradesSnapshot = await db.collection('grades').orderBy('createdAt', 'desc').get();
                 const gradesData = [];
                 
+                console.log('📊 Grades snapshot size:', gradesSnapshot.size);
+                
                 gradesSnapshot.forEach(doc => {
                     const gradeData = doc.data();
+                    console.log('📊 Grade document:', doc.id, gradeData);
                     gradesData.push({
                         id: doc.id,
                         ...gradeData
@@ -506,11 +774,15 @@
         // Load terms from Firestore
         async function loadTerms() {
             try {
+                console.log('📅 Loading terms from Firestore...');
                 const termsSnapshot = await db.collection('terms').orderBy('createdAt', 'desc').get();
                 const termsData = [];
                 
+                console.log('📅 Terms snapshot size:', termsSnapshot.size);
+                
                 termsSnapshot.forEach(doc => {
                     const termData = doc.data();
+                    console.log('📅 Term document:', doc.id, termData);
                     termsData.push({
                         id: doc.id,
                         ...termData
@@ -549,18 +821,26 @@
                     return;
                 }
                 
-                // Get student's grades
+                // Get student's grades - match the structure from grade-entry.html
                 const studentGrades = grades.filter(grade => grade.studentId === student.id);
+                
+                console.log(`🔍 Checking grades for student ${student.id}:`, {
+                    studentId: student.id,
+                    totalGrades: grades.length,
+                    studentGrades: studentGrades.length,
+                    gradeIds: grades.map(g => g.studentId).slice(0, 5), // Show first 5 grade student IDs
+                    sampleGrade: grades.length > 0 ? grades[0] : null // Show structure of first grade
+                });
                 
                 if (studentGrades.length === 0) {
                     console.log(`⚠️ No grades found for student ${student.personalInfo?.fullName || student.id}`);
                     return;
                 }
                 
-                // Group grades by term
+                // Group grades by term - use the correct field name from grade-entry.html
                 const termGroups = {};
                 studentGrades.forEach(grade => {
-                    const termId = grade.termId || 'current';
+                    const termId = grade.term || grade.termId || 'current';
                     if (!termGroups[termId]) {
                         termGroups[termId] = [];
                     }
@@ -570,14 +850,24 @@
                 // Process each term
                 Object.keys(termGroups).forEach(termId => {
                     const termGrades = termGroups[termId];
-                    const term = terms.find(t => t.id === termId) || { name: 'Current Term', id: termId };
+                    // If no terms exist in database, create a default term
+                    const term = terms.find(t => t.id === termId) || { 
+                        name: termId === 'current' ? 'Current Term' : `Term ${termId}`, 
+                        id: termId 
+                    };
                     
-                    // Calculate average grade
+                    // Calculate average grade - use the structure from grade-entry.html
                     let totalScore = 0;
                     let validGrades = 0;
                     
                     termGrades.forEach(grade => {
-                        if (grade.score && !isNaN(grade.score)) {
+                        // Check for finalGrade.percentage first (from grade-entry.html)
+                        if (grade.finalGrade && grade.finalGrade.percentage && !isNaN(grade.finalGrade.percentage)) {
+                            totalScore += parseFloat(grade.finalGrade.percentage);
+                            validGrades++;
+                        }
+                        // Fallback to old structure
+                        else if (grade.score && !isNaN(grade.score)) {
                             totalScore += parseFloat(grade.score);
                             validGrades++;
                         }
@@ -641,7 +931,7 @@
             const studentAverages = classStudents.map(student => {
                 const studentGrades = grades.filter(grade => 
                     grade.studentId === student.id && 
-                    (grade.termId === termId || (!grade.termId && termId === 'current'))
+                    (grade.term === termId || grade.termId === termId || (!grade.term && !grade.termId && termId === 'current'))
                 );
                 
                 if (studentGrades.length === 0) return { studentId: student.id, average: 0 };
@@ -650,7 +940,13 @@
                 let validGrades = 0;
                 
                 studentGrades.forEach(grade => {
-                    if (grade.score && !isNaN(grade.score)) {
+                    // Check for finalGrade.percentage first (from grade-entry.html)
+                    if (grade.finalGrade && grade.finalGrade.percentage && !isNaN(grade.finalGrade.percentage)) {
+                        totalScore += parseFloat(grade.finalGrade.percentage);
+                        validGrades++;
+                    }
+                    // Fallback to old structure
+                    else if (grade.score && !isNaN(grade.score)) {
                         totalScore += parseFloat(grade.score);
                         validGrades++;
                     }
@@ -796,10 +1092,10 @@
             const student = students.find(s => s.id === card.studentId);
             const studentClass = classes.find(c => c.name === card.class);
             
-            // Get student's grades for this term
+            // Get student's grades for this term - use correct field names
             const studentGrades = grades.filter(grade => 
                 grade.studentId === card.studentId && 
-                (grade.termId === card.termId || (!grade.termId && card.termId === 'current'))
+                (grade.term === card.termId || grade.termId === card.termId || (!grade.term && !grade.termId && card.termId === 'current'))
             );
             
             // Group grades by subject
@@ -898,10 +1194,12 @@
                                 <tbody>
                                     ${Object.keys(subjectGrades).map(subjectName => {
                                         const grades = subjectGrades[subjectName];
-                                        const midTerm = grades.find(g => g.examType === 'midterm')?.score || 0;
-                                        const endTerm = grades.find(g => g.examType === 'final')?.score || 0;
-                                        const total = (midTerm * 0.2) + (endTerm * 0.8);
-                                        const grade = calculateGrade(total);
+                                        // Use the structure from grade-entry.html
+                                        const grade = grades[0]; // Take the first grade for this subject
+                                        const midTerm = grade?.scores?.midterm || 0;
+                                        const endTerm = grade?.scores?.endterm || 0;
+                                        const total = grade?.finalGrade?.percentage || ((midTerm * 0.2) + (endTerm * 0.8));
+                                        const letterGrade = grade?.finalGrade?.letterGrade || calculateGrade(total);
                                         
                                         return `
                                             <tr>
@@ -909,7 +1207,7 @@
                                                 <td>${midTerm}</td>
                                                 <td>${endTerm}</td>
                                                 <td>${total.toFixed(1)}</td>
-                                                <td><span class="badge ${getGradeColor(grade)}">${grade}</span></td>
+                                                <td><span class="badge ${getGradeColor(letterGrade)}">${letterGrade}</span></td>
                                                 <td>${Math.floor(Math.random() * 10) + 1}${getOrdinalSuffix(Math.floor(Math.random() * 10) + 1)}</td>
                                             </tr>
                                         `;
@@ -998,6 +1296,74 @@
         }
         
         // Generate teacher comment based on performance
+        // Helper function to get grade CSS class for professional styling
+        function getGradeClass(grade) {
+            switch(grade) {
+                case 'A': return 'grade-excellent';
+                case 'B': return 'grade-very-good';
+                case 'C': return 'grade-good';
+                case 'D': return 'grade-fair';
+                case 'E': return 'grade-poor';
+                default: return '';
+            }
+        }
+        
+        // Helper function to get grade remark
+        function getGradeRemark(grade) {
+            switch(grade) {
+                case 'A': return 'Excellent';
+                case 'B': return 'Very Good';
+                case 'C': return 'Good';
+                case 'D': return 'Fair';
+                case 'E': return 'Poor';
+                default: return 'N/A';
+            }
+        }
+        
+        // Export to PDF using html2pdf.js
+        function exportToPDF() {
+            const element = document.getElementById('reportCardTemplate');
+            if (!element) {
+                alert('No report card to export. Please view a report card first.');
+                return;
+            }
+            
+            // Configure PDF options
+            const opt = {
+                margin: 0.5,
+                filename: `report_card_${document.getElementById('studentName')?.textContent || 'student'}_${new Date().getFullYear()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                }
+            };
+            
+            // Show loading state
+            const exportBtn = event.target;
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+            exportBtn.disabled = true;
+            
+            // Generate PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                console.log('PDF generated successfully');
+            }).catch((error) => {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Please try again.');
+            }).finally(() => {
+                // Restore button state
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            });
+        }
+        
         function generateTeacherComment(averageScore, studentName) {
             const score = parseFloat(averageScore);
             if (score >= 80) {
@@ -1214,6 +1580,143 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeReportCards();
         });
+        
+        // Sample data for testing - can be removed in production
+        function loadSampleData() {
+            console.log('Loading sample data for testing...');
+            
+            // Sample student data
+            const sampleStudent = {
+                id: 'sample-student-001',
+                personalInfo: {
+                    fullName: 'John Doe',
+                    firstName: 'John',
+                    lastName: 'Doe'
+                },
+                admissionNumber: 'ADM001',
+                class: 'S1',
+                dateOfBirth: { seconds: 946684800 }, // Jan 1, 2000
+                photoUrl: 'https://via.placeholder.com/120x150/4a90e2/ffffff?text=JD'
+            };
+            
+            // Sample grades data
+            const sampleGrades = [
+                {
+                    id: 'grade-001',
+                    studentId: 'sample-student-001',
+                    subjectId: 'math-subject',
+                    term: 'first-term',
+                    scores: { midterm: 85, endterm: 90 },
+                    finalGrade: { percentage: 89, letterGrade: 'A' }
+                },
+                {
+                    id: 'grade-002',
+                    studentId: 'sample-student-001',
+                    subjectId: 'english-subject',
+                    term: 'first-term',
+                    scores: { midterm: 75, endterm: 80 },
+                    finalGrade: { percentage: 79, letterGrade: 'B' }
+                },
+                {
+                    id: 'grade-003',
+                    studentId: 'sample-student-001',
+                    subjectId: 'science-subject',
+                    term: 'first-term',
+                    scores: { midterm: 70, endterm: 75 },
+                    finalGrade: { percentage: 74, letterGrade: 'B' }
+                },
+                {
+                    id: 'grade-004',
+                    studentId: 'sample-student-001',
+                    subjectId: 'history-subject',
+                    term: 'first-term',
+                    scores: { midterm: 60, endterm: 65 },
+                    finalGrade: { percentage: 64, letterGrade: 'C' }
+                },
+                {
+                    id: 'grade-005',
+                    studentId: 'sample-student-001',
+                    subjectId: 'geography-subject',
+                    term: 'first-term',
+                    scores: { midterm: 55, endterm: 60 },
+                    finalGrade: { percentage: 59, letterGrade: 'C' }
+                },
+                {
+                    id: 'grade-006',
+                    studentId: 'sample-student-001',
+                    subjectId: 'art-subject',
+                    term: 'first-term',
+                    scores: { midterm: 45, endterm: 50 },
+                    finalGrade: { percentage: 49, letterGrade: 'D' }
+                }
+            ];
+            
+            // Sample subjects data
+            const sampleSubjects = [
+                { id: 'math-subject', name: 'Mathematics' },
+                { id: 'english-subject', name: 'English Language' },
+                { id: 'science-subject', name: 'Integrated Science' },
+                { id: 'history-subject', name: 'History' },
+                { id: 'geography-subject', name: 'Geography' },
+                { id: 'art-subject', name: 'Art & Design' }
+            ];
+            
+            // Add sample data to global arrays
+            students.push(sampleStudent);
+            grades.push(...sampleGrades);
+            subjects.push(...sampleSubjects);
+            
+            // Create sample report card
+            const sampleCard = {
+                studentId: 'sample-student-001',
+                studentName: 'John Doe',
+                class: 'S1',
+                term: 'First Term',
+                averageGrade: 'B',
+                averageScore: '69.0',
+                position: '5th',
+                status: 'Generated',
+                totalSubjects: 6,
+                termId: 'first-term',
+                classId: 's1'
+            };
+            
+            reportCards.push(sampleCard);
+            
+            console.log('Sample data loaded successfully');
+            console.log('Students:', students.length);
+            console.log('Grades:', grades.length);
+            console.log('Subjects:', subjects.length);
+            console.log('Report Cards:', reportCards.length);
+            
+            // Refresh the display
+            displayReportCards();
+        }
+        
+        // Test function to demonstrate the report card
+        function testReportCard() {
+            console.log('Testing report card generation...');
+            
+            // Load sample data if not already loaded
+            if (reportCards.length === 0) {
+                loadSampleData();
+            }
+            
+            // Find the sample report card
+            const sampleCard = reportCards.find(card => card.studentId === 'sample-student-001');
+            if (sampleCard) {
+                populateReportCardTemplate(sampleCard);
+                const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
+                modal.show();
+                console.log('Sample report card displayed');
+            } else {
+                console.error('Sample report card not found');
+            }
+        }
+        
+        // Make test functions globally available
+        window.testReportCard = testReportCard;
+        window.loadSampleData = loadSampleData;
     </script>
     
     <style>
