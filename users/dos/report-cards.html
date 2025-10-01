@@ -601,78 +601,6 @@
             margin-top: 8px;
         }
         
-        /* PDF Loading Overlay Styles */
-        .pdf-loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        
-        .loading-spinner {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .loading-spinner i {
-            font-size: 24px;
-            color: #007bff;
-            margin-bottom: 10px;
-        }
-        
-        .loading-spinner br {
-            margin: 10px 0;
-        }
-        
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 5px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            animation: slideInRight 0.3s ease-out;
-        }
-        
-        .notification-success {
-            background: #28a745;
-        }
-        
-        .notification-error {
-            background: #dc3545;
-        }
-        
-        .notification-info {
-            background: #17a2b8;
-        }
-        
-        .notification i {
-            margin-right: 8px;
-        }
-        
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
         
         /* Ensure all content is visible and not cut off - Compact spacing */
         .academic-table {
@@ -735,278 +663,6 @@
             margin-bottom: 10px; /* Reduced margin */
         }
         
-        /* A4 PDF Export Optimization - Single Page Layout */
-        @media print {
-            @page {
-                size: A4;
-                margin: 1cm;
-            }
-            
-            * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            
-            body {
-                font-family: Arial, Helvetica, sans-serif !important;
-                font-size: 10pt !important;
-                line-height: 1.2 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: white !important;
-            }
-            
-            .report-card-container {
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                background: white !important;
-                page-break-inside: avoid !important;
-            }
-            
-            /* Header Section - Compact Layout */
-            .header {
-                margin-bottom: 8mm !important;
-                padding: 0 !important;
-                min-height: auto !important;
-                position: relative !important;
-            }
-            
-            .school-logo {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 2cm !important;
-                height: 2cm !important;
-                font-size: 6pt !important;
-                border: 1pt solid #1a4f8b !important;
-            }
-            
-            .student-photo {
-                position: absolute !important;
-                right: 0 !important;
-                top: 0 !important;
-                width: 2cm !important;
-                height: 2cm !important;
-                font-size: 8pt !important;
-                border: 1pt solid #000 !important;
-                background: white !important;
-            }
-            
-            .header-content {
-                text-align: center !important;
-                padding: 0 3cm !important;
-            }
-            
-            .school-name {
-                font-size: 14pt !important;
-                font-weight: bold !important;
-                margin-bottom: 2mm !important;
-                color: #1a4f8b !important;
-            }
-            
-            .school-address,
-            .school-phone {
-                font-size: 9pt !important;
-                margin-bottom: 1mm !important;
-            }
-            
-            .report-title {
-                font-size: 12pt !important;
-                font-weight: bold !important;
-                margin-bottom: 3mm !important;
-                color: #1a4f8b !important;
-            }
-            
-            /* Student Information - Compact */
-            .student-info {
-                margin-bottom: 5mm !important;
-                font-size: 9pt !important;
-            }
-            
-            .info-row {
-                margin-bottom: 2mm !important;
-                display: flex !important;
-                justify-content: space-between !important;
-            }
-            
-            .info-field {
-                display: flex !important;
-                align-items: center !important;
-            }
-            
-            .dotted-line {
-                border-bottom: 0.5pt dotted #000 !important;
-                flex: 1 !important;
-                margin: 0 2mm !important;
-                height: 4mm !important;
-            }
-            
-            /* Main Table - Full Width, Optimized */
-            .main-table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                font-size: 9pt !important;
-                margin-bottom: 5mm !important;
-                page-break-inside: avoid !important;
-            }
-            
-            .main-table th,
-            .main-table td {
-                border: 0.5pt solid #000 !important;
-                padding: 1mm 0.5mm !important;
-                text-align: center !important;
-                vertical-align: middle !important;
-                font-size: 8pt !important;
-            }
-            
-            .main-table th {
-                background-color: #f0f0f0 !important;
-                font-weight: bold !important;
-                font-size: 8pt !important;
-            }
-            
-            /* Column Widths - Proportional */
-            .main-table th:nth-child(1),
-            .main-table td:nth-child(1) { width: 5% !important; } /* S/N */
-            .main-table th:nth-child(2),
-            .main-table td:nth-child(2) { width: 20% !important; text-align: left !important; } /* Subject */
-            .main-table th:nth-child(3),
-            .main-table td:nth-child(3) { width: 8% !important; } /* AOI AV */
-            .main-table th:nth-child(4),
-            .main-table td:nth-child(4) { width: 8% !important; } /* EOT Score */
-            .main-table th:nth-child(5),
-            .main-table td:nth-child(5) { width: 8% !important; } /* Total Score */
-            .main-table th:nth-child(6),
-            .main-table td:nth-child(6) { width: 8% !important; } /* Class rank */
-            .main-table th:nth-child(7),
-            .main-table td:nth-child(7) { width: 6% !important; } /* Grade */
-            .main-table th:nth-child(8),
-            .main-table td:nth-child(8) { width: 25% !important; text-align: left !important; } /* Remarks */
-            .main-table th:nth-child(9),
-            .main-table td:nth-child(9) { width: 12% !important; } /* Teacher Initials */
-            
-            .subject-col {
-                text-align: left !important;
-                padding-left: 1mm !important;
-            }
-            
-            .remark-col {
-                text-align: left !important;
-                padding-left: 1mm !important;
-            }
-            
-            /* Summary Rows */
-            .summary-row {
-                font-weight: bold !important;
-                background-color: #f8f8f8 !important;
-            }
-            
-            /* Bottom Tables - Side by Side */
-            .bottom-section {
-                display: flex !important;
-                justify-content: space-between !important;
-                margin-bottom: 5mm !important;
-                gap: 3mm !important;
-            }
-            
-            .key-table,
-            .grading-table {
-                width: 48% !important;
-                border-collapse: collapse !important;
-                font-size: 8pt !important;
-            }
-            
-            .key-table th,
-            .key-table td,
-            .grading-table th,
-            .grading-table td {
-                border: 0.5pt solid #000 !important;
-                padding: 1mm !important;
-                text-align: center !important;
-                font-size: 7pt !important;
-            }
-            
-            .key-table th,
-            .grading-table th {
-                background-color: #f0f0f0 !important;
-                font-weight: bold !important;
-            }
-            
-            .term-col {
-                text-align: left !important;
-                padding-left: 1mm !important;
-            }
-            
-            /* Remarks Section - Compact */
-            .remarks-section {
-                margin-top: 5mm !important;
-                font-size: 9pt !important;
-            }
-            
-            .remarks-title {
-                text-align: center !important;
-                font-weight: bold !important;
-                font-size: 10pt !important;
-                margin-bottom: 3mm !important;
-            }
-            
-            .remarks-content {
-                font-size: 8pt !important;
-                line-height: 1.3 !important;
-            }
-            
-            .signature-line {
-                margin-bottom: 3mm !important;
-                display: flex !important;
-                align-items: center !important;
-            }
-            
-            .signature-label {
-                font-weight: bold !important;
-                margin-right: 2mm !important;
-                white-space: nowrap !important;
-            }
-            
-            .signature-field {
-                border-bottom: 0.5pt solid #000 !important;
-                min-width: 3cm !important;
-                margin-right: 5mm !important;
-                height: 4mm !important;
-                display: inline-block !important;
-            }
-            
-            .school-stamp {
-                text-align: center !important;
-                margin-top: 5mm !important;
-                font-weight: bold !important;
-                font-size: 9pt !important;
-            }
-            
-            /* Hide non-printable elements */
-            .sidebar,
-            .mobile-menu-toggle,
-            .btn,
-            .card-header,
-            .modal-header,
-            .modal-footer,
-            .no-print {
-                display: none !important;
-            }
-            
-            .main-content {
-                margin-left: 0 !important;
-                padding: 0 !important;
-            }
-            
-            .modal-body {
-                padding: 0 !important;
-            }
-        }
         
         /* Screen Styles - Keep existing functionality */
         @media screen {
@@ -1224,7 +880,7 @@
                 font-weight: bold;
                 font-size: 14px;
             }
-        }
+            }
         
         
         /* Responsive Design */
@@ -1475,14 +1131,8 @@
                                     <button class="btn btn-primary btn-sm" id="generateAllBtn">
                                         <i class="fas fa-file-alt"></i> Generate All
                                     </button>
-                                    <button class="btn btn-success btn-sm" id="testPdfBtn">
-                                        <i class="fas fa-file-pdf"></i> Test PDF
-                                    </button>
-                                    <button class="btn btn-warning btn-sm" id="testPreviewBtn">
-                                        <i class="fas fa-eye"></i> View Preview
-                                    </button>
                                     <button class="btn btn-info btn-sm" id="exportExcelBtn">
-                                        <i class="fas fa-download"></i> Export
+                                        <i class="fas fa-download"></i> Export Excel
                                     </button>
                                 </div>
                             </div>
@@ -1569,17 +1219,15 @@
         </div>
     </div>
 
-    <!-- Report Card Preview Modal -->
+    <!-- Report Card Modal -->
     <div class="modal fade" id="reportCardModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Report Card Preview</h5>
+                    <h5 class="modal-title">Report Card</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="report-card-preview" id="reportCardPreview">
-                        <!-- New Professional Report Card Template -->
                         <div class="report-card-container" id="reportCardTemplate">
                             <!-- Header Section -->
                             <div class="header">
@@ -1588,17 +1236,17 @@
                                     <div class="logo-text-outer">
                                         <div class="logo-text-top">ADILANG SECONDARY SCHOOL</div>
                                         <div class="logo-text-bottom">EDUCATION IS THE KEY TO SUCCESS</div>
-                                    </div>
+                                        </div>
                                     <div class="logo-inner">
                                         <div>E21D-3000</div>
                                         <div style="font-size: 8px;">📖🌱</div>
                                     </div>
-                                </div>
+                                    </div>
 
                                 <!-- Student Photo Placeholder -->
                                 <div class="student-photo">
                                     Student Photo
-                                </div>
+                                        </div>
 
                                 <!-- School Information -->
                                 <div class="header-content">
@@ -1608,14 +1256,14 @@
                                     <div class="report-title">END OF TERM THREE ASSESSMENT REPORT CARD 2025</div>
                                 </div>
                             </div>
-
+                        
                             <!-- Student Information -->
                             <div class="student-info">
                                 <div class="info-row">
                                     <div class="info-field">
                                         <span>STUDENT'S NAME:</span>
                                         <div class="dotted-line" id="studentNameLine"></div>
-                                    </div>
+                            </div>
                                     <div class="info-field">
                                         <span>SEX</span>
                                         <div class="dotted-line" id="studentSexLine" style="width: 50px;"></div>
@@ -1634,9 +1282,9 @@
                                         <span>PAYMENT CODE</span>
                                         <div class="dotted-line" id="paymentCodeLine"></div>
                                     </div>
-                                </div>
                             </div>
-
+                        </div>
+                        
                             <!-- Main Academic Performance Table -->
                             <table class="main-table">
                                 <thead>
@@ -1651,11 +1299,11 @@
                                         <th class="remark-col">Subject teachers remark</th>
                                         <th class="initials-col">TR'S initials</th>
                                     </tr>
-                                </thead>
-                                <tbody id="subjectsTableBody">
-                                    <!-- Subjects will be populated here -->
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody id="subjectsTableBody">
+                                            <!-- Subjects will be populated here -->
+                                        </tbody>
+                                    </table>
 
                             <!-- Bottom Section -->
                             <div class="bottom-section">
@@ -1665,8 +1313,8 @@
                                         <tr>
                                             <th colspan="2">KEY TO TERMS USED</th>
                                         </tr>
-                                    </thead>
-                                    <tbody>
+                                </thead>
+                                <tbody>
                                         <tr>
                                             <td class="term-col">AOI</td>
                                             <td>Activity of Integration</td>
@@ -1675,8 +1323,8 @@
                                             <td class="term-col">AV average, EOT</td>
                                             <td>End of Term</td>
                                         </tr>
-                                    </tbody>
-                                </table>
+                                </tbody>
+                            </table>
 
                                 <!-- Grading Scale -->
                                 <table class="grading-table">
@@ -1684,8 +1332,8 @@
                                         <tr>
                                             <th colspan="5">GRADING SCALE</th>
                                         </tr>
-                                    </thead>
-                                    <tbody>
+                                                    </thead>
+                                                    <tbody>
                                         <tr>
                                             <td>A</td>
                                             <td>B</td>
@@ -1700,10 +1348,10 @@
                                             <td>50-59</td>
                                             <td>0-49</td>
                                         </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
+                                                    </tbody>
+                                                </table>
+                        </div>
+                        
                             <!-- Remarks Section -->
                             <div class="remarks-section">
                                 <div class="remarks-title">REMARKS</div>
@@ -1713,44 +1361,35 @@
                                         <span class="signature-field"></span>
                                         <span class="signature-label">Sign</span>
                                         <span class="signature-field"></span>
-                                    </div>
+                            </div>
                                     <div class="signature-line">
                                         <span class="signature-label">Bursar: Fees Balance:</span>
                                         <span class="signature-field" id="feesBalance"></span>
                                         <span class="signature-label">Sign</span>
                                         <span class="signature-field"></span>
-                                    </div>
+                            </div>
                                     <div class="signature-line">
                                         <span class="signature-label">Head teacher:</span>
                                         <span class="signature-field"></span>
                                         <span class="signature-label">Sign</span>
                                         <span class="signature-field"></span>
-                                    </div>
+                        </div>
                                     <div class="signature-line">
                                         <span class="signature-label">Next term begins on</span>
                                         <span class="signature-field"></span>
                                         <span class="signature-label">and ends on</span>
                                         <span class="signature-field"></span>
                                     </div>
-                                </div>
+                        </div>
                                 <div class="school-stamp">School stamp</div>
-                            </div>
+                                </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success btn-lg" id="exportPdfBtn">
-                        <i class="fas fa-file-pdf"></i> Generate PDF Report Card
-                    </button>
-                    <button type="button" class="btn btn-warning btn-lg" onclick="exportToPDFAdvanced()">
-                        <i class="fas fa-file-pdf"></i> Generate Advanced PDF
-                    </button>
-                    <button type="button" class="btn btn-info btn-lg" onclick="exportToPDFCompact()">
-                        <i class="fas fa-file-pdf"></i> Generate Compact PDF
-                    </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
-                        <i class="fas fa-print"></i> Print
+                        <i class="fas fa-print"></i> Print Report Card
                     </button>
                     <button type="button" class="btn btn-success" onclick="distributeReportCard()">
                         <i class="fas fa-share"></i> Distribute
@@ -1765,11 +1404,6 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- SheetJS for Excel export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- html2pdf.js for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- A4 Test Script -->
-    <script src="a4-test-script.js"></script>
     
     <!-- jQuery Report Card System -->
     <script src="report-cards-jquery.js"></script>
@@ -1819,7 +1453,6 @@
                 setupRealTimeListeners();
                 
                 // Initialize page display
-                testFunction(); // Test if functions are defined
             displayReportCards();
                 updateReportCardsStatistics();
                 
@@ -2188,33 +1821,15 @@
             }
         }
         
-        // jQuery event handlers for PDF generation
+        // jQuery event handlers for print functionality
         $(document).ready(function() {
-            // Standard PDF generation button
-            $('#exportPdfBtn').on('click', function(e) {
-                e.preventDefault();
-                exportToPDF();
-            });
-            
-            // Advanced PDF generation button
-            $('button[onclick*="exportToPDFAdvanced"]').on('click', function(e) {
-                e.preventDefault();
-                exportToPDFAdvanced();
-            });
-            
-            // Compact PDF generation button
-            $('button[onclick*="exportToPDFCompact"]').on('click', function(e) {
-                e.preventDefault();
-                exportToPDFCompact();
-            });
-            
             // Print button
             $('button[onclick*="printReportCard"]').on('click', function(e) {
                 e.preventDefault();
                 printReportCard();
             });
             
-            // Add keyboard shortcuts for PDF generation
+            // Add keyboard shortcuts for print
             $(document).on('keydown', function(e) {
                 // Ctrl+P for print
                 if (e.ctrlKey && e.key === 'p') {
@@ -2223,182 +1838,10 @@
                         printReportCard();
                     }
                 }
-                // Ctrl+Shift+P for PDF generation
-                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-                    e.preventDefault();
-                    if ($('#reportCardTemplate').length > 0) {
-                        exportToPDF();
-                    }
-                }
             });
         });
         
-        // Enhanced PDF generation with progress tracking
-        function generatePDFWithProgress() {
-            const $element = $('#reportCardTemplate');
-            if ($element.length === 0) {
-                showNotification('No report card to export. Please view a report card first.', 'error');
-                return;
-            }
-            
-            // Create progress modal
-            const $progressModal = $(`
-                <div class="modal fade" id="pdfProgressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Generating PDF</h5>
-                            </div>
-                            <div class="modal-body text-center">
-                                <div class="spinner-border text-primary mb-3" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p>Please wait while we generate your PDF...</p>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `);
-            
-            $('body').append($progressModal);
-            const progressModal = new bootstrap.Modal(document.getElementById('pdfProgressModal'));
-            progressModal.show();
-            
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 90) progress = 90;
-                $('.progress-bar').css('width', progress + '%');
-            }, 200);
-            
-            // Get student info
-            const studentName = $('#studentNameLine').text() || 'student';
-            const studentClass = $('#studentClassLine').text() || 'class';
-            const academicYear = new Date().getFullYear();
-            
-            // Configure PDF options
-            const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2], // Minimal margins
-                filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
-                image: { 
-                    type: 'jpeg', 
-                    quality: 0.95,
-                    pixelRatio: 1.5
-                },
-                html2canvas: { 
-                    scale: 1.4, // Optimized scale for complete content
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    letterSpacing: 0,
-                    logging: false,
-                    width: $element[0].offsetWidth,
-                    height: $element[0].offsetHeight,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 1200, // Optimized window size
-                    windowHeight: 1800, // Optimized window height
-                    dpi: 200, // Reduced DPI for better fit
-                    foreignObjectRendering: true,
-                    removeContainer: true
-                },
-                jsPDF: { 
-                    unit: 'in', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true,
-                    precision: 2
-                }
-            };
-            
-            // Generate PDF
-            html2pdf().set(opt).from($element[0]).save().then(() => {
-                clearInterval(progressInterval);
-                $('.progress-bar').css('width', '100%');
-                setTimeout(() => {
-                    progressModal.hide();
-                    $progressModal.remove();
-                    showNotification('PDF generated successfully!', 'success');
-                }, 500);
-            }).catch((error) => {
-                clearInterval(progressInterval);
-                progressModal.hide();
-                $progressModal.remove();
-                console.error('Error generating PDF:', error);
-                showNotification('Failed to generate PDF. Please try again.', 'error');
-            });
-        }
         
-        // Ultra-compact PDF generation to fit entire content
-        function exportToPDFCompact() {
-            const $element = $('#reportCardTemplate');
-            if ($element.length === 0) {
-                showNotification('No report card to export. Please view a report card first.', 'error');
-                return;
-            }
-            
-            // Show loading
-            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating Compact PDF...</div></div>');
-            $('body').append($loadingOverlay);
-            
-            // Get student info
-            const studentName = $('#studentNameLine').text() || 'student';
-            const studentClass = $('#studentClassLine').text() || 'class';
-            const academicYear = new Date().getFullYear();
-            
-            // Ultra-compact configuration
-            const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5], // Smaller margins for compact fit
-                filename: `Compact_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
-                image: { 
-                    type: 'jpeg', 
-                    quality: 0.95,
-                    pixelRatio: 2
-                },
-                html2canvas: { 
-                    scale: 1.8, // Balanced scale for compact fit
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    letterSpacing: 0,
-                    logging: false,
-                    width: $element[0].offsetWidth,
-                    height: $element[0].offsetHeight,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 1000,
-                    windowHeight: 1600,
-                    dpi: 250,
-                    foreignObjectRendering: true,
-                    removeContainer: true,
-                    scaleWindow: true
-                },
-                jsPDF: { 
-                    unit: 'cm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true,
-                    precision: 2,
-                    putOnlyUsedFonts: true,
-                    floatPrecision: 16
-                }
-            };
-            
-            // Generate PDF
-            html2pdf().set(opt).from($element[0]).save().then(() => {
-                console.log('Compact PDF generated successfully');
-                showNotification('Compact PDF generated successfully!', 'success');
-            }).catch((error) => {
-                console.error('Error generating compact PDF:', error);
-                showNotification('Failed to generate compact PDF. Please try again.', 'error');
-            }).finally(() => {
-                $loadingOverlay.remove();
-            });
-        }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -2414,6 +1857,18 @@
         window.printReportCard = printReportCard;
         window.distributeReportCard = distributeReportCard;
         window.logout = DOSUtils.logout;
+        
+        function viewReportCard(studentId) {
+            const card = reportCards.find(c => c.studentId === studentId);
+            if (!card) return;
+            
+            // Populate the report card template with actual data
+            populateReportCardTemplate(card);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
+            modal.show();
+        }
         
         function getGradeColor(grade) {
             switch(grade) {
@@ -2437,18 +1892,6 @@
             }
         }
         
-        function viewReportCard(studentId) {
-            const card = reportCards.find(c => c.studentId === studentId);
-            if (!card) return;
-            
-            // Populate the report card template with actual data
-            populateReportCardTemplate(card);
-            
-            // Generate PDF directly instead of showing modal
-            setTimeout(() => {
-                exportToPDF();
-            }, 500); // Small delay to ensure template is populated
-        }
         
         // Populate report card template with actual data - Updated for new template structure
         function populateReportCardTemplate(card) {
@@ -2995,180 +2438,8 @@
             return "th";
         }
         
-        // Enhanced jQuery-based PDF generation with better error handling
-        function exportToPDF() {
-            const $element = $('#reportCardTemplate');
-            if ($element.length === 0) {
-                alert('No report card to export. Please view a report card first.');
-                return;
-            }
-            
-            // Get student information for filename
-            const studentName = $('#studentNameLine').text() || 'student';
-            const studentClass = $('#studentClassLine').text() || 'class';
-            const academicYear = new Date().getFullYear();
-            
-            // Configure PDF options for A4 single page with optimized settings
-            console.log('Generating PDF with jQuery and html2pdf.js...');
-            console.log('Element dimensions:', $element[0].offsetWidth, 'x', $element[0].offsetHeight);
-            
-            const opt = {
-                margin: [1, 1, 1, 1], // 1cm margins for A4 standard
-                filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
-                image: { 
-                    type: 'jpeg', 
-                    quality: 0.98,
-                    pixelRatio: 2
-                },
-                html2canvas: { 
-                    scale: 2, // Higher scale for crisp text
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    letterSpacing: 0,
-                    logging: false,
-                    width: $element[0].offsetWidth,
-                    height: $element[0].offsetHeight,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 1200,
-                    windowHeight: 1600,
-                    dpi: 300, // High DPI for print quality
-                    foreignObjectRendering: true,
-                    removeContainer: true,
-                    scaleWindow: true
-                },
-                jsPDF: { 
-                    unit: 'cm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true,
-                    precision: 2,
-                    putOnlyUsedFonts: true,
-                    floatPrecision: 16
-                },
-                pagebreak: { 
-                    mode: ['avoid-all', 'css', 'legacy'],
-                    before: '.page-break-before',
-                    after: '.page-break-after',
-                    avoid: '.no-break'
-                }
-            };
-            
-            // Update export button with jQuery
-            const $exportBtn = $('button[onclick*="exportToPDF"]');
-            let originalText = '';
-            if ($exportBtn.length > 0) {
-                originalText = $exportBtn.html();
-                $exportBtn.html('<i class="fas fa-spinner fa-spin"></i> Generating PDF...').prop('disabled', true);
-            }
-            
-            // Show loading overlay
-            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating PDF...</div></div>');
-            $('body').append($loadingOverlay);
-            
-            // Generate PDF with enhanced error handling
-            html2pdf().set(opt).from($element[0]).save().then(() => {
-                console.log('PDF generated successfully');
-                // Show success message
-                showNotification('PDF generated successfully!', 'success');
-            }).catch((error) => {
-                console.error('Error generating PDF:', error);
-                showNotification('Failed to generate PDF. Please try again.', 'error');
-            }).finally(() => {
-                // Clean up UI
-                $loadingOverlay.remove();
-                if ($exportBtn.length > 0) {
-                    $exportBtn.html(originalText).prop('disabled', false);
-                }
-            });
-        }
         
-        // Alternative PDF generation method using jsPDF directly (more control)
-        function exportToPDFAdvanced() {
-            const $element = $('#reportCardTemplate');
-            if ($element.length === 0) {
-                alert('No report card to export. Please view a report card first.');
-                return;
-            }
-            
-            // Show loading
-            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating Advanced PDF...</div></div>');
-            $('body').append($loadingOverlay);
-            
-            // Get student info
-            const studentName = $('#studentNameLine').text() || 'student';
-            const studentClass = $('#studentClassLine').text() || 'class';
-            const academicYear = new Date().getFullYear();
-            
-            // Configure advanced options
-            const opt = {
-                margin: [1, 1, 1, 1], // 1cm margins for A4 standard
-                filename: `Advanced_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
-                image: { 
-                    type: 'jpeg', 
-                    quality: 0.99,
-                    pixelRatio: 3
-                },
-                html2canvas: { 
-                    scale: 2.5, // Higher scale for premium quality
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    letterSpacing: 0,
-                    logging: false,
-                    width: $element[0].offsetWidth,
-                    height: $element[0].offsetHeight,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 1400,
-                    windowHeight: 1800,
-                    dpi: 300,
-                    foreignObjectRendering: true,
-                    removeContainer: true,
-                    scaleWindow: true
-                },
-                jsPDF: { 
-                    unit: 'cm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true,
-                    precision: 3,
-                    putOnlyUsedFonts: true,
-                    floatPrecision: 16
-                }
-            };
-            
-            // Generate PDF
-            html2pdf().set(opt).from($element[0]).save().then(() => {
-                console.log('Advanced PDF generated successfully');
-                showNotification('Advanced PDF generated successfully!', 'success');
-            }).catch((error) => {
-                console.error('Error generating advanced PDF:', error);
-                showNotification('Failed to generate advanced PDF. Please try again.', 'error');
-            }).finally(() => {
-                $loadingOverlay.remove();
-            });
-        }
         
-        // Notification system for user feedback
-        function showNotification(message, type = 'info') {
-            const $notification = $(`
-                <div class="notification notification-${type}">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                    ${message}
-                </div>
-            `);
-            
-            $('body').append($notification);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                $notification.fadeOut(300, function() {
-                    $(this).remove();
-                });
-            }, 3000);
-        }
         
         function generateTeacherComment(averageScore, studentName) {
             const score = parseFloat(averageScore);
@@ -3192,10 +2463,14 @@
                     // Populate template with data
                     populateReportCardTemplate(card);
                     
+                    // Show the modal first
+                    const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
+                    modal.show();
+                    
                     // Wait a moment for template to render, then print
                     setTimeout(() => {
                         window.print();
-                    }, 100);
+                    }, 1000);
                 }
             } else {
                 // Print current modal content
@@ -3209,10 +2484,10 @@
                 if (card) {
                     card.status = 'Distributed';
                     displayReportCards();
-                    showNotification(`Report card for ${card.studentName} marked as distributed!`, 'success');
+                    alert(`Report card for ${card.studentName} marked as distributed!`);
                 }
             } else {
-                showNotification('Report card marked as distributed!', 'success');
+                alert('Report card marked as distributed!');
                 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('reportCardModal'));
@@ -3266,8 +2541,8 @@
                         <td>${card.position || 'N/A'}</td>
                         <td><span class="badge ${getStatusColor(card.status)}">${card.status || 'N/A'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-success" onclick="viewReportCard('${card.studentId}')">
-                                <i class="fas fa-file-pdf"></i>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
+                                <i class="fas fa-eye"></i>
                             </button>
                             <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
                                 <i class="fas fa-print"></i>
@@ -3287,10 +2562,6 @@
             }
         }
         
-        // Test function to verify function definition
-        function testFunction() {
-            console.log('✅ Test function is defined');
-        }
         
         function displayFilteredReportCards(filteredCards) {
             const tbody = document.getElementById('report-cards-tbody');
@@ -3307,8 +2578,8 @@
                     <td>${card.position}</td>
                     <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-success" onclick="viewReportCard('${card.studentId}')">
-                            <i class="fas fa-file-pdf"></i>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
+                            <i class="fas fa-eye"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
                             <i class="fas fa-print"></i>
@@ -3330,12 +2601,12 @@
                     }
                 });
                 displayReportCards();
-                showNotification('All report cards generated successfully!', 'success');
+                alert('All report cards generated successfully!');
             }
         }
         
         function exportReportCards() {
-            alert('Export Report Cards feature:\n\nThis will download the report cards as a PDF or Excel file.');
+            alert('Export Report Cards feature:\n\nThis will download the report cards as an Excel file.');
         }
         
         // Mobile Sidebar Functionality
@@ -3387,9 +2658,9 @@
             initializeReportCards();
         });
         
-        // Sample data for testing - can be removed in production
+        // Sample data for demonstration
         function loadSampleData() {
-            console.log('Loading sample data for testing...');
+            console.log('Loading sample data for demonstration...');
             
             // Sample student data
             const sampleStudent = {
@@ -3727,42 +2998,9 @@
             displayReportCards();
         }
         
-        // Test function to demonstrate the report card - now generates PDF directly
-        function testReportCard() {
-            console.log('Testing report card PDF generation...');
-            
-            // Load sample data if not already loaded
-            if (reportCards.length === 0) {
-                loadSampleData();
-            }
-            
-            // Find the sample report card
-            const sampleCard = reportCards.find(card => card.studentId === 'sample-student-001');
-            if (sampleCard) {
-                populateReportCardTemplate(sampleCard);
-                
-                // Generate PDF directly instead of showing modal
-                setTimeout(() => {
-                    exportToPDF();
-                }, 500);
-                
-                console.log('Sample report card PDF generated');
-            } else {
-                console.error('Sample report card not found');
-            }
-        }
-        
-        // Make test functions globally available
-        window.testReportCard = testReportCard;
-        window.loadSampleData = loadSampleData;
     </script>
     
     <style>
-        .report-card-preview {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-        }
-        
         .report-card-template {
             background: white;
             padding: 20px;
@@ -3839,18 +3077,18 @@
             margin: 10px 0;
         }
         
-        .report-card-preview table {
+        .report-card-template table {
             margin-bottom: 20px;
         }
         
-        .report-card-preview th,
-        .report-card-preview td {
+        .report-card-template th,
+        .report-card-template td {
             padding: 8px;
             text-align: left;
             border: 1px solid #ddd;
         }
         
-        .report-card-preview th {
+        .report-card-template th {
             background-color: #f8f9fa;
             font-weight: bold;
         }
@@ -3872,10 +3110,6 @@
                 padding: 0 !important;
                 max-width: none !important;
                 margin: 0 !important;
-            }
-            
-            .report-card-preview {
-                font-size: 12px !important;
             }
             
             .school-name {
