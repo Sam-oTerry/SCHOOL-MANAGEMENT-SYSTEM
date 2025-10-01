@@ -584,6 +584,9 @@
                                     <button class="btn btn-primary btn-sm" onclick="generateAllReportCards()">
                                         <i class="fas fa-file-alt"></i> Generate All
                                     </button>
+                                    <button class="btn btn-success btn-sm" onclick="testReportCard()">
+                                        <i class="fas fa-file-pdf"></i> Test PDF
+                                    </button>
                                     <button class="btn btn-info btn-sm" onclick="exportReportCards()">
                                         <i class="fas fa-download"></i> Export
                                     </button>
@@ -845,8 +848,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" onclick="exportToPDF()">
-                        <i class="fas fa-file-pdf"></i> Export PDF
+                    <button type="button" class="btn btn-success btn-lg" onclick="exportToPDF()">
+                        <i class="fas fa-file-pdf"></i> Generate PDF Report Card
                     </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print
@@ -1322,9 +1325,10 @@
             // Populate the report card template with actual data
             populateReportCardTemplate(card);
             
-            // Show report card preview modal
-            const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
-            modal.show();
+            // Generate PDF directly instead of showing modal
+            setTimeout(() => {
+                exportToPDF();
+            }, 500); // Small delay to ensure template is populated
         }
         
         // Populate report card template with actual data - Updated for new template structure
@@ -2020,8 +2024,8 @@
                         <td>${card.position || 'N/A'}</td>
                         <td><span class="badge ${getStatusColor(card.status)}">${card.status || 'N/A'}</span></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
-                                <i class="fas fa-eye"></i>
+                            <button class="btn btn-sm btn-outline-success" onclick="viewReportCard('${card.studentId}')">
+                                <i class="fas fa-file-pdf"></i>
                             </button>
                             <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
                                 <i class="fas fa-print"></i>
@@ -2061,8 +2065,8 @@
                     <td>${card.position}</td>
                     <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
-                            <i class="fas fa-eye"></i>
+                        <button class="btn btn-sm btn-outline-success" onclick="viewReportCard('${card.studentId}')">
+                            <i class="fas fa-file-pdf"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
                             <i class="fas fa-print"></i>
@@ -2481,9 +2485,9 @@
             displayReportCards();
         }
         
-        // Test function to demonstrate the report card
+        // Test function to demonstrate the report card - now generates PDF directly
         function testReportCard() {
-            console.log('Testing report card generation...');
+            console.log('Testing report card PDF generation...');
             
             // Load sample data if not already loaded
             if (reportCards.length === 0) {
@@ -2494,9 +2498,13 @@
             const sampleCard = reportCards.find(card => card.studentId === 'sample-student-001');
             if (sampleCard) {
                 populateReportCardTemplate(sampleCard);
-                const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
-                modal.show();
-                console.log('Sample report card displayed');
+                
+                // Generate PDF directly instead of showing modal
+                setTimeout(() => {
+                    exportToPDF();
+                }, 500);
+                
+                console.log('Sample report card PDF generated');
             } else {
                 console.error('Sample report card not found');
             }
