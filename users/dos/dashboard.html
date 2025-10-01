@@ -725,6 +725,7 @@
             }
             
             console.log('Classes to display:', classes.length);
+            console.log('Sample student data:', students.length > 0 ? students[0] : 'No students');
             tbody.innerHTML = '';
             
             if (classes.length === 0) {
@@ -741,11 +742,26 @@
             }
             
             classes.forEach(cls => {
-                // Get students for this class
-                const classStudents = students.filter(student => 
-                    student.academicInfo?.classId === cls.id || 
-                    student.academicInfo?.className === cls.name
-                );
+                console.log(`Processing class: ${cls.name} (ID: ${cls.id})`);
+                
+                // Get students for this class - try multiple matching strategies
+                const classStudents = students.filter(student => {
+                    const studentClassId = student.academicInfo?.classId;
+                    const studentClassName = student.academicInfo?.className;
+                    const studentClass = student.academicInfo?.class;
+                    
+                    console.log(`Student ${student.personalInfo?.fullName || student.id}: classId=${studentClassId}, className=${studentClassName}, class=${studentClass}`);
+                    
+                    return (
+                        studentClassId === cls.id || 
+                        studentClassName === cls.name ||
+                        studentClass === cls.name ||
+                        studentClassId === cls.name ||
+                        studentClassName === cls.id
+                    );
+                });
+                
+                console.log(`Found ${classStudents.length} students for class ${cls.name}`);
                 
                 // Get grades for this class
                 const classGrades = grades.filter(grade => 
@@ -803,9 +819,9 @@
         // Display recent activity with dynamic data
         function displayRecentActivity() {
             console.log('📢 displayRecentActivity called');
-            const container = document.getElementById('recentActivityContainer');
+            const container = document.getElementById('recent-activity-container');
             if (!container) {
-                console.error('recentActivityContainer element not found');
+                console.error('recent-activity-container element not found');
                 return;
             }
             
@@ -850,9 +866,9 @@
         // Display upcoming events with dynamic data
         function displayUpcomingEvents() {
             console.log('📅 displayUpcomingEvents called');
-            const container = document.getElementById('upcomingEventsContainer');
+            const container = document.getElementById('upcoming-events-container');
             if (!container) {
-                console.error('upcomingEventsContainer element not found');
+                console.error('upcoming-events-container element not found');
                 return;
             }
             
