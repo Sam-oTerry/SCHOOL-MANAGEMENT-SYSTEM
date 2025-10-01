@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Card Template - Adilang Secondary School</title>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .report-card {
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            background: white;
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            padding: 0 100px; /* Add padding to prevent overlap with images */
+            min-height: 120px; /* Ensure enough space for images */
+        }
+
+        .school-logo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #1a4f8b;
+            background: linear-gradient(135deg, #1a4f8b 0%, #3a7cbd 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .logo-text-outer {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+        }
+
+        .logo-text-top {
+            font-size: 6px;
+            text-align: center;
+            transform: rotate(180deg);
+        }
+
+        .logo-text-bottom {
+            font-size: 6px;
+            text-align: center;
+        }
+
+        .logo-inner {
+            text-align: center;
+            z-index: 2;
+            font-size: 10px;
+        }
+
+        .student-photo {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 80px;
+            height: 100px;
+            border: 2px solid #000;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            z-index: 1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .school-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #1a4f8b;
+        }
+
+        .school-address {
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .school-phone {
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1a4f8b;
+        }
+
+        /* Student Information */
+        .student-info {
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .info-field {
+            display: flex;
+            align-items: center;
+        }
+
+        .dotted-line {
+            border-bottom: 1px dotted #000;
+            flex: 1;
+            margin: 0 10px;
+            height: 20px;
+        }
+
+        /* Main Table */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .main-table th,
+        .main-table td {
+            border: 1px solid #000;
+            padding: 8px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .main-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .main-table .subject-col {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .main-table .serial-col {
+            width: 40px;
+        }
+
+        .main-table .score-col {
+            width: 60px;
+        }
+
+        .main-table .grade-col {
+            width: 50px;
+        }
+
+        .main-table .remark-col {
+            width: 120px;
+            text-align: left;
+            padding-left: 4px;
+        }
+
+        .main-table .initials-col {
+            width: 60px;
+        }
+
+        /* Summary rows */
+        .summary-row {
+            font-weight: bold;
+            background-color: #f8f8f8;
+        }
+
+        .summary-row .subject-col {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .summary-row td[colspan="2"] {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Bottom Tables */
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .key-table,
+        .grading-table {
+            width: 48%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .key-table th,
+        .key-table td,
+        .grading-table th,
+        .grading-table td {
+            border: 1px solid #000;
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        .key-table th,
+        .grading-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .key-table .term-col {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        /* Remarks Section */
+        .remarks-section {
+            margin-top: 20px;
+        }
+
+        .remarks-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .remarks-content {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .signature-line {
+            margin-bottom: 15px;
+        }
+
+        .signature-field {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            min-width: 200px;
+            margin-right: 20px;
+        }
+
+        .signature-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .school-stamp {
+            text-align: center;
+            margin-top: 30px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .report-card {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 15mm;
+                box-shadow: none;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            .report-card {
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .school-name {
+                font-size: 18px;
+            }
+            
+            .report-title {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-card">
+        <!-- Header Section -->
+        <div class="header">
+            <!-- School Logo -->
+            <div class="school-logo">
+                <div class="logo-text-outer">
+                    <div class="logo-text-top">ADILANG SECONDARY SCHOOL</div>
+                    <div class="logo-text-bottom">EDUCATION IS THE KEY TO SUCCESS</div>
+                </div>
+                <div class="logo-inner">
+                    <div>E21D-3000</div>
+                    <div style="font-size: 8px;">📖🌱</div>
+                </div>
+            </div>
+
+            <!-- Student Photo Placeholder -->
+            <div class="student-photo">
+                Student Photo
+            </div>
+
+            <!-- School Information -->
+            <div class="header-content">
+                <div class="school-name">ADILANG SCONDARY SCHOOL</div>
+                <div class="school-address">P.O.BOX 13, PADER-AGAGO DISTRICT</div>
+                <div class="school-phone">TEL: 0773221580/0782634466/0782446279/0770685882</div>
+                <div class="report-title">END OF TERM THREE ASSESSMENT REPORT CARD 2025</div>
+            </div>
+        </div>
+
+        <!-- Student Information -->
+        <div class="student-info">
+            <div class="info-row">
+                <div class="info-field">
+                    <span>STUDENT'S NAME:</span>
+                    <div class="dotted-line"></div>
+                </div>
+                <div class="info-field">
+                    <span>SEX</span>
+                    <div class="dotted-line" style="width: 50px;"></div>
+                    <span>CLASS</span>
+                    <div class="dotted-line" style="width: 50px;"></div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-field">
+                    <span>STREAM:</span>
+                    <div class="dotted-line" style="width: 100px;"></div>
+                    <span>LIN</span>
+                    <div class="dotted-line" style="width: 100px;"></div>
+                </div>
+                <div class="info-field">
+                    <span>PAYMENT CODE</span>
+                    <div class="dotted-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Academic Performance Table -->
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th class="serial-col">S/N</th>
+                    <th class="subject-col">SUBJECT</th>
+                    <th class="score-col">AOI<br>AV<br>(20%)</th>
+                    <th class="score-col">EOT<br>Score<br>(80%)</th>
+                    <th class="score-col">Total<br>Score<br>(100%)</th>
+                    <th class="score-col">Class<br>rank</th>
+                    <th class="grade-col">Grade</th>
+                    <th class="remark-col">Subject teachers remark</th>
+                    <th class="initials-col">TR'S initials</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td class="subject-col">MATHS</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td class="subject-col">ENGLISH</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td class="subject-col">LIT IN ENGLISH</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td class="subject-col">CRE</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>8</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>9</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>13</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>14</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>15</td>
+                    <td class="subject-col"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+                <tr class="summary-row">
+                    <td colspan="2" class="subject-col">TOTAL MARKS:</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="2">OVERALL PERFORMANCE</td>
+                </tr>
+                <tr class="summary-row">
+                    <td colspan="2" class="subject-col">AVERAGE SCORE:</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="remark-col"></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Bottom Section -->
+        <div class="bottom-section">
+            <!-- Key to Terms Used -->
+            <table class="key-table">
+                <thead>
+                    <tr>
+                        <th colspan="2">KEY TO TERMS USED</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="term-col">AOI</td>
+                        <td>Activity of Integration</td>
+                    </tr>
+                    <tr>
+                        <td class="term-col">AV average, EOT</td>
+                        <td>End of Term</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Grading Scale -->
+            <table class="grading-table">
+                <thead>
+                    <tr>
+                        <th colspan="5">GRADING SCALE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A</td>
+                        <td>B</td>
+                        <td>C</td>
+                        <td>D</td>
+                        <td>E</td>
+                    </tr>
+                    <tr>
+                        <td>80-100</td>
+                        <td>70-79</td>
+                        <td>60-69</td>
+                        <td>50-59</td>
+                        <td>0-49</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Remarks Section -->
+        <div class="remarks-section">
+            <div class="remarks-title">REMARKS</div>
+            <div class="remarks-content">
+                <div class="signature-line">
+                    <span class="signature-label">Class Teacher</span>
+                    <span class="signature-field"></span>
+                    <span class="signature-label">Sign</span>
+                    <span class="signature-field"></span>
+                </div>
+                <div class="signature-line">
+                    <span class="signature-label">Bursar: Fees Balance:</span>
+                    <span class="signature-field"></span>
+                    <span class="signature-label">Sign</span>
+                    <span class="signature-field"></span>
+                </div>
+                <div class="signature-line">
+                    <span class="signature-label">Head teacher:</span>
+                    <span class="signature-field"></span>
+                    <span class="signature-label">Sign</span>
+                    <span class="signature-field"></span>
+                </div>
+                <div class="signature-line">
+                    <span class="signature-label">Next term begins on</span>
+                    <span class="signature-field"></span>
+                    <span class="signature-label">and ends on</span>
+                    <span class="signature-field"></span>
+                </div>
+            </div>
+            <div class="school-stamp">School stamp</div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc",
+            authDomain: "ass-sms.firebaseapp.com",
+            projectId: "ass-sms",
+            storageBucket: "ass-sms.firebasestorage.app",
+            messagingSenderId: "515388722489",
+            appId: "1:515388722489:web:21169f130303f48aaa2ce8",
+            measurementId: "G-2FVKDJWK5E"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // JavaScript functionality for populating the report card
+        class ReportCardGenerator {
+            constructor() {
+                this.db = db;
+                this.auth = auth;
+                this.currentUser = null;
+                this.students = [];
+                this.subjects = [];
+                this.grades = [];
+                this.classes = [];
+                this.initializeEventListeners();
+            }
+
+            async initializeEventListeners() {
+                console.log('Report Card Generator initialized');
+                
+                // Wait for authentication
+                await this.waitForAuth();
+                
+                // Load data from Firestore
+                await this.loadFirestoreData();
+                
+                // Populate with sample data for demonstration
+                this.populateWithSampleData();
+            }
+
+            async waitForAuth() {
+                return new Promise((resolve) => {
+                    const unsubscribe = this.auth.onAuthStateChanged((user) => {
+                        this.currentUser = user;
+                        unsubscribe();
+                        resolve(user);
+                    });
+                });
+            }
+
+            async loadFirestoreData() {
+                try {
+                    console.log('Loading data from Firestore...');
+                    
+                    // Load students
+                    const studentsSnapshot = await this.db.collection('students').get();
+                    this.students = studentsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    console.log('Loaded students:', this.students.length);
+
+                    // Load subjects
+                    const subjectsSnapshot = await this.db.collection('subjects').get();
+                    this.subjects = subjectsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    console.log('Loaded subjects:', this.subjects.length);
+
+                    // Load grades
+                    const gradesSnapshot = await this.db.collection('grades').get();
+                    this.grades = gradesSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    console.log('Loaded grades:', this.grades.length);
+
+                    // Load classes
+                    const classesSnapshot = await this.db.collection('classes').get();
+                    this.classes = classesSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    console.log('Loaded classes:', this.classes.length);
+
+                } catch (error) {
+                    console.error('Error loading Firestore data:', error);
+                }
+            }
+
+            // Method to get student data by ID
+            async getStudentById(studentId) {
+                try {
+                    const studentDoc = await this.db.collection('students').doc(studentId).get();
+                    if (studentDoc.exists) {
+                        return { id: studentDoc.id, ...studentDoc.data() };
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Error getting student:', error);
+                    return null;
+                }
+            }
+
+            // Method to get student grades for a specific term
+            async getStudentGrades(studentId, academicYear = '2025', term = 'Term 3') {
+                try {
+                    const gradesSnapshot = await this.db.collection('grades')
+                        .where('studentId', '==', studentId)
+                        .where('academicYear', '==', academicYear)
+                        .where('term', '==', term)
+                        .get();
+                    
+                    return gradesSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                } catch (error) {
+                    console.error('Error getting student grades:', error);
+                    return [];
+                }
+            }
+
+            // Method to get student's financial information
+            async getStudentFinancialInfo(studentId) {
+                try {
+                    const studentDoc = await this.db.collection('students').doc(studentId).get();
+                    if (studentDoc.exists) {
+                        const studentData = studentDoc.data();
+                        return {
+                            paymentCode: studentData.academicInfo?.paymentCode || 'PC001',
+                            feesBalance: studentData.financialInfo?.outstandingBalance || 0,
+                            paymentStatus: studentData.financialInfo?.paymentStatus || 'outstanding'
+                        };
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('Error getting financial info:', error);
+                    return null;
+                }
+            }
+
+            // Method to populate report card with real Firestore data
+            async populateWithFirestoreData(studentId, academicYear = '2025', term = 'Term 3') {
+                try {
+                    console.log('Populating report card with Firestore data for student:', studentId);
+                    
+                    // Get student data
+                    const student = await this.getStudentById(studentId);
+                    if (!student) {
+                        console.error('Student not found:', studentId);
+                        return;
+                    }
+
+                    // Get student grades
+                    const grades = await this.getStudentGrades(studentId, academicYear, term);
+                    
+                    // Get financial info
+                    const financialInfo = await this.getStudentFinancialInfo(studentId);
+
+                    // Populate student information
+                    const studentData = {
+                        name: student.personalInfo?.fullName || 
+                              `${student.personalInfo?.firstName || ''} ${student.personalInfo?.lastName || ''}`.trim() ||
+                              'Unknown Student',
+                        sex: student.personalInfo?.gender || student.personalInfo?.sex || 'M',
+                        class: student.academicInfo?.currentClass || student.academicInfo?.className || 'S.3A',
+                        stream: student.academicInfo?.stream || 'Science',
+                        lin: student.academicInfo?.lin || student.academicInfo?.admissionNumber || '001',
+                        paymentCode: financialInfo?.paymentCode || 'PC001'
+                    };
+
+                    this.populateStudentInfo(studentData);
+
+                    // Process grades data
+                    const results = [];
+                    grades.forEach(grade => {
+                        const subject = this.subjects.find(s => s.id === grade.subjectId);
+                        if (subject) {
+                            results.push({
+                                subject: subject.name,
+                                aoiScore: grade.aoiScore || grade.activityOfIntegration || 0,
+                                eotScore: grade.eotScore || grade.endOfTermScore || 0,
+                                totalScore: grade.totalScore || grade.finalScore || 0,
+                                classRank: grade.classRank || 'N/A',
+                                grade: grade.grade || this.calculateGrade(grade.totalScore || grade.finalScore || 0),
+                                teacherRemark: grade.teacherRemark || grade.remark || 'Good work',
+                                teacherInitials: grade.teacherInitials || grade.teacherName?.substring(0, 2) || 'T.S'
+                            });
+                        }
+                    });
+
+                    this.populateAcademicResults(results);
+                    this.calculateSummary(results);
+
+                    // Populate financial information
+                    if (financialInfo) {
+                        this.populateFinancialInfo(financialInfo);
+                    }
+
+                    console.log('Report card populated successfully with Firestore data');
+
+                } catch (error) {
+                    console.error('Error populating with Firestore data:', error);
+                }
+            }
+
+            // Method to calculate grade based on score
+            calculateGrade(score) {
+                if (score >= 80) return 'A';
+                if (score >= 70) return 'B';
+                if (score >= 60) return 'C';
+                if (score >= 50) return 'D';
+                return 'E';
+            }
+
+            // Method to populate financial information
+            populateFinancialInfo(financialInfo) {
+                const feesBalanceElement = document.querySelector('.fees-balance');
+                if (feesBalanceElement) {
+                    feesBalanceElement.textContent = `UGX ${financialInfo.feesBalance.toLocaleString()}`;
+                }
+            }
+
+            // Method to populate with sample data (fallback)
+            populateWithSampleData() {
+                console.log('Populating with sample data...');
+                
+                const sampleStudentData = {
+                    name: 'John Doe',
+                    sex: 'M',
+                    class: 'S.3A',
+                    stream: 'Science',
+                    lin: '001',
+                    paymentCode: 'PAY123'
+                };
+
+                const sampleResults = [
+                    { subject: 'MATHS', aoiScore: 18, eotScore: 72, totalScore: 90, classRank: '1st', grade: 'A', teacherRemark: 'Excellent performance', teacherInitials: 'J.S' },
+                    { subject: 'ENGLISH', aoiScore: 16, eotScore: 64, totalScore: 80, classRank: '2nd', grade: 'A', teacherRemark: 'Very good work', teacherInitials: 'M.K' },
+                    { subject: 'LIT IN ENGLISH', aoiScore: 15, eotScore: 60, totalScore: 75, classRank: '3rd', grade: 'B', teacherRemark: 'Good understanding', teacherInitials: 'A.L' },
+                    { subject: 'CRE', aoiScore: 17, eotScore: 68, totalScore: 85, classRank: '1st', grade: 'A', teacherRemark: 'Outstanding', teacherInitials: 'R.M' }
+                ];
+
+                this.populateStudentInfo(sampleStudentData);
+                this.populateAcademicResults(sampleResults);
+                this.calculateSummary(sampleResults);
+            }
+
+            // Method to populate student information
+            populateStudentInfo(studentData) {
+                const nameField = document.querySelector('.student-info .info-row:first-child .dotted-line');
+                const sexField = document.querySelector('.student-info .info-row:first-child .dotted-line:nth-child(2)');
+                const classField = document.querySelector('.student-info .info-row:first-child .dotted-line:nth-child(4)');
+                
+                if (nameField) nameField.textContent = studentData.name || '';
+                if (sexField) sexField.textContent = studentData.sex || '';
+                if (classField) classField.textContent = studentData.class || '';
+            }
+
+            // Method to populate academic results
+            populateAcademicResults(results) {
+                const tableBody = document.querySelector('.main-table tbody');
+                const rows = tableBody.querySelectorAll('tr:not(.summary-row)');
+                
+                results.forEach((result, index) => {
+                    if (index < rows.length) {
+                        const cells = rows[index].querySelectorAll('td');
+                        if (cells.length >= 9) {
+                            cells[1].textContent = result.subject || '';
+                            cells[2].textContent = result.aoiScore || '';
+                            cells[3].textContent = result.eotScore || '';
+                            cells[4].textContent = result.totalScore || '';
+                            cells[5].textContent = result.classRank || '';
+                            cells[6].textContent = result.grade || '';
+                            cells[7].textContent = result.teacherRemark || '';
+                            cells[8].textContent = result.teacherInitials || '';
+                        }
+                    }
+                });
+            }
+
+            // Method to calculate and display summary
+            calculateSummary(results) {
+                const totalMarks = results.reduce((sum, result) => sum + (parseFloat(result.totalScore) || 0), 0);
+                const averageScore = results.length > 0 ? totalMarks / results.length : 0;
+                
+                const summaryRows = document.querySelectorAll('.summary-row');
+                if (summaryRows.length >= 2) {
+                    const totalCells = summaryRows[0].querySelectorAll('td');
+                    const averageCells = summaryRows[1].querySelectorAll('td');
+                    
+                    if (totalCells.length >= 5) {
+                        totalCells[2].textContent = totalMarks.toFixed(1);
+                        totalCells[3].textContent = totalMarks.toFixed(1);
+                        totalCells[4].textContent = totalMarks.toFixed(1);
+                    }
+                    
+                    if (averageCells.length >= 5) {
+                        averageCells[2].textContent = averageScore.toFixed(1);
+                        averageCells[3].textContent = averageScore.toFixed(1);
+                        averageCells[4].textContent = averageScore.toFixed(1);
+                    }
+                }
+            }
+
+            // Method to print the report card
+            printReportCard() {
+                window.print();
+            }
+
+            // Method to generate PDF (placeholder for future implementation)
+            generatePDF() {
+                // This would integrate with a PDF generation library like jsPDF
+                console.log('PDF generation not implemented yet');
+            }
+        }
+
+        // Global instance for easy access
+        let reportGenerator;
+
+        // Initialize the report card generator
+        document.addEventListener('DOMContentLoaded', async function() {
+            reportGenerator = new ReportCardGenerator();
+            
+            // Add controls for testing with different students
+            addTestControls();
+        });
+
+        // Add test controls to the page
+        function addTestControls() {
+            const controlsDiv = document.createElement('div');
+            controlsDiv.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: white;
+                padding: 15px;
+                border: 2px solid #1a4f8b;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-family: Arial, sans-serif;
+            `;
+            
+            controlsDiv.innerHTML = `
+                <h3 style="margin: 0 0 10px 0; color: #1a4f8b;">Report Card Controls</h3>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Student ID:</label>
+                    <input type="text" id="studentIdInput" placeholder="Enter student ID" 
+                           style="width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Academic Year:</label>
+                    <select id="academicYearSelect" style="width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Term:</label>
+                    <select id="termSelect" style="width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="Term 3">Term 3</option>
+                        <option value="Term 2">Term 2</option>
+                        <option value="Term 1">Term 1</option>
+                    </select>
+                </div>
+                <button onclick="loadStudentReport()" 
+                        style="background: #1a4f8b; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                    Load Student Report
+                </button>
+                <button onclick="loadSampleData()" 
+                        style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                    Load Sample Data
+                </button>
+                <button onclick="printReport()" 
+                        style="background: #ffc107; color: black; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+                    Print Report
+                </button>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <div>Students loaded: <span id="studentsCount">0</span></div>
+                    <div>Subjects loaded: <span id="subjectsCount">0</span></div>
+                    <div>Grades loaded: <span id="gradesCount">0</span></div>
+                </div>
+            `;
+            
+            document.body.appendChild(controlsDiv);
+            
+            // Update counts
+            updateDataCounts();
+        }
+
+        // Update data counts display
+        function updateDataCounts() {
+            if (reportGenerator) {
+                document.getElementById('studentsCount').textContent = reportGenerator.students.length;
+                document.getElementById('subjectsCount').textContent = reportGenerator.subjects.length;
+                document.getElementById('gradesCount').textContent = reportGenerator.grades.length;
+            }
+        }
+
+        // Load student report with Firestore data
+        async function loadStudentReport() {
+            const studentId = document.getElementById('studentIdInput').value;
+            const academicYear = document.getElementById('academicYearSelect').value;
+            const term = document.getElementById('termSelect').value;
+            
+            if (!studentId) {
+                alert('Please enter a student ID');
+                return;
+            }
+            
+            if (reportGenerator) {
+                await reportGenerator.populateWithFirestoreData(studentId, academicYear, term);
+            }
+        }
+
+        // Load sample data
+        function loadSampleData() {
+            if (reportGenerator) {
+                reportGenerator.populateWithSampleData();
+            }
+        }
+
+        // Print report
+        function printReport() {
+            if (reportGenerator) {
+                reportGenerator.printReportCard();
+            }
+        }
+    </script>
+</body>
+</html>
