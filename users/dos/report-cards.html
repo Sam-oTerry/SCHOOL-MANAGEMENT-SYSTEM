@@ -505,14 +505,7 @@
                 
                 // Initialize page display
                 testFunction(); // Test if functions are defined
-                console.log('Testing function availability:', typeof displayReportCards, typeof window.displayReportCards);
-                if (typeof displayReportCards === 'function') {
-                    displayReportCards();
-                } else if (typeof window.displayReportCards === 'function') {
-                    window.displayReportCards();
-                } else {
-                    console.error('displayReportCards function not available');
-                }
+                displayReportCards();
                 updateReportCardsStatistics();
                 
                 hideLoading();
@@ -918,27 +911,54 @@
             displayFilteredReportCards(filteredCards);
         }
         
-        // Display all report cards - Updated to fix caching issue
+        // Display all report cards - Simplified version
         function displayReportCards() {
+            console.log('📋 displayReportCards called, reportCards length:', reportCards.length);
             try {
-                console.log('📋 Displaying report cards:', reportCards.length);
-                displayFilteredReportCards(reportCards);
+                const tbody = document.getElementById('report-cards-tbody');
+                if (!tbody) {
+                    console.error('report-cards-tbody element not found');
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                
+                if (reportCards.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No report cards available</td></tr>';
+                    return;
+                }
+                
+                reportCards.forEach(card => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${card.studentId || 'N/A'}</td>
+                        <td>${card.studentName || 'N/A'}</td>
+                        <td>${card.class || 'N/A'}</td>
+                        <td>${card.term || 'N/A'}</td>
+                        <td><span class="badge ${getGradeColor(card.averageGrade)}">${card.averageGrade || 'N/A'}</span></td>
+                        <td>${card.position || 'N/A'}</td>
+                        <td><span class="badge ${getStatusColor(card.status)}">${card.status || 'N/A'}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewReportCard('${card.studentId}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="printReportCard('${card.studentId}')">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="distributeReportCard('${card.studentId}')">
+                                <i class="fas fa-share"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                console.log('✅ Report cards displayed successfully');
             } catch (error) {
-                console.error('Error displaying report cards:', error);
-                showError('Error displaying report cards');
+                console.error('Error in displayReportCards:', error);
+                showError('Error displaying report cards: ' + error.message);
             }
         }
-        
-        // Alternative function definition to test
-        window.displayReportCards = function() {
-            try {
-                console.log('📋 Displaying report cards (window method):', reportCards.length);
-                displayFilteredReportCards(reportCards);
-            } catch (error) {
-                console.error('Error displaying report cards (window method):', error);
-                showError('Error displaying report cards');
-            }
-        };
         
         // Test function to verify function definition
         function testFunction() {
