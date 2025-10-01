@@ -696,13 +696,13 @@
                             <div class="col-md-3">
                                 <label class="form-label">Actions</label>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-primary btn-sm" onclick="generateAllReportCards()">
+                                    <button class="btn btn-primary btn-sm" id="generateAllBtn">
                                         <i class="fas fa-file-alt"></i> Generate All
                                     </button>
-                                    <button class="btn btn-success btn-sm" onclick="testReportCard()">
+                                    <button class="btn btn-success btn-sm" id="testPdfBtn">
                                         <i class="fas fa-file-pdf"></i> Test PDF
                                     </button>
-                                    <button class="btn btn-info btn-sm" onclick="exportReportCards()">
+                                    <button class="btn btn-info btn-sm" id="exportExcelBtn">
                                         <i class="fas fa-download"></i> Export
                                     </button>
                                 </div>
@@ -861,13 +861,13 @@
                                             <tr>
                                                 <th>S/N</th>
                                                 <th>SUBJECT</th>
-                                                <th>AOI/AV (20%)</th>
-                                                <th>EOT (80%)</th>
+                                                <th>ASSESS. (20%)</th>
+                                                <th>TEST (30%)</th>
                                                 <th>TOTAL (100%)</th>
                                                 <th>GRADE</th>
                                                 <th>POS</th>
                                                 <th>REMARKS</th>
-                                                <th>TR INIT</th>
+                                                <th>SUBMIT</th>
                                             </tr>
                                         </thead>
                                         <tbody id="subjectsTableBody">
@@ -963,7 +963,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success btn-lg" onclick="exportToPDF()">
+                    <button type="button" class="btn btn-success btn-lg" id="exportPdfBtn">
                         <i class="fas fa-file-pdf"></i> Generate PDF Report Card
                     </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
@@ -978,6 +978,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- SheetJS for Excel export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- html2pdf.js for PDF export -->
@@ -985,6 +987,9 @@
     
     <!-- A4 Test Script -->
     <script src="a4-test-script.js"></script>
+    
+    <!-- jQuery Report Card System -->
+    <script src="report-cards-jquery.js"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1536,7 +1541,6 @@
                 // Create table row with S/N
                 const rowNumber = subjectCount;
                 const subjectPosition = calculateSubjectPosition(card.studentId, grade.subjectId, card.termId);
-                const teacherInitials = getTeacherInitials(subjectName, card.class);
                 const subjectRemark = generateSubjectRemark(letterGrade, total, subjectName);
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1544,11 +1548,11 @@
                     <td class="fw-bold">${subjectName}</td>
                     <td>${midTerm}</td>
                     <td>${endTerm}</td>
-                    <td>${total.toFixed(1)}</td>
+                    <td>${total.toFixed(0)}%</td>
                     <td class="${getGradeClass(letterGrade)}">${letterGrade}</td>
                     <td>${subjectPosition}</td>
                     <td>${subjectRemark}</td>
-                    <td>${teacherInitials}</td>
+                    <td></td>
                 `;
                 subjectsTableBody.appendChild(row);
             });
@@ -1570,7 +1574,7 @@
                     <td class="text-muted">-</td>
                     <td class="text-muted">-</td>
                     <td class="text-muted">${blankRemark}</td>
-                    <td class="text-muted">-</td>
+                    <td class="text-muted"></td>
                 `;
                 subjectsTableBody.appendChild(blankRow);
             }
