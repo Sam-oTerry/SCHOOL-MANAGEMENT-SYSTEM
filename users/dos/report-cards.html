@@ -530,19 +530,32 @@
         function processReportCardsData() {
             reportCards = [];
             
+            console.log('📋 Processing report cards data...');
+            console.log('Students to process:', students.length);
+            console.log('Classes available:', classes.length);
+            console.log('Grades available:', grades.length);
+            
             students.forEach(student => {
-                // Get student's class
+                // Get student's class - try multiple ways to match
                 const studentClass = classes.find(cls => 
                     cls.id === student.academicInfo?.classId || 
-                    cls.name === student.academicInfo?.className
+                    cls.name === student.academicInfo?.className ||
+                    cls.name === student.class ||
+                    cls.id === student.class
                 );
                 
-                if (!studentClass) return;
+                if (!studentClass) {
+                    console.log(`⚠️ No class found for student ${student.personalInfo?.fullName || student.id}`);
+                    return;
+                }
                 
                 // Get student's grades
                 const studentGrades = grades.filter(grade => grade.studentId === student.id);
                 
-                if (studentGrades.length === 0) return;
+                if (studentGrades.length === 0) {
+                    console.log(`⚠️ No grades found for student ${student.personalInfo?.fullName || student.id}`);
+                    return;
+                }
                 
                 // Group grades by term
                 const termGroups = {};
@@ -613,11 +626,16 @@
         
         // Calculate position (simplified implementation)
         function calculatePosition(studentId, classId, termId) {
-            // Get all students in the same class
-            const classStudents = students.filter(student => 
-                student.academicInfo?.classId === classId || 
-                student.academicInfo?.className === classes.find(c => c.id === classId)?.name
-            );
+            // Get all students in the same class - try multiple ways to match
+            const classStudents = students.filter(student => {
+                const studentClass = classes.find(cls => 
+                    cls.id === student.academicInfo?.classId || 
+                    cls.name === student.academicInfo?.className ||
+                    cls.name === student.class ||
+                    cls.id === student.class
+                );
+                return studentClass && studentClass.id === classId;
+            });
             
             // Calculate average scores for all students in this term
             const studentAverages = classStudents.map(student => {
@@ -755,6 +773,18 @@
                 case 'pending': return 'bg-warning';
                 default: return 'bg-secondary';
             }
+        }
+        
+        function viewReportCard(studentId) {
+            const card = reportCards.find(c => c.studentId === studentId);
+            if (!card) return;
+            
+            // Populate the report card template with actual data
+            populateReportCardTemplate(card);
+            
+            // Show report card preview modal
+            const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
+            modal.show();
         }
         
         // Populate report card template with actual data
