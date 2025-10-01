@@ -475,10 +475,10 @@
         .report-card-container {
             max-width: 100%; /* Changed from fixed A4 width to 100% */
             margin: 0 auto;
-            padding: 15px; /* Increased padding for better spacing */
+            padding: 10px; /* Reduced padding for more content space */
             font-family: 'Arial', sans-serif;
-            line-height: 1.2; /* Increased line height */
-            font-size: 10px; /* Increased font size */
+            line-height: 1.1; /* Reduced line height for compactness */
+            font-size: 9px; /* Reduced font size for better fit */
             overflow: visible; /* Ensure content is not cut off */
         }
         
@@ -674,57 +674,72 @@
             }
         }
         
-        /* Ensure all content is visible and not cut off */
+        /* Ensure all content is visible and not cut off - Compact spacing */
         .academic-table {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px; /* Reduced margin */
         }
         
         .academic-table table {
             width: 100%;
             table-layout: fixed;
             border-collapse: collapse;
+            font-size: 8px; /* Smaller font for table */
         }
         
         .academic-table th,
         .academic-table td {
             word-wrap: break-word;
             overflow-wrap: break-word;
-            padding: 4px 2px;
+            padding: 2px 1px; /* Reduced padding */
         }
         
-        /* Ensure bottom tables fit */
+        /* Ensure bottom tables fit - Compact spacing */
         .bottom-tables {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px; /* Reduced margin */
         }
         
         .bottom-table {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 8px; /* Reduced margin */
         }
         
         .bottom-table table {
             width: 100%;
             table-layout: fixed;
+            font-size: 7px; /* Smaller font for bottom tables */
         }
         
-        /* Ensure signatures section is visible */
+        /* Ensure signatures section is visible - Compact spacing */
         .signatures {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px; /* Reduced margin */
         }
         
         .signature-section {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 8px; /* Reduced margin */
+        }
+        
+        /* Reduce spacing in other sections */
+        .header {
+            margin-bottom: 10px; /* Reduced margin */
+        }
+        
+        .student-info {
+            margin-bottom: 10px; /* Reduced margin */
+        }
+        
+        .remarks-section {
+            margin-bottom: 10px; /* Reduced margin */
         }
         
         /* Print Styles - Single Page Layout */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 0.3in; /* Reduced margins for more content space */
+                margin: 0.2in; /* Minimal margins for maximum content */
             }
             
             body {
@@ -1424,6 +1439,9 @@
                     <button type="button" class="btn btn-warning btn-lg" onclick="exportToPDFAdvanced()">
                         <i class="fas fa-file-pdf"></i> Generate Advanced PDF
                     </button>
+                    <button type="button" class="btn btn-info btn-lg" onclick="exportToPDFCompact()">
+                        <i class="fas fa-file-pdf"></i> Generate Compact PDF
+                    </button>
                     <button type="button" class="btn btn-primary" onclick="printReportCard()">
                         <i class="fas fa-print"></i> Print
                     </button>
@@ -1877,6 +1895,12 @@
                 exportToPDFAdvanced();
             });
             
+            // Compact PDF generation button
+            $('button[onclick*="exportToPDFCompact"]').on('click', function(e) {
+                e.preventDefault();
+                exportToPDFCompact();
+            });
+            
             // Print button
             $('button[onclick*="printReportCard"]').on('click', function(e) {
                 e.preventDefault();
@@ -1951,15 +1975,15 @@
             
             // Configure PDF options
             const opt = {
-                margin: [0.3, 0.3, 0.3, 0.3], // Reduced margins
+                margin: [0.2, 0.2, 0.2, 0.2], // Minimal margins
                 filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
-                    quality: 0.98,
-                    pixelRatio: 2
+                    quality: 0.95,
+                    pixelRatio: 1.5
                 },
                 html2canvas: { 
-                    scale: 1.8, // Optimized scale
+                    scale: 1.4, // Optimized scale for complete content
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -1969,9 +1993,9 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1400, // Increased window width
-                    windowHeight: 2000, // Increased window height
-                    dpi: 300,
+                    windowWidth: 1200, // Optimized window size
+                    windowHeight: 1800, // Optimized window height
+                    dpi: 200, // Reduced DPI for better fit
                     foreignObjectRendering: true,
                     removeContainer: true
                 },
@@ -1999,6 +2023,73 @@
                 $progressModal.remove();
                 console.error('Error generating PDF:', error);
                 showNotification('Failed to generate PDF. Please try again.', 'error');
+            });
+        }
+        
+        // Ultra-compact PDF generation to fit entire content
+        function exportToPDFCompact() {
+            const $element = $('#reportCardTemplate');
+            if ($element.length === 0) {
+                showNotification('No report card to export. Please view a report card first.', 'error');
+                return;
+            }
+            
+            // Show loading
+            const $loadingOverlay = $('<div class="pdf-loading-overlay"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><br>Generating Compact PDF...</div></div>');
+            $('body').append($loadingOverlay);
+            
+            // Get student info
+            const studentName = $('#studentNameLine').text() || 'student';
+            const studentClass = $('#studentClassLine').text() || 'class';
+            const academicYear = new Date().getFullYear();
+            
+            // Ultra-compact configuration
+            const opt = {
+                margin: [0.1, 0.1, 0.1, 0.1], // Minimal margins
+                filename: `Compact_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
+                image: { 
+                    type: 'jpeg', 
+                    quality: 0.9,
+                    pixelRatio: 1.2
+                },
+                html2canvas: { 
+                    scale: 1.2, // Very small scale to fit everything
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    letterSpacing: 0,
+                    logging: false,
+                    width: $element[0].offsetWidth,
+                    height: $element[0].offsetHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 1000, // Smaller window
+                    windowHeight: 1600, // Smaller window
+                    dpi: 150, // Lower DPI for smaller file
+                    foreignObjectRendering: true,
+                    removeContainer: true,
+                    scaleWindow: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 2,
+                    putOnlyUsedFonts: true,
+                    floatPrecision: 16
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().set(opt).from($element[0]).save().then(() => {
+                console.log('Compact PDF generated successfully');
+                showNotification('Compact PDF generated successfully!', 'success');
+            }).catch((error) => {
+                console.error('Error generating compact PDF:', error);
+                showNotification('Failed to generate compact PDF. Please try again.', 'error');
+            }).finally(() => {
+                $loadingOverlay.remove();
             });
         }
         
@@ -2615,15 +2706,15 @@
             console.log('Element dimensions:', $element[0].offsetWidth, 'x', $element[0].offsetHeight);
             
             const opt = {
-                margin: [0.3, 0.3, 0.3, 0.3], // Reduced margins to prevent cutoff
+                margin: [0.2, 0.2, 0.2, 0.2], // Minimal margins for maximum content
                 filename: `Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
-                    quality: 0.98,
-                    pixelRatio: 2 // Higher quality for better text rendering
+                    quality: 0.95,
+                    pixelRatio: 1.5 // Reduced for better fit
                 },
                 html2canvas: { 
-                    scale: 1.8, // Reduced scale to fit better
+                    scale: 1.4, // Further reduced scale to fit entire content
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -2633,11 +2724,13 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1400, // Increased window width
-                    windowHeight: 2000, // Increased window height
-                    dpi: 300, // High DPI for print quality
+                    windowWidth: 1200, // Optimized window size
+                    windowHeight: 1800, // Optimized window height
+                    dpi: 200, // Reduced DPI for better fit
                     foreignObjectRendering: true,
-                    removeContainer: true
+                    removeContainer: true,
+                    scaleWindow: true,
+                    useCORS: true
                 },
                 jsPDF: { 
                     unit: 'in', 
@@ -2704,15 +2797,15 @@
             
             // Configure advanced options
             const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2], // Minimal margins for maximum content
+                margin: [0.15, 0.15, 0.15, 0.15], // Even smaller margins
                 filename: `Advanced_Report_Card_${studentName.replace(/\s+/g, '_')}_${studentClass}_${academicYear}.pdf`,
                 image: { 
                     type: 'jpeg', 
-                    quality: 0.99,
-                    pixelRatio: 2.5
+                    quality: 0.95,
+                    pixelRatio: 1.5
                 },
                 html2canvas: { 
-                    scale: 1.6, // Optimized scale for full content
+                    scale: 1.3, // Further reduced scale for complete content
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
@@ -2722,9 +2815,9 @@
                     height: $element[0].offsetHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1600, // Wider window
-                    windowHeight: 2200, // Taller window
-                    dpi: 300,
+                    windowWidth: 1200, // Optimized window size
+                    windowHeight: 1800, // Optimized window height
+                    dpi: 200, // Reduced DPI for better fit
                     foreignObjectRendering: true,
                     removeContainer: true,
                     scaleWindow: true
@@ -2734,7 +2827,7 @@
                     format: 'a4', 
                     orientation: 'portrait',
                     compress: true,
-                    precision: 3,
+                    precision: 2,
                     putOnlyUsedFonts: true,
                     floatPrecision: 16
                 }
