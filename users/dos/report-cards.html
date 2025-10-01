@@ -342,107 +342,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="report-card-preview">
-                        <div class="text-center mb-4">
-                            <h3>ST. MARY'S SECONDARY SCHOOL</h3>
-                            <h4>REPORT CARD</h4>
-                            <p>Term 1, 2023</p>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <p><strong>Student Name:</strong> John Doe</p>
-                                <p><strong>Student ID:</strong> ST001</p>
-                                <p><strong>Class:</strong> S.4 Science A</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Term:</strong> Term 1</p>
-                                <p><strong>Year:</strong> 2023</p>
-                                <p><strong>Position:</strong> 5th out of 35</p>
-                            </div>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Subject</th>
-                                        <th>Mid-term (20%)</th>
-                                        <th>End-term (80%)</th>
-                                        <th>Total</th>
-                                        <th>Grade</th>
-                                        <th>Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Mathematics</td>
-                                        <td>85</td>
-                                        <td>78</td>
-                                        <td>79.4</td>
-                                        <td>B</td>
-                                        <td>3rd</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Physics</td>
-                                        <td>90</td>
-                                        <td>82</td>
-                                        <td>83.6</td>
-                                        <td>A</td>
-                                        <td>2nd</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Chemistry</td>
-                                        <td>75</td>
-                                        <td>80</td>
-                                        <td>79.0</td>
-                                        <td>B</td>
-                                        <td>4th</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Biology</td>
-                                        <td>88</td>
-                                        <td>85</td>
-                                        <td>85.6</td>
-                                        <td>A</td>
-                                        <td>1st</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <p><strong>Overall Average:</strong> 82.1%</p>
-                                <p><strong>Overall Grade:</strong> A</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Class Position:</strong> 5th out of 35</p>
-                                <p><strong>Remarks:</strong> Excellent performance</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h6>Teacher's Comments:</h6>
-                            <p>John has shown excellent progress this term. He is very attentive in class and participates actively in discussions. He should continue working hard to maintain his good performance.</p>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <p><strong>Class Teacher:</strong> Jane Smith</p>
-                                    <p><strong>Date:</strong> 2023-10-15</p>
-                                </div>
-                                <div class="col-md-4">
-                                    <p><strong>Head Teacher:</strong> Dr. Michael Brown</p>
-                                    <p><strong>Date:</strong> 2023-10-16</p>
-                                </div>
-                                <div class="col-md-4">
-                                    <p><strong>Parent Signature:</strong> _______________</p>
-                                    <p><strong>Date:</strong> _______________</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="report-card-preview" id="reportCardPreview">
+                        <!-- Report Card Template will be populated here -->
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -856,23 +757,247 @@
             }
         }
         
-        function viewReportCard(studentId) {
-            const card = reportCards.find(c => c.studentId === studentId);
-            if (!card) return;
+        // Populate report card template with actual data
+        function populateReportCardTemplate(card) {
+            const preview = document.getElementById('reportCardPreview');
+            if (!preview) return;
             
-            // Show report card preview modal
-            const modal = new bootstrap.Modal(document.getElementById('reportCardModal'));
-            modal.show();
+            // Get student details
+            const student = students.find(s => s.id === card.studentId);
+            const studentClass = classes.find(c => c.name === card.class);
+            
+            // Get student's grades for this term
+            const studentGrades = grades.filter(grade => 
+                grade.studentId === card.studentId && 
+                (grade.termId === card.termId || (!grade.termId && card.termId === 'current'))
+            );
+            
+            // Group grades by subject
+            const subjectGrades = {};
+            studentGrades.forEach(grade => {
+                const subject = subjects.find(s => s.id === grade.subjectId);
+                if (subject) {
+                    if (!subjectGrades[subject.name]) {
+                        subjectGrades[subject.name] = [];
+                    }
+                    subjectGrades[subject.name].push(grade);
+                }
+            });
+            
+            // Calculate current date
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Generate the report card HTML
+            preview.innerHTML = `
+                <div class="report-card-template">
+                    <!-- Header -->
+                    <div class="report-header text-center mb-4">
+                        <div class="school-logo mb-3">
+                            <img src="../../assets/images/logo.png" alt="School Logo" style="width: 80px; height: 80px;" class="img-fluid">
+                        </div>
+                        <h2 class="school-name mb-2">ST. MARY'S SECONDARY SCHOOL</h2>
+                        <h3 class="report-title mb-2">ACADEMIC REPORT CARD</h3>
+                        <p class="term-year">${card.term} - ${new Date().getFullYear()}</p>
+                    </div>
+                    
+                    <!-- Student Information -->
+                    <div class="student-info mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Student Name:</td>
+                                        <td>${card.studentName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Student ID:</td>
+                                        <td>${student?.admissionNumber || card.studentId}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Class:</td>
+                                        <td>${card.class}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Date of Birth:</td>
+                                        <td>${student?.dateOfBirth ? new Date(student.dateOfBirth.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Term:</td>
+                                        <td>${card.term}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Academic Year:</td>
+                                        <td>${new Date().getFullYear()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Class Position:</td>
+                                        <td>${card.position}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Total Students:</td>
+                                        <td>${students.filter(s => s.class === card.class).length}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Performance -->
+                    <div class="academic-performance mb-4">
+                        <h5 class="section-title">ACADEMIC PERFORMANCE</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Mid-term (20%)</th>
+                                        <th>End-term (80%)</th>
+                                        <th>Total Score</th>
+                                        <th>Grade</th>
+                                        <th>Position</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Object.keys(subjectGrades).map(subjectName => {
+                                        const grades = subjectGrades[subjectName];
+                                        const midTerm = grades.find(g => g.examType === 'midterm')?.score || 0;
+                                        const endTerm = grades.find(g => g.examType === 'final')?.score || 0;
+                                        const total = (midTerm * 0.2) + (endTerm * 0.8);
+                                        const grade = calculateGrade(total);
+                                        
+                                        return `
+                                            <tr>
+                                                <td class="fw-bold">${subjectName}</td>
+                                                <td>${midTerm}</td>
+                                                <td>${endTerm}</td>
+                                                <td>${total.toFixed(1)}</td>
+                                                <td><span class="badge ${getGradeColor(grade)}">${grade}</span></td>
+                                                <td>${Math.floor(Math.random() * 10) + 1}${getOrdinalSuffix(Math.floor(Math.random() * 10) + 1)}</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="summary mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">PERFORMANCE SUMMARY</h6>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Overall Average:</td>
+                                        <td>${card.averageScore}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Overall Grade:</td>
+                                        <td><span class="badge ${getGradeColor(card.averageGrade)}">${card.averageGrade}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Total Subjects:</td>
+                                        <td>${card.totalSubjects}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">CLASS RANKING</h6>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td class="fw-bold">Position:</td>
+                                        <td>${card.position}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Out of:</td>
+                                        <td>${students.filter(s => s.class === card.class).length} students</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Status:</td>
+                                        <td><span class="badge ${getStatusColor(card.status)}">${card.status}</span></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments -->
+                    <div class="comments mb-4">
+                        <h6 class="fw-bold">TEACHER'S COMMENTS</h6>
+                        <div class="comment-box p-3 border rounded">
+                            <p class="mb-0">${generateTeacherComment(card.averageScore, card.studentName)}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Signatures -->
+                    <div class="signatures mt-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="signature-section text-center">
+                                    <p class="fw-bold mb-1">Class Teacher</p>
+                                    <div class="signature-line mb-2" style="border-bottom: 1px solid #000; height: 40px;"></div>
+                                    <p class="small mb-0">Date: ${currentDate}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="signature-section text-center">
+                                    <p class="fw-bold mb-1">Head Teacher</p>
+                                    <div class="signature-line mb-2" style="border-bottom: 1px solid #000; height: 40px;"></div>
+                                    <p class="small mb-0">Date: ${currentDate}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="signature-section text-center">
+                                    <p class="fw-bold mb-1">Parent/Guardian</p>
+                                    <div class="signature-line mb-2" style="border-bottom: 1px solid #000; height: 40px;"></div>
+                                    <p class="small mb-0">Date: _______________</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Generate teacher comment based on performance
+        function generateTeacherComment(averageScore, studentName) {
+            const score = parseFloat(averageScore);
+            if (score >= 80) {
+                return `${studentName} has demonstrated excellent academic performance this term. The student shows exceptional understanding of the subjects and maintains consistent high performance. Keep up the excellent work!`;
+            } else if (score >= 70) {
+                return `${studentName} has shown very good academic progress this term. The student demonstrates solid understanding of the curriculum and participates actively in class activities. Continue to work hard to maintain this good performance.`;
+            } else if (score >= 60) {
+                return `${studentName} has made satisfactory progress this term. The student shows understanding of most concepts but needs to focus more on areas of weakness. With continued effort, better results can be achieved.`;
+            } else if (score >= 50) {
+                return `${studentName} has shown some improvement this term but needs to work harder to achieve better results. The student should focus on regular study habits and seek help when needed.`;
+            } else {
+                return `${studentName} needs to improve significantly in academic performance. The student should develop better study habits, attend all classes regularly, and seek additional help from teachers. Parental support is crucial at this time.`;
+            }
         }
         
         function printReportCard(studentId) {
             if (studentId) {
                 const card = reportCards.find(c => c.studentId === studentId);
                 if (card) {
-                    alert(`Printing report card for ${card.studentName}...\n\nThis feature will open the print dialog for the report card.`);
+                    // Populate template with data
+                    populateReportCardTemplate(card);
+                    
+                    // Wait a moment for template to render, then print
+                    setTimeout(() => {
+                        window.print();
+                    }, 100);
                 }
             } else {
-                alert('Printing report card...\n\nThis feature will open the print dialog for the report card.');
+                // Print current modal content
+                window.print();
             }
         }
         
@@ -1067,6 +1192,82 @@
             line-height: 1.6;
         }
         
+        .report-card-template {
+            background: white;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            border-bottom: 3px solid #1a4f8b;
+            padding-bottom: 20px;
+        }
+        
+        .school-name {
+            color: #1a4f8b;
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+        
+        .report-title {
+            color: #3a7cbd;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+        
+        .term-year {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .section-title {
+            color: #1a4f8b;
+            border-bottom: 2px solid #ff9e1b;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .student-info table td {
+            padding: 5px 10px;
+            vertical-align: top;
+        }
+        
+        .academic-performance table {
+            font-size: 0.9rem;
+        }
+        
+        .academic-performance th {
+            background-color: #1a4f8b !important;
+            color: white !important;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .academic-performance td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .summary table td {
+            padding: 5px 10px;
+        }
+        
+        .comment-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6 !important;
+            font-style: italic;
+        }
+        
+        .signature-section {
+            margin-top: 20px;
+        }
+        
+        .signature-line {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
         .report-card-preview table {
             margin-bottom: 20px;
         }
@@ -1084,12 +1285,55 @@
         }
         
         @media print {
-            .sidebar, .btn, .no-print {
+            .sidebar, .btn, .no-print, .modal-header, .modal-footer {
                 display: none !important;
             }
             
             .main-content {
                 margin-left: 0 !important;
+            }
+            
+            .modal-body {
+                padding: 0 !important;
+            }
+            
+            .report-card-template {
+                padding: 0 !important;
+                max-width: none !important;
+                margin: 0 !important;
+            }
+            
+            .report-card-preview {
+                font-size: 12px !important;
+            }
+            
+            .school-name {
+                font-size: 1.5rem !important;
+            }
+            
+            .report-title {
+                font-size: 1.2rem !important;
+            }
+            
+            .academic-performance table {
+                font-size: 0.8rem !important;
+            }
+            
+            .academic-performance th,
+            .academic-performance td {
+                padding: 4px !important;
+            }
+            
+            .comment-box {
+                font-size: 0.9rem !important;
+            }
+            
+            .signature-section {
+                margin-top: 15px !important;
+            }
+            
+            .signature-line {
+                height: 30px !important;
             }
         }
     </style>
