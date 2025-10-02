@@ -15,6 +15,14 @@ from docx.shared import Inches
 import io
 import base64
 
+# Firebase Admin SDK
+try:
+    from firebase_admin import credentials, initialize_app, firestore
+    FIREBASE_AVAILABLE = True
+except ImportError:
+    FIREBASE_AVAILABLE = False
+    print("⚠️ Firebase Admin SDK not available. Install with: pip install firebase-admin")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,8 +31,34 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend integration
 
 # Configuration
-FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'your-firebase-project-id')
-FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY', 'your-firebase-api-key')
+FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID', 'ass-sms')
+FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY', 'AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc')
+
+# Initialize Firebase Admin SDK
+def initialize_firebase():
+    """Initialize Firebase Admin SDK with service account"""
+    if not FIREBASE_AVAILABLE:
+        logger.warning("Firebase Admin SDK not available")
+        return None
+    
+    try:
+        # Get credentials from environment variable
+        creds_json = os.getenv('FIREBASE_CREDENTIALS_JSON')
+        if creds_json:
+            creds_dict = json.loads(creds_json)
+            cred = credentials.Certificate(creds_dict)
+            initialize_app(cred)
+            logger.info("✅ Firebase Admin SDK initialized successfully")
+            return firestore.client()
+        else:
+            logger.warning("❌ FIREBASE_CREDENTIALS_JSON not found in environment variables")
+            return None
+    except Exception as e:
+        logger.error(f"❌ Firebase initialization failed: {e}")
+        return None
+
+# Initialize Firebase
+db = initialize_firebase()
 
 class ReportCardGenerator:
     """Handles report card generation using Word templates"""
@@ -293,6 +327,45 @@ def get_grades_data(student_id, term):
         logger.error(f"Error fetching grades data: {str(e)}")
         return []
 
+@app.route('/api/test-firebase', methods=['GET'])
+def test_firebase():
+    """Test Firebase connection"""
+    if not db:
+        return jsonify({
+            'success': False,
+            'message': 'Firebase not initialized. Check FIREBASE_CREDENTIALS_JSON environment variable.'
+        }), 500
+    
+    try:
+        # Test Firestore connection
+        doc_ref = db.collection('test').document('connection')
+        doc_ref.set({
+            'message': 'Firebase connection test',
+            'timestamp': datetime.now().isoformat(),
+            'project_id': FIREBASE_PROJECT_ID
+        })
+        
+        # Read it back
+        doc = doc_ref.get()
+        if doc.exists:
+            return jsonify({
+                'success': True,
+                'message': 'Firebase connection successful',
+                'data': doc.to_dict(),
+                'project_id': FIREBASE_PROJECT_ID
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Firebase connection failed - document not found'
+            })
+    except Exception as e:
+        logger.error(f"Firebase test error: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Firebase error: {str(e)}'
+        }), 500
+
 @app.route('/api/test', methods=['GET'])
 def test_endpoint():
     """Test endpoint for development"""
@@ -300,7 +373,10 @@ def test_endpoint():
         'message': 'Backend API is working!',
         'timestamp': datetime.now().isoformat(),
         'template_path': report_generator.template_path,
-        'template_exists': os.path.exists(report_generator.template_path)
+        'template_exists': os.path.exists(report_generator.template_path),
+        'firebase_available': FIREBASE_AVAILABLE,
+        'firebase_initialized': db is not None,
+        'project_id': FIREBASE_PROJECT_ID
     })
 
 if __name__ == '__main__':
