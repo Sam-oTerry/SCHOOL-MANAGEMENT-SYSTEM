@@ -52,13 +52,19 @@ def initialize_firebase():
             return firestore.client()
         else:
             logger.warning("❌ FIREBASE_CREDENTIALS_JSON not found in environment variables")
+            logger.info("ℹ️ App will run without Firebase integration")
             return None
     except Exception as e:
         logger.error(f"❌ Firebase initialization failed: {e}")
+        logger.info("ℹ️ App will run without Firebase integration")
         return None
 
-# Initialize Firebase
-db = initialize_firebase()
+# Initialize Firebase (gracefully handle failures)
+try:
+    db = initialize_firebase()
+except Exception as e:
+    logger.error(f"Failed to initialize Firebase: {e}")
+    db = None
 
 class ReportCardGenerator:
     """Handles report card generation using Word templates"""
@@ -383,6 +389,15 @@ if __name__ == '__main__':
     # Get port from environment variable (for Render) or default to 5000
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    # Log startup information
+    logger.info(f"🚀 Starting School Management System API")
+    logger.info(f"📊 Port: {port}")
+    logger.info(f"🔧 Debug: {debug}")
+    logger.info(f"🔥 Firebase Available: {FIREBASE_AVAILABLE}")
+    logger.info(f"🔥 Firebase Initialized: {db is not None}")
+    logger.info(f"📁 Template Path: {report_generator.template_path}")
+    logger.info(f"📄 Template Exists: {os.path.exists(report_generator.template_path)}")
     
     # Production server for Render
     app.run(debug=debug, host='0.0.0.0', port=port)

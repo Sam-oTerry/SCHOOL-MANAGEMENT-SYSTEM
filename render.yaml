@@ -8,7 +8,7 @@ services:
     startCommand: python backend/app.py
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.9
       - key: FLASK_ENV
         value: production
       - key: FLASK_DEBUG
@@ -16,10 +16,10 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: FIREBASE_PROJECT_ID
-        sync: false
+        value: ass-sms
       - key: FIREBASE_API_KEY
-        sync: false
-      - key: FIREBASE_CREDENTIALS_PATH
+        value: AIzaSyC13_vM3RlSSxCDXTiKafekCBPpejtSGWc
+      - key: FIREBASE_CREDENTIALS_JSON
         sync: false
     healthCheckPath: /api/health
     autoDeploy: true

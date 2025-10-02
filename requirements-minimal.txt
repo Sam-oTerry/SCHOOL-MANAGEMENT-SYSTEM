@@ -1,0 +1,22 @@
+# Minimal requirements for School Management System Backend
+# Essential packages only to avoid build issues
+
+# Flask and web framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# HTTP requests
+requests==2.31.0
+
+# Word document processing
+python-docx==0.8.11
+
+# Firebase integration
+firebase-admin==6.2.0
+google-cloud-firestore==2.11.1
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Production server
+gunicorn==21.2.0
