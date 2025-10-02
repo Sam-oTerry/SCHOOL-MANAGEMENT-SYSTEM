@@ -304,5 +304,9 @@ def test_endpoint():
     })
 
 if __name__ == '__main__':
-    # Development server
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Get port from environment variable (for Render) or default to 5000
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    # Production server for Render
+    app.run(debug=debug, host='0.0.0.0', port=port)
